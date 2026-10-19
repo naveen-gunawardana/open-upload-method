@@ -46,7 +46,7 @@ def cmd_measure(a):
 
 def cmd_abtest(a):
     out = a.out or str(Path(a.input).with_name(f"{Path(a.input).stem}_abtest"))
-    ok = abtest.build(a.input, out)
+    ok, _ = abtest.build(a.input, out)
     print(f"\n  kit: {out}\n  next: upload each variant (see docs/TEST-PROTOCOL.md), then fill RESULTS.csv")
     return 0 if ok else 1
 
@@ -76,6 +76,11 @@ def cmd_patches(_):
 def cmd_testcard(a):
     testcard.make(a.output, fps=a.fps, seconds=a.seconds)
     print(f"  test card written: {a.output}")
+
+
+def cmd_ui(a):
+    from . import server
+    server.serve(a.workspace, port=a.port, open_browser=not a.no_browser)
 
 
 def main(argv=None):
@@ -127,7 +132,15 @@ def main(argv=None):
     s.add_argument("output"); s.add_argument("--fps", type=int, default=60); s.add_argument("--seconds", type=int, default=10)
     s.set_defaults(fn=cmd_testcard)
 
+    s = sub.add_parser("ui", help="Open the local web interface")
+    s.add_argument("--workspace", default=str(Path.home() / "OQM-workspace"), help="folder for all files (default ~/OQM-workspace)")
+    s.add_argument("--port", type=int, default=8765)
+    s.add_argument("--no-browser", action="store_true")
+    s.set_defaults(fn=cmd_ui)
+
     a = p.parse_args(argv)
+    if a.cmd == "ui":
+        return a.fn(a) or 0  # the UI reports a missing FFmpeg itself
     try:
         ff.require()
         return a.fn(a) or 0

@@ -23,12 +23,27 @@ Paid "upload methods" sell three things bundled together: export settings, an MP
 
 ## Install
 
-Requirements: Python 3.10+, FFmpeg (`ffmpeg` and `ffprobe` on PATH). No other dependencies.
+Requirements: **Python 3.10+** and **FFmpeg** (`ffmpeg` and `ffprobe` on PATH). Nothing else. No pip packages needed.
+
+- Windows: `winget install Python.Python.3.12 Gyan.FFmpeg`
+- macOS: `brew install python ffmpeg`
+
+## Use the app (no terminal needed)
+
+Download or clone this folder, then:
+
+- **Windows:** double-click **`Start OQM.bat`**
+- **macOS / Linux:** double-click **`start-oqm.command`** (or run `./start-oqm.command`)
+
+Your browser opens the OQM interface. It runs entirely on your computer (`127.0.0.1`) and nothing is uploaded anywhere. Drop your videos in, then work through the tabs: **Export → Patch → Measure**, or build an **A/B kit**. All files are kept in one folder, `~/OQM-workspace`, which you can open with the *Open folder* button.
+
+![OQM interface](docs/ui.png)
+
+## Use the command line
 
 ```bash
-git clone <this repo> && cd open-quality-method
-pip install -e .        # gives you the `oqm` command
-# or run without installing: python -m oqm ...
+pip install -e .        # optional: gives you the `oqm` command
+python -m oqm ui        # same app as the launchers (--workspace DIR, --port N)
 ```
 
 ## Quick start
@@ -52,6 +67,7 @@ This writes four variants (control, full method, decoy-only, structure-only) and
 
 | Command | Purpose |
 |---|---|
+| `oqm ui [--workspace DIR] [--port 8765]` | Open the local web interface |
 | `oqm export IN OUT [--codec h264\|h265] [--crf 17] [--fps 60] [--fit 1080x1920]` | Make the master |
 | `oqm patch IN [-o OUT] [--profile reference\|minimal\|none] [--enable/--disable PATCH...]` | Container patch + verify |
 | `oqm verify ORIGINAL PATCHED` | Prove nothing real changed |

@@ -16,3 +16,6 @@ oqm = "oqm.cli:main"
 
 [tool.setuptools]
 packages = ["oqm"]
+
+[tool.setuptools.package-data]
+oqm = ["ui/*.html"]

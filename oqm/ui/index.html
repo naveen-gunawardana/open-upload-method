@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OQM · Open Quality Method</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%23ff3b5c%22/%3E%3Cpath d=%22M9 16l5 5 9-10%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #0e0f12; --panel: #16181d; --panel2: #1d2027; --line: #2a2e37; --text: #e9eaee; --muted: #8b90a0;
+  --accent: #ff3b5c; --accent2: #25f4ee; --ok: #3ddc84; --warn: #ffb020; --bad: #ff4d4f;
+  --radius: 12px; --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: light) {
+  :root { --bg: #f4f5f7; --panel: #ffffff; --panel2: #f0f1f4; --line: #dde0e6; --text: #15171c; --muted: #646a78; --ok: #158a4a; --warn: #b26b00; --bad: #d42a2d; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+header { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
+.logo { font-weight: 800; letter-spacing: .5px; font-size: 18px; }
+.logo span { background: linear-gradient(90deg, var(--accent2), var(--accent)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.sub { color: var(--muted); font-size: 13px; }
+header .grow { flex: 1; }
+.ws { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--muted); }
+a.btn { display: inline-block; text-decoration: none; color: var(--text); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 10px 18px; }
+.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.sm { padding: 3px 8px; font-size: 12px; }
+#banner { display: none; margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--bad) 15%, transparent); border: 1px solid var(--bad); }
+.layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; padding: 18px 22px; align-items: start; }
+@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; } header { padding: 12px 16px; } .ws, .sub { display: none; } section { order: -1; } }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+aside .card + .card { margin-top: 14px; }
+h2 { font-size: 15px; margin: 0 0 4px; } h3 { font-size: 13px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.drop { display: block; border: 2px dashed var(--line); border-radius: var(--radius); padding: 22px 12px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
+.drop.over { border-color: var(--accent2); color: var(--text); background: color-mix(in srgb, var(--accent2) 8%, transparent); }
+.drop strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 2px; }
+.prog { margin-top: 8px; font-size: 12px; } .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.bar > i { display: block; height: 100%; background: var(--accent2); width: 0; transition: width .2s; }
+#files { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; }
+#files li { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+#files li:last-child { border-bottom: 0; }
+#files .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+#files .dir { color: var(--muted); } #files .sz { color: var(--muted); font-family: var(--mono); font-size: 11px; }
+#files a, .ico { color: var(--muted); text-decoration: none; cursor: pointer; border: 0; background: none; padding: 2px 4px; }
+#files a:hover, .ico:hover { color: var(--text); }
+.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 14px; }
+.tab { background: none; border: 1px solid transparent; border-radius: 999px; padding: 7px 14px; cursor: pointer; color: var(--muted); }
+.tab .n { display: inline-grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--panel2); font-size: 11px; margin-right: 6px; }
+.tab.on { background: var(--panel); border-color: var(--line); color: var(--text); }
+.tab.on .n { background: var(--accent); color: #fff; }
+.panel { display: none; } .panel.on { display: block; }
+.lead { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px; }
+label.f { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
+select, input[type=number], input[type=text] { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 9px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 7px; cursor: pointer; color: var(--muted); }
+.seg button.on { background: var(--panel); color: var(--text); box-shadow: 0 1px 2px #0003; }
+.patches { display: grid; gap: 8px; margin: 14px 0 16px; }
+.patch { display: grid; grid-template-columns: auto 1fr; gap: 10px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel2); cursor: pointer; }
+.patch input { margin-top: 3px; accent-color: var(--accent); }
+.patch .id { font-family: var(--mono); font-weight: 600; font-size: 13px; }
+.patch .s { font-size: 13px; } .patch .e { font-size: 12px; color: var(--muted); }
+.patch.locked { opacity: .7; cursor: default; }
+details { margin-bottom: 16px; } summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; }
+.actions { display: flex; align-items: center; gap: 12px; }
+.result { margin-top: 18px; } .result:empty { display: none; }
+.running { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 14px; border: 1px solid var(--line); border-radius: 10px; }
+.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent2); border-radius: 50%; animation: s .8s linear infinite; }
+@keyframes s { to { transform: rotate(360deg); } }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; }
+td.num { font-family: var(--mono); }
+.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; letter-spacing: .4px; }
+.pill.PASS { background: color-mix(in srgb, var(--ok) 18%, transparent); color: var(--ok); }
+.pill.WARN { background: color-mix(in srgb, var(--warn) 18%, transparent); color: var(--warn); }
+.pill.FAIL { background: color-mix(in srgb, var(--bad) 18%, transparent); color: var(--bad); }
+.verdict { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: 10px; margin-bottom: 14px; border: 1px solid; }
+.verdict.good { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.verdict.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.verdict .big { font-size: 22px; } .verdict b { display: block; font-size: 15px; }
+.out { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel2); border-radius: 10px; margin-bottom: 12px; font-family: var(--mono); font-size: 13px; }
+.out .grow { flex: 1; }
+pre { background: var(--panel2); border-radius: 10px; padding: 12px; font-size: 12px; overflow: auto; max-height: 420px; margin: 0; }
+.err { color: var(--bad); white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 12px; border: 1px solid var(--bad); border-radius: 10px; }
+.note { font-size: 13px; color: var(--muted); margin: 6px 0; }
+.muted { color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><span>OQM</span></div>
+  <div class="sub">Open Quality Method <span id="ver"></span></div>
+  <div class="grow"></div>
+  <div class="ws" id="ws" title="Workspace folder"></div>
+  <button class="btn" id="openWs">Open folder</button>
+</header>
+<div id="banner"></div>
+
+<div class="layout">
+  <aside>
+    <div class="card">
+      <label class="drop" id="drop">
+        <strong>Drop videos here</strong>or click to browse
+        <input type="file" id="pick" multiple accept="video/*,.mp4,.mov,.mkv,.m4v,.webm" hidden>
+      </label>
+      <div id="uploads"></div>
+    </div>
+    <div class="card">
+      <h3>Workspace</h3>
+      <ul id="files"></ul>
+    </div>
+  </aside>
+
+  <section>
+    <nav class="tabs">
+      <button class="tab on" data-tab="export"><span class="n">1</span>Export</button>
+      <button class="tab" data-tab="patch"><span class="n">2</span>Patch</button>
+      <button class="tab" data-tab="measure"><span class="n">3</span>Measure</button>
+      <button class="tab" data-tab="abtest"><span class="n">⇄</span>A/B kit</button>
+      <button class="tab" data-tab="inspect"><span class="n">⌕</span>Inspect</button>
+      <button class="tab" data-tab="testcard"><span class="n">▦</span>Test card</button>
+    </nav>
+
+    <!-- 1 EXPORT -->
+    <div class="card panel on" id="p-export">
+      <h2>Export a clean master</h2>
+      <p class="lead">The only step that re-encodes. Feed it your best export (ProRes, DNxHR or a high-bitrate file), not something already compressed.</p>
+      <div class="grid">
+        <div><label class="f">Source</label><select data-files="video" id="ex-in"></select></div>
+        <div><label class="f">Codec</label><div class="seg" data-seg="ex-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
+        <div><label class="f">Quality (CRF)</label><input type="number" id="ex-crf" value="17" min="10" max="30"><div class="hint">Lower = better + bigger. 16–18 is visually transparent.</div></div>
+        <div><label class="f">Frame rate</label><select id="ex-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select><div class="hint">Constant rate. Never interpolates.</div></div>
+        <div><label class="f">Size</label><select id="ex-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
+      </div>
+      <div class="actions"><button class="btn primary" data-run="export">Export master</button></div>
+      <div class="result" id="r-export"></div>
+    </div>
+
+    <!-- 2 PATCH -->
+    <div class="card panel" id="p-patch">
+      <h2>Patch the container</h2>
+      <p class="lead">Changes only the MP4's structure, never the picture. Every output is verified against the source before you upload it.</p>
+      <div class="grid">
+        <div><label class="f">Source (your master)</label><select data-files="video" id="pa-in"></select></div>
+        <div><label class="f">Profile</label><div class="seg" id="pa-profile">
+          <button data-v="none">Control</button><button data-v="minimal">Minimal</button><button data-v="reference" class="on">Reference</button></div>
+          <div class="hint" id="pa-profile-hint"></div></div>
+      </div>
+      <div class="patches" id="pa-list"></div>
+      <details><summary>Advanced</summary>
+        <div class="grid">
+          <div><label class="f">Decoy inflation ×</label><input type="number" id="pa-inflate" value="10" min="2" max="50"></div>
+          <div><label class="f">Dummy sample bytes</label><input type="number" id="pa-dummy" placeholder="auto (by codec)" min="1" max="64"></div>
+          <div><label class="f">Encoder tag</label><input type="text" id="pa-enc" value="Lavf59.27.100"></div>
+          <div><label class="f">Trailing pad bytes</label><input type="number" id="pa-trail" value="184100" min="16"></div>
+        </div>
+      </details>
+      <div class="actions"><button class="btn primary" data-run="patch">Patch + verify</button></div>
+      <div class="result" id="r-patch"></div>
+    </div>
+
+    <!-- 3 MEASURE -->
+    <div class="card panel" id="p-measure">
+      <h2>Measure what TikTok served</h2>
+      <p class="lead">Download your posted video from another account or device (or screen-record it at full resolution), drop it in, and compare it against your <b>master</b>.</p>
+      <div class="grid">
+        <div><label class="f">Master (what you exported)</label><select data-files="video" id="me-master"></select></div>
+        <div><label class="f">Served copy (from TikTok)</label><select data-files="video" id="me-served"></select></div>
+        <div><label class="f">Metrics</label><label class="note"><input type="checkbox" id="me-vmaf" checked> Include VMAF (slower)</label></div>
+      </div>
+      <div class="actions"><button class="btn primary" data-run="measure">Measure</button></div>
+      <div class="result" id="r-measure"></div>
+    </div>
+
+    <!-- A/B -->
+    <div class="card panel" id="p-abtest">
+      <h2>Build an A/B upload kit</h2>
+      <p class="lead">Four versions of the same master, each verified, plus a RESULTS.csv to fill in. Upload them to a test account the same way, about an hour apart, in shuffled order.</p>
+      <table style="margin-bottom:16px"><tr><th>Arm</th><th>What it tests</th></tr>
+        <tr><td>A_control</td><td>What TikTok does to a good file anyway</td></tr>
+        <tr><td>B_reference</td><td>The full method</td></tr>
+        <tr><td>C_decoy_only</td><td>Is the decoy audio track the part that matters?</td></tr>
+        <tr><td>D_structure_only</td><td>…or is it everything else?</td></tr></table>
+      <div class="grid"><div><label class="f">Master</label><select data-files="video" id="ab-in"></select></div></div>
+      <div class="actions"><button class="btn primary" data-run="abtest">Build kit</button></div>
+      <div class="result" id="r-abtest"></div>
+    </div>
+
+    <!-- INSPECT -->
+    <div class="card panel" id="p-inspect">
+      <h2>Inspect a file</h2>
+      <p class="lead">See the MP4 box tree and compare declared vs. actually decoded frame counts. Useful for checking what a paid tool did to your file.</p>
+      <div class="grid"><div><label class="f">File</label><select data-files="video" id="in-in"></select></div></div>
+      <div class="actions"><button class="btn primary" data-run="inspect">Inspect</button></div>
+      <div class="result" id="r-inspect"></div>
+    </div>
+
+    <!-- TESTCARD -->
+    <div class="card panel" id="p-testcard">
+      <h2>Generate a test card</h2>
+      <p class="lead">A 1080×1920 clip with sharp edges, fine moving detail and smooth gradients, which makes compression easy to see. Every frame is unique, so you can tell real 60 fps from fake.</p>
+      <div class="grid">
+        <div><label class="f">Frame rate</label><select id="tc-fps"><option>60</option><option>30</option></select></div>
+        <div><label class="f">Seconds</label><input type="number" id="tc-sec" value="10" min="2" max="60"></div>
+      </div>
+      <div class="actions"><button class="btn primary" data-run="testcard">Generate</button></div>
+      <div class="result" id="r-testcard"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fileUrl = n => "/files/" + n.split("/").map(encodeURIComponent).join("/");
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const VIDEO = /\.(mp4|mov|m4v|mkv|webm)$/i;
+let state = null, busy = false;
+
+async function api(path, opts = {}) {
+  const r = await fetch(path, { ...opts, headers: { "X-OQM": "1", "Content-Type": "application/json", ...(opts.headers || {}) } });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || r.statusText);
+  return j;
+}
+function fmtSize(b) { const u = ["B","KB","MB","GB"]; let i = 0; while (b >= 1024 && i < 3) { b /= 1024; i++; } return b.toFixed(i ? 1 : 0) + " " + u[i]; }
+
+async function refresh() {
+  state = await api("/api/state");
+  $("#ver").textContent = "v" + state.version;
+  $("#ws").textContent = state.workspace;
+  if (state.ffmpeg_error) { $("#banner").style.display = "block"; $("#banner").textContent = state.ffmpeg_error; }
+  if (!state.vmaf) { $("#me-vmaf").checked = false; $("#me-vmaf").disabled = true; }
+  renderFiles(); fillSelects();
+}
+
+function renderFiles() {
+  const ul = $("#files");
+  if (!state.files.length) { ul.innerHTML = '<li class="empty">No files yet. Drop a video above.</li>'; return; }
+  ul.innerHTML = state.files.map(f => {
+    const i = f.name.lastIndexOf("/");
+    const label = i < 0 ? esc(f.name) : `<span class="dir">${esc(f.name.slice(0, i + 1))}</span>${esc(f.name.slice(i + 1))}`;
+    return `<li><span class="nm" title="${esc(f.name)}">${label}</span><span class="sz">${fmtSize(f.size)}</span>
+      <a href="${fileUrl(f.name)}" title="Download">↓</a><button class="ico" data-del="${esc(f.name)}" title="Delete">✕</button></li>`;
+  }).join("");
+}
+
+function fillSelects() {
+  const vids = state.files.filter(f => VIDEO.test(f.name)).map(f => f.name);
+  $$("select[data-files]").forEach((sel, idx) => {
+    const prev = sel.value;
+    sel.innerHTML = vids.length ? vids.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") : '<option value="">(no videos yet)</option>';
+    if (vids.includes(prev)) sel.value = prev;
+    else if (sel.id === "me-served" && vids.length > 1) sel.value = vids[0];
+    else if (sel.id === "me-master" && vids.length > 1) sel.value = vids[1];
+  });
+  updateRunButtons();
+}
+
+function updateRunButtons() {
+  const hasVideo = state && state.files.some(f => VIDEO.test(f.name));
+  $$("[data-run]").forEach(b => b.disabled = busy || !!state?.ffmpeg_error || (b.dataset.run !== "testcard" && !hasVideo));
+}
+
+// --- tabs & segmented controls
+function showTab(name) {
+  const t = $(`.tab[data-tab="${name}"]`); if (!t) return;
+  $$(".tab").forEach(x => x.classList.toggle("on", x === t));
+  $$(".panel").forEach(p => p.classList.toggle("on", p.id === "p-" + name));
+}
+$$(".tab").forEach(t => t.onclick = () => { showTab(t.dataset.tab); history.replaceState(null, "", "#" + t.dataset.tab); });
+showTab(location.hash.slice(1));
+addEventListener("hashchange", () => showTab(location.hash.slice(1)));
+function segValue(id) { return $(`[data-seg="${id}"] .on, #${id} .on`)?.dataset.v; }
+$$(".seg").forEach(seg => seg.onclick = e => {
+  const b = e.target.closest("button"); if (!b) return;
+  seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  if (seg.id === "pa-profile") applyProfile(b.dataset.v);
+});
+
+// --- patch list
+const PROFILE_HINT = { none: "Control arm: same file, normal layout. Nothing else.", minimal: "Only the decoy audio track (the claimed trigger).", reference: "Full public reference method, unbranded." };
+function renderPatches() {
+  $("#pa-list").innerHTML = state.catalog.map(p => {
+    const locked = p.id === "faststart";
+    return `<label class="patch${locked ? " locked" : ""}"><input type="checkbox" value="${p.id}" ${locked ? "checked disabled" : ""}>
+      <div><div class="id">${esc(p.id)}</div><div class="s">${esc(p.summary)}</div><div class="e">Seen in: ${esc(p.seen_in)} · ${esc(p.evidence)}</div></div></label>`;
+  }).join("");
+  $$("#pa-list input").forEach(i => i.onchange = () => {
+    $$("#pa-profile button").forEach(b => b.classList.remove("on"));
+    $("#pa-profile-hint").textContent = "Custom selection.";
+  });
+  applyProfile("reference");
+}
+function applyProfile(name) {
+  const on = new Set(state.profiles[name]);
+  $$("#pa-list input:not(:disabled)").forEach(i => i.checked = on.has(i.value));
+  $("#pa-profile-hint").textContent = PROFILE_HINT[name];
+}
+
+// --- uploads
+const drop = $("#drop");
+["dragenter", "dragover"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", ev => upload([...ev.dataTransfer.files]));
+$("#pick").onchange = e => { upload([...e.target.files]); e.target.value = ""; };
+
+function upload(files) {
+  files.forEach(file => {
+    const row = document.createElement("div");
+    row.className = "prog"; row.innerHTML = `${esc(file.name)}<div class="bar"><i></i></div>`;
+    $("#uploads").append(row);
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "/api/upload?name=" + encodeURIComponent(file.name));
+    xhr.setRequestHeader("X-OQM", "1");
+    xhr.upload.onprogress = e => { if (e.lengthComputable) row.querySelector("i").style.width = (100 * e.loaded / e.total) + "%"; };
+    xhr.onload = () => { row.remove(); if (xhr.status !== 200) alert("Upload failed: " + xhr.responseText); refresh(); };
+    xhr.onerror = () => { row.remove(); alert("Upload failed: " + file.name); };
+    xhr.send(file);
+  });
+}
+
+$("#files").onclick = async e => {
+  const name = e.target.dataset?.del; if (!name) return;
+  if (!confirm(`Delete ${name}?`)) return;
+  try { await api("/api/delete", { method: "POST", body: JSON.stringify({ name }) }); } catch (err) { alert(err.message); }
+  refresh();
+};
+$("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).catch(e => alert(e.message));
+
+// --- running jobs
+const PARAMS = {
+  export: () => ({ input: $("#ex-in").value, codec: segValue("ex-codec"), crf: $("#ex-crf").value, fps: $("#ex-fps").value, fit: $("#ex-fit").value }),
+  patch: () => ({ input: $("#pa-in").value, patches: $$("#pa-list input:checked").map(i => i.value), inflate: $("#pa-inflate").value,
+                  dummy_size: $("#pa-dummy").value, encoder_tag: $("#pa-enc").value, trailing_bytes: $("#pa-trail").value }),
+  measure: () => ({ master: $("#me-master").value, served: $("#me-served").value, vmaf: $("#me-vmaf").checked }),
+  abtest: () => ({ input: $("#ab-in").value }),
+  inspect: () => ({ input: $("#in-in").value }),
+  testcard: () => ({ fps: $("#tc-fps").value, seconds: $("#tc-sec").value }),
+};
+$$("[data-run]").forEach(b => b.onclick = () => run(b.dataset.run));
+
+async function run(action) {
+  const box = $("#r-" + action), t0 = Date.now();
+  busy = true; updateRunButtons();
+  box.innerHTML = `<div class="running"><div class="spin"></div><span>Running ${action}… <span class="el">0s</span></span></div>`;
+  const tick = setInterval(() => { const el = box.querySelector(".el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
+  try {
+    if (action === "measure" && $("#me-master").value === $("#me-served").value) throw new Error("Pick two different files: your master and TikTok's served copy.");
+    const { job } = await api("/api/run", { method: "POST", body: JSON.stringify({ action, params: PARAMS[action]() }) });
+    for (;;) {
+      await sleep(600);
+      const j = await api("/api/jobs/" + job);
+      if (j.status === "done") { box.innerHTML = RENDER[action](j.result); break; }
+      if (j.status === "error") throw new Error(j.error);
+    }
+  } catch (e) {
+    box.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally {
+    clearInterval(tick); busy = false; await refresh();
+  }
+}
+
+const outRow = (rel, extra = "") => `<div class="out"><span class="grow">→ ${esc(rel)}</span>${extra}<a class="btn sm" href="${fileUrl(rel)}">Download</a></div>`;
+function checksTable(checks) {
+  return `<table><tr><th style="width:70px"></th><th>Check</th><th>Detail</th></tr>${checks.map(c => {
+    const tag = c.ok ? "PASS" : c.warn ? "WARN" : "FAIL";
+    return `<tr><td><span class="pill ${tag}">${tag}</span></td><td>${esc(c.name)}</td><td class="num">${esc(c.detail)}</td></tr>`;
+  }).join("")}</table>`;
+}
+const verdict = (good, title, text) => `<div class="verdict ${good ? "good" : "bad"}"><div class="big">${good ? "✓" : "✕"}</div><div><b>${esc(title)}</b><span class="muted">${esc(text)}</span></div></div>`;
+
+const RENDER = {
+  export: r => outRow(r.output) + `<p class="note">${esc(r.codec)} · CRF ${esc(r.crf)} · ${esc(r.fps)} fps · keyframe every ${esc(r.gop)} frames${r.fit ? " · " + esc(r.fit) : ""}. Next: patch it in step 2.</p>`,
+  patch: r => verdict(r.ok, r.ok ? "Safe to upload" : "Verification failed", r.ok ? "Video and primary audio are bit-identical to the source." : "Something real changed. Don't upload this file.")
+    + outRow(r.output)
+    + `<p class="note"><b>Applied:</b> ${r.applied.map(esc).join(", ")}</p>`
+    + r.skipped.map(s => `<p class="note"><b>Skipped:</b> ${esc(s)}</p>`).join("")
+    + r.notes.map(s => `<p class="note">${esc(s)}</p>`).join("")
+    + checksTable(r.checks),
+  measure: r => {
+    const rows = [["Served codec / resolution", `${r.served_codec}  ${r.served_resolution}`], ["Frame rate (declared)", `${r.master_fps} → ${r.served_fps}`],
+      ["Frame rate (unique frames)", `${r.master_unique_fps} → ${r.served_unique_fps}`], ["Video bitrate (kbps)", `${r.master_video_kbps} → ${r.served_video_kbps}`],
+      ["SSIM (1.0 = identical)", r.ssim], ["PSNR dB (higher = closer)", r.psnr_db], ["VMAF (0–100)", r.vmaf ?? "n/a"]];
+    return verdict(r.passthrough_likely, r.passthrough_likely ? "Looks like passthrough" : "TikTok re-encoded it",
+        r.passthrough_likely ? "Served copy is near-identical to your master." : "The served copy differs from your master. Compare against your A/B control.")
+      + `<table>${rows.map(([k, v]) => `<tr><td>${esc(k)}</td><td class="num">${esc(v)}</td></tr>`).join("")}</table>
+      <p class="note">Scores assume both clips start at the same moment. Trimmed or offset copies score lower than they should.</p>`;
+  },
+  abtest: r => verdict(r.ok, r.ok ? "Kit ready, all variants verified" : "Some variants failed verification", "Fill in RESULTS.csv as you upload and measure each one.")
+    + `<table><tr><th>Variant</th><th>Verified</th><th>Patches</th><th></th></tr>${r.rows.map(x =>
+      `<tr><td>${esc(x.variant)}</td><td><span class="pill ${x.verified ? "PASS" : "FAIL"}">${x.verified ? "PASS" : "FAIL"}</span></td><td class="num">${esc(x.patches)}</td>
+       <td><a class="btn sm" href="${fileUrl(x.file)}">Download</a></td></tr>`).join("")}</table>`
+    + `<div class="actions" style="margin-top:12px"><a class="btn" href="${fileUrl(r.csv)}">Download RESULTS.csv</a><button class="btn" onclick='api("/api/open",{method:"POST",body:JSON.stringify({name:${JSON.stringify(r.csv)}})})'>Open kit folder</button></div>`,
+  inspect: r => `<table style="margin-bottom:14px"><tr><th>#</th><th>Type</th><th>Codec</th><th>Size</th><th>FPS</th><th>Declared</th><th>Decoded</th></tr>${r.streams.map(s =>
+      `<tr><td>${s.index}</td><td>${esc(s.type)}</td><td>${esc(s.codec)}</td><td class="num">${s.width ? s.width + "×" + s.height : ""}</td><td class="num">${s.type === "video" ? s.fps : ""}</td>
+       <td class="num">${esc(s.declared)}</td><td class="num">${esc(s.decoded)}</td></tr>`).join("")}</table><pre>${esc(r.tree.join("\n"))}</pre>`,
+  testcard: r => outRow(r.output) + `<p class="note">Run it through Export → Patch, or straight into the A/B kit.</p>`,
+};
+
+refresh().then(renderPatches).catch(e => { $("#banner").style.display = "block"; $("#banner").textContent = "Can't reach the OQM server: " + e.message; });
+</script>
+</body>
+</html>
