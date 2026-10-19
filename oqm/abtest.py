@@ -24,7 +24,8 @@ def _profile(name):
     return set(patches.PROFILES[name])
 
 
-def build(master, out_dir):
+def build(master, out_dir, log=print):
+    """Write the four variants + RESULTS.csv. Returns (all_verified, rows)."""
     out_dir = Path(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = Path(master).stem
@@ -35,12 +36,12 @@ def build(master, out_dir):
         checks = verify.verify(master, dst)
         ok = all(c.ok or c.warn for c in checks)
         all_ok &= ok
-        print(f"  {name:<18} {'verified' if ok else 'VERIFY FAILED'}  [{', '.join(report.applied)}]")
+        log(f"  {name:<18} {'verified' if ok else 'VERIFY FAILED'}  [{', '.join(report.applied)}]")
         rows.append({"variant": name, "file": dst.name, "sha256": hashlib.sha256(dst.read_bytes()).hexdigest()[:16],
-                     "patches": " ".join(report.applied), "notes": why})
+                     "patches": " ".join(report.applied), "notes": why, "verified": ok})
     with open(out_dir / "RESULTS.csv", "w", newline="", encoding="utf-8") as f:
         w = csv.DictWriter(f, fieldnames=COLUMNS)
         w.writeheader()
         for r in rows:
             w.writerow({c: r.get(c, "") for c in COLUMNS})
-    return all_ok
+    return all_ok, rows
