@@ -98,7 +98,8 @@ def main(argv=None):
 
     s = sub.add_parser("patch", help="Stage 2: container patch, never re-encodes")
     s.add_argument("input"); s.add_argument("-o", "--output")
-    s.add_argument("--profile", choices=list(patches.PROFILES), default="reference")
+    s.add_argument("--profile", choices=list(patches.PROFILES), default="minimal",
+                   help="minimal = C, decoy only (default); reference = B, full method; none = control")
     s.add_argument("--enable", nargs="+", choices=patches.PATCH_IDS, metavar="PATCH")
     s.add_argument("--disable", nargs="+", choices=patches.PATCH_IDS, metavar="PATCH")
     s.add_argument("--inflate", type=int, default=10, help="decoy sample multiplier (default 10)")
