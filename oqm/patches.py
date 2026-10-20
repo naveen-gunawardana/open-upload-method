@@ -45,7 +45,7 @@ PATCH_IDS = [p.id for p in CATALOG]
 PROFILES = {
     # Control arm for A/B tests: same bitstream, standard layout, nothing else.
     "none": {"faststart"},
-    # Only the claimed trigger.
+    # Only the decoy track. Arm C: full passthrough in the first A/B round, so it's the default.
     "minimal": {"faststart", "decoy-audio"},
     # Full replication of the public reference method (copy mode), minus its bugs and branding.
     "reference": set(PATCH_IDS),
@@ -56,7 +56,7 @@ DUMMY_SIZE_BY_CODEC = {b"avc1": 8, b"avc3": 8, b"hvc1": 16, b"hev1": 16, b"vp09"
 
 @dataclass
 class PatchOptions:
-    enabled: set = field(default_factory=lambda: set(PROFILES["reference"]))
+    enabled: set = field(default_factory=lambda: set(PROFILES["minimal"]))
     inflate: int = 10                 # clone sample count = original * inflate
     dummy_size: int | None = None     # bytes per dummy sample; None = pick by video codec
     encoder_tag: str = "Lavf59.27.100"

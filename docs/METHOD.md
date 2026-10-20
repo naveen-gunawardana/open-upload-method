@@ -44,8 +44,8 @@ First, the file is stream-copied (`ffmpeg -c copy`) into a clean single-`mdat` M
 | Profile | Patches | Use |
 |---|---|---|
 | `none` | faststart | Control arm. Same bitstream, normal file. |
-| `minimal` | faststart, decoy-audio | Tests the claimed trigger alone. |
-| `reference` (default) | all eight | Full replication of the public reference method, without its bugs or branding. |
+| `minimal` (default, "C") | faststart, decoy-audio | The decoy alone. Got full 1080p60 passthrough in the first A/B round, with the fewest changes. |
+| `reference` ("B") | all eight | Full replication of the public reference method, without its bugs or branding. |
 
 ### Patch catalog
 

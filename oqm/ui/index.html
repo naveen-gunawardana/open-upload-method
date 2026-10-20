@@ -150,8 +150,8 @@ pre { background: var(--panel2); border-radius: 10px; padding: 12px; font-size: 
       <p class="lead">Changes only the MP4's structure, never the picture. Every output is verified against the source before you upload it.</p>
       <div class="grid">
         <div><label class="f">Source (your master)</label><select data-files="video" id="pa-in"></select></div>
-        <div><label class="f">Profile</label><div class="seg" id="pa-profile">
-          <button data-v="none">Control</button><button data-v="minimal">Minimal</button><button data-v="reference" class="on">Reference</button></div>
+        <div><label class="f">Method</label><div class="seg" id="pa-profile">
+          <button data-v="minimal" class="on">C · Decoy only ★</button><button data-v="reference">B · Full method</button><button data-v="none">Control</button></div>
           <div class="hint" id="pa-profile-hint"></div></div>
       </div>
       <div class="patches" id="pa-list"></div>
@@ -287,7 +287,11 @@ $$(".seg").forEach(seg => seg.onclick = e => {
 });
 
 // --- patch list
-const PROFILE_HINT = { none: "Control arm: same file, normal layout. Nothing else.", minimal: "Only the decoy audio track (the claimed trigger).", reference: "Full public reference method, unbranded." };
+const PROFILE_HINT = {
+  minimal: "Recommended. Adds only the decoy audio track. Got full 1080p60 passthrough in testing, with the fewest changes to your file.",
+  reference: "All 8 patches. Same result as C in testing. Try it if C ever stops working.",
+  none: "Control: same file, normal layout, no patches. For comparison only.",
+};
 function renderPatches() {
   $("#pa-list").innerHTML = state.catalog.map(p => {
     const locked = p.id === "faststart";
@@ -298,7 +302,7 @@ function renderPatches() {
     $$("#pa-profile button").forEach(b => b.classList.remove("on"));
     $("#pa-profile-hint").textContent = "Custom selection.";
   });
-  applyProfile("reference");
+  applyProfile(segValue("pa-profile") || "minimal");
 }
 function applyProfile(name) {
   const on = new Set(state.profiles[name]);
@@ -339,7 +343,7 @@ $("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).ca
 // --- running jobs
 const PARAMS = {
   export: () => ({ input: $("#ex-in").value, codec: segValue("ex-codec"), crf: $("#ex-crf").value, fps: $("#ex-fps").value, fit: $("#ex-fit").value }),
-  patch: () => ({ input: $("#pa-in").value, patches: $$("#pa-list input:checked").map(i => i.value), inflate: $("#pa-inflate").value,
+  patch: () => ({ input: $("#pa-in").value, profile: segValue("pa-profile") || "custom", patches: $$("#pa-list input:checked").map(i => i.value), inflate: $("#pa-inflate").value,
                   dummy_size: $("#pa-dummy").value, encoder_tag: $("#pa-enc").value, trailing_bytes: $("#pa-trail").value }),
   measure: () => ({ master: $("#me-master").value, served: $("#me-served").value, vmaf: $("#me-vmaf").checked }),
   abtest: () => ({ input: $("#ab-in").value }),

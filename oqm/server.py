@@ -115,7 +115,8 @@ class App:
 
     def do_patch(self, p):
         src = self.src(p["input"])
-        out = self.unique_path(f"{src.stem}_oqm.mp4")
+        tag = {"minimal": "C", "reference": "B", "none": "control"}.get(p.get("profile"), "oqm")
+        out = self.unique_path(f"{src.stem}_{tag}.mp4")
         opts = patches.PatchOptions(enabled=set(p.get("patches", [])) | {"faststart"},
                                     inflate=int(p.get("inflate", 10)),
                                     dummy_size=int(p["dummy_size"]) if p.get("dummy_size") else None,

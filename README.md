@@ -1,101 +1,52 @@
-# Open Quality Method (OQM) v1
+# OQM: Open Quality Method
 
-A free, open, **testable** upload-quality workflow for TikTok editors.
+A free tool to stop TikTok from crushing the quality of your edits. It runs on your PC and doesn't upload anything.
 
-Paid "upload methods" sell three things bundled together: export settings, an MP4 file patch, and sometimes an upload-request tweak. They rarely say which part does the work, and they back their claims with promo sliders. OQM unbundles them, does each one in the open, and gives you the tools to measure whether any of it works on *your* account.
+![OQM](docs/ui.png)
 
-> **Honest status:** OQM reproduces the publicly documented patch techniques. It proves locally that your video and audio are bit-for-bit unchanged. It **cannot** promise that TikTok will skip re-encoding. Nobody can, because that happens on TikTok's servers and changes without notice. That's why measuring is built into the method.
+## What it does
 
-## The method in 3 stages
+OQM adds a hidden extra audio track to your MP4 (the "decoy"). Your picture and sound don't change at all, and OQM checks that before it saves.
 
-```
- 1. EXPORT   one clean master encode          oqm export
- 2. PATCH    container-only changes, no re-encode    oqm patch   (+ oqm verify, automatic)
- 3. MEASURE  compare what TikTok served to your master    oqm measure / oqm abtest
-```
+In our first test, TikTok served the patched files **exactly as uploaded, at 1080p 60 fps**. The same video without the patch came back at 576p 30 fps.
 
-| Stage | Touches pixels? | What it does |
-|---|---|---|
-| Export | **Yes, once** | H.264 High (or H.265), CRF 17, BT.709 colour tags, keyframe every 2 s, AAC 320k, faststart. Optional constant frame rate and 1080x1920 fit. |
-| Patch | **Never** | Stream-copies your master, then edits only the MP4 structure: decoy audio track, timing boxes, metadata, padding. Each change is a separate toggle. |
-| Verify | No | Hashes the compressed video, decoded pixels and primary audio before and after. If anything real changed, it fails. |
-| Measure | No | SSIM / PSNR / VMAF, served resolution, bitrate, and **unique** frame rate of TikTok's delivered copy vs your master. |
-
-## Install
-
-Requirements: **Python 3.10+** and **FFmpeg** (`ffmpeg` and `ffprobe` on PATH). Nothing else. No pip packages needed.
-
-- Windows: `winget install Python.Python.3.12 Gyan.FFmpeg`
-- macOS: `brew install python ffmpeg`
-
-## Use the app (no terminal needed)
-
-Download or clone this folder, then:
-
-- **Windows:** double-click **`Start OQM.bat`**
-- **macOS / Linux:** double-click **`start-oqm.command`** (or run `./start-oqm.command`)
-
-Your browser opens the OQM interface. It runs entirely on your computer (`127.0.0.1`) and nothing is uploaded anywhere. Drop your videos in, then work through the tabs: **Export → Patch → Measure**, or build an **A/B kit**. All files are kept in one folder, `~/OQM-workspace`, which you can open with the *Open folder* button.
-
-![OQM interface](docs/ui.png)
-
-## Use the command line
-
-```bash
-pip install -e .        # optional: gives you the `oqm` command
-python -m oqm ui        # same app as the launchers (--workspace DIR, --port N)
-```
-
-## Quick start
-
-```bash
-oqm export edit.mov master.mp4 --fps 60 --fit 1080x1920   # stage 1
-oqm patch master.mp4                                        # stage 2 -> master_oqm.mp4, auto-verified
-# upload master_oqm.mp4, then grab the published copy from another account/device
-oqm measure master.mp4 tiktok_copy.mp4                      # stage 3
-```
-
-For a real answer rather than one lucky upload, build an A/B kit:
-
-```bash
-oqm abtest master.mp4
-```
-
-This writes four variants (control, full method, decoy-only, structure-only) and a `RESULTS.csv` to fill in. See [docs/TEST-PROTOCOL.md](docs/TEST-PROTOCOL.md).
-
-## All commands
-
-| Command | Purpose |
+| Upload | What TikTok served |
 |---|---|
-| `oqm ui [--workspace DIR] [--port 8765]` | Open the local web interface |
-| `oqm export IN OUT [--codec h264\|h265] [--crf 17] [--fps 60] [--fit 1080x1920]` | Make the master |
-| `oqm patch IN [-o OUT] [--profile reference\|minimal\|none] [--enable/--disable PATCH...]` | Container patch + verify |
-| `oqm verify ORIGINAL PATCHED` | Prove nothing real changed |
-| `oqm measure MASTER SERVED [--json]` | Score TikTok's delivered copy |
-| `oqm abtest IN [--out DIR]` | Four-arm test kit + results sheet |
-| `oqm inspect FILE` | Box tree, declared vs decoded frame counts |
-| `oqm patches` | Every patch, where it comes from, and how much evidence backs it |
-| `oqm testcard OUT [--fps 60]` | Synthetic clip that makes compression easy to see |
+| **C: decoy only** | 1080p · 60 fps · 11.5 Mbps, untouched |
+| **B: full method** (decoy + 7 other patches) | 1080p · 60 fps · 11.5 Mbps, untouched |
+| D: the 7 other patches, no decoy | 576p · 30 fps · 1.5 Mbps, re-encoded |
 
-## What's in the box
+**Use C.** It gets the same result as B with far fewer changes to your file. Keep B as a backup if C ever stops working.
 
-- [docs/METHOD.md](docs/METHOD.md): the full method, with each patch explained down to the byte.
-- [docs/TEST-PROTOCOL.md](docs/TEST-PROTOCOL.md): how to run a fair upload test.
-- [docs/LANDSCAPE.md](docs/LANDSCAPE.md): what the paid and free methods actually do, and what we found reading their code.
-- [CONTRIBUTING.md](CONTRIBUTING.md): how to submit results so v2 is built on data.
+## Setup (once)
 
-## What v1 deliberately does not do
+1. Install **Python**: https://www.python.org/downloads/ (tick **"Add python.exe to PATH"**)
+2. Install **FFmpeg**: open a terminal and run `winget install Gyan.FFmpeg` (the launcher can do this for you)
+3. Download this repo: green **Code** button → **Download ZIP** → unzip
 
-- **No browser upload-request rewriting** (the Kuronai/WizardFTB-style extension layer). It means intercepting TikTok's own web requests, it breaks whenever their site changes, and it's the riskiest part for your account. It's documented in LANDSCAPE.md so you understand it. It's left out until there's evidence it's worth the risk.
-- **No frame interpolation.** Fake-smooth 60 fps is a creative choice, not a quality fix. `measure` reports *unique* fps so duplicated or padded frames can't pass as real ones.
-- **No branding, no watermark, no promo injection.** Some tools quietly add their name to your metadata or captions. OQM writes one neutral encoder tag, or nothing if you disable `clean-metadata`.
+## Use it
 
-## Risks
+**Fastest:** drag your video onto **`Start OQM.bat`** and press **C**. A file ending in `_C.mp4` appears next to it. Upload that one.
 
-These patches make deliberately unusual files. Firsthand reports on other tools include uploads stuck on private, sound problems, and zero-view posts. None of these is proven to be caused by patching, but none is ruled out either. **Test on a secondary account first.** OQM is not affiliated with TikTok. Using it may conflict with TikTok's terms, and that call is yours.
+**The app:** double-click **`Start OQM.bat`** and it opens in your browser. Drop your video in, go to the **Patch** tab, pick **C** or **B**, and hit **Patch + verify**.
 
-## Credits
+On Mac, double-click `start-oqm.command` instead.
 
-The patch techniques were documented by public open-source work, notably [buwryme/tiktok-lossless-upload](https://github.com/buwryme/tiktok-lossless-upload) (MIT) and the NoBlur family of patchers. OQM is an independent implementation. It differs in a few places where we found bugs (see LANDSCAPE.md).
+## Tips
 
-License: MIT.
+- Export from your editor at high quality first (e.g. 1080x1920, 60 fps, high bitrate). OQM can't add quality that isn't there. The **Export** tab can make a clean master for you.
+- Test on a second account first.
+- Check the upload on your phone: sound, seeking and looping.
+
+## Heads up
+
+This is one test. TikTok can change how it processes uploads at any time, so nothing here is guaranteed. The patch makes an unusual file on purpose. It's not affiliated with TikTok, and using it might go against their terms, so that's your call.
+
+## More
+
+- [How it works](docs/METHOD.md), byte by byte
+- [Run your own A/B test](docs/TEST-PROTOCOL.md) (the **A/B kit** tab builds all four versions)
+- [What the paid methods actually do](docs/LANDSCAPE.md)
+- Command line: `python -m oqm --help`
+
+Based on public work by [buwryme/tiktok-lossless-upload](https://github.com/buwryme/tiktok-lossless-upload) and others. MIT license.
