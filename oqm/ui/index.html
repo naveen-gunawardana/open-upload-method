@@ -121,59 +121,44 @@ pre { background: var(--panel2); border-radius: 10px; padding: 12px; font-size: 
 
   <section>
     <nav class="tabs">
-      <button class="tab on" data-tab="export"><span class="n">1</span>Export</button>
-      <button class="tab" data-tab="patch"><span class="n">2</span>Patch</button>
-      <button class="tab" data-tab="measure"><span class="n">3</span>Measure</button>
+      <button class="tab on" data-tab="make"><span class="n">1</span>Make</button>
+      <button class="tab" data-tab="measure"><span class="n">2</span>Measure</button>
       <button class="tab" data-tab="abtest"><span class="n">⇄</span>A/B kit</button>
       <button class="tab" data-tab="inspect"><span class="n">⌕</span>Inspect</button>
       <button class="tab" data-tab="testcard"><span class="n">▦</span>Test card</button>
     </nav>
 
-    <!-- 1 EXPORT -->
-    <div class="card panel on" id="p-export">
-      <h2>Export a clean master</h2>
-      <p class="lead">The only step that re-encodes. Feed it your best export (ProRes, DNxHR or a high-bitrate file), not something already compressed.</p>
+    <!-- 1 MAKE (export + patch, chained) -->
+    <div class="card panel on" id="p-make">
+      <h2>Make an upload-ready file</h2>
+      <p class="lead">Upload your best export, set a target bitrate (or leave it on quality mode), and hit one button. This re-encodes a clean master, then applies the full patch and verifies it - automatically, one step.</p>
       <div class="grid">
-        <div><label class="f">Source</label><select data-files="video" id="ex-in"></select></div>
-        <div><label class="f">Codec</label><div class="seg" data-seg="ex-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
-        <div><label class="f">Quality (CRF)</label><input type="number" id="ex-crf" value="17" min="10" max="30"><div class="hint">Lower = better + bigger. 16–18 is visually transparent.</div></div>
-        <div><label class="f">Frame rate</label><select id="ex-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select><div class="hint">Constant rate. Never interpolates.</div></div>
-        <div><label class="f">Size</label><select id="ex-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
+        <div><label class="f">Your video</label><select data-files="video" id="mk-in"></select></div>
+        <div><label class="f">Codec</label><div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
+        <div><label class="f">Target bitrate (kbps)</label><input type="number" id="mk-kbps" placeholder="e.g. 20000" min="500"><div class="hint">Exact 2-pass target. Leave blank to use quality (CRF) below instead.</div></div>
+        <div><label class="f">Quality (CRF)</label><input type="number" id="mk-crf" value="17" min="10" max="30"><div class="hint">Only used if bitrate is blank. Lower = better + bigger.</div></div>
+        <div><label class="f">Frame rate</label><select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select></div>
+        <div><label class="f">Size</label><select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
       </div>
-      <div class="actions"><button class="btn primary" data-run="export">Export master</button></div>
-      <div class="result" id="r-export"></div>
-    </div>
-
-    <!-- 2 PATCH -->
-    <div class="card panel" id="p-patch">
-      <h2>Patch the container</h2>
-      <p class="lead">Changes only the MP4's structure, never the picture. Every output is verified against the source before you upload it.</p>
-      <div class="grid">
-        <div><label class="f">Source (your master)</label><select data-files="video" id="pa-in"></select></div>
-        <div><label class="f">Method</label><div class="seg" id="pa-profile">
-          <button data-v="minimal" class="on">C · Decoy only ★</button><button data-v="reference">B · Full method</button><button data-v="none">Control</button></div>
-          <div class="hint" id="pa-profile-hint"></div></div>
-      </div>
-      <div class="patches" id="pa-list"></div>
-      <details><summary>Advanced</summary>
+      <details id="mk-advanced"><summary>Patch settings (rarely needed)</summary>
         <div class="grid">
-          <div><label class="f">Decoy inflation ×</label><input type="number" id="pa-inflate" value="10" min="2" max="50"></div>
-          <div><label class="f">Dummy sample bytes</label><input type="number" id="pa-dummy" placeholder="auto (by codec)" min="1" max="64"></div>
-          <div><label class="f">Encoder tag</label><input type="text" id="pa-enc" value="Lavf59.27.100"></div>
-          <div><label class="f">Trailing pad bytes</label><input type="number" id="pa-trail" value="184100" min="16"></div>
+          <div><label class="f">Decoy inflation ×</label><input type="number" id="mk-inflate" value="10" min="2" max="50"><div class="hint">Decoy sample count = real samples × this.</div></div>
+          <div><label class="f">Dummy sample bytes</label><input type="number" id="mk-dummy" placeholder="auto (by codec)" min="1" max="64"></div>
+          <div><label class="f">Encoder tag</label><input type="text" id="mk-enc" value="Lavf59.27.100"></div>
+          <div><label class="f">Trailing pad bytes</label><input type="number" id="mk-trail" value="184100" min="16"></div>
         </div>
       </details>
-      <div class="actions"><button class="btn primary" data-run="patch">Patch + verify</button></div>
-      <div class="result" id="r-patch"></div>
+      <div class="actions"><button class="btn primary" data-run="make">Make it</button></div>
+      <div class="result" id="r-make"></div>
     </div>
 
     <!-- 3 MEASURE -->
     <div class="card panel" id="p-measure">
       <h2>Measure what TikTok served</h2>
-      <p class="lead">Download your posted video from another account or device (or screen-record it at full resolution), drop it in, and compare it against your <b>master</b>.</p>
+      <p class="lead">Download your posted video from another account or device (or screen-record it at full resolution), drop it in, and compare it against the original.</p>
       <div class="grid">
-        <div><label class="f">Master (what you exported)</label><select data-files="video" id="me-master"></select></div>
-        <div><label class="f">Served copy (from TikTok)</label><select data-files="video" id="me-served"></select></div>
+        <div><label class="f">Your video (before upload)</label><select data-files="video" id="me-master"></select></div>
+        <div><label class="f">Served copy (downloaded from TikTok)</label><select data-files="video" id="me-served"></select></div>
         <div><label class="f">Metrics</label><label class="note"><input type="checkbox" id="me-vmaf" checked> Include VMAF (slower)</label></div>
       </div>
       <div class="actions"><button class="btn primary" data-run="measure">Measure</button></div>
@@ -183,13 +168,13 @@ pre { background: var(--panel2); border-radius: 10px; padding: 12px; font-size: 
     <!-- A/B -->
     <div class="card panel" id="p-abtest">
       <h2>Build an A/B upload kit</h2>
-      <p class="lead">Four versions of the same master, each verified, plus a RESULTS.csv to fill in. Upload them to a test account the same way, about an hour apart, in shuffled order.</p>
+      <p class="lead">Four versions of the same video, each verified, plus a RESULTS.csv to fill in. Upload them to a test account the same way, about an hour apart, in shuffled order. Also log <code>loops_normally</code> and any <code>guideline_flag</code> per arm - that's the only reliable way to find out which patch (if any) is causing either.</p>
       <table style="margin-bottom:16px"><tr><th>Arm</th><th>What it tests</th></tr>
         <tr><td>A_control</td><td>What TikTok does to a good file anyway</td></tr>
         <tr><td>B_reference</td><td>The full method</td></tr>
         <tr><td>C_decoy_only</td><td>Is the decoy audio track the part that matters?</td></tr>
         <tr><td>D_structure_only</td><td>…or is it everything else?</td></tr></table>
-      <div class="grid"><div><label class="f">Master</label><select data-files="video" id="ab-in"></select></div></div>
+      <div class="grid"><div><label class="f">Your video</label><select data-files="video" id="ab-in"></select></div></div>
       <div class="actions"><button class="btn primary" data-run="abtest">Build kit</button></div>
       <div class="result" id="r-abtest"></div>
     </div>
@@ -283,32 +268,7 @@ function segValue(id) { return $(`[data-seg="${id}"] .on, #${id} .on`)?.dataset.
 $$(".seg").forEach(seg => seg.onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-  if (seg.id === "pa-profile") applyProfile(b.dataset.v);
 });
-
-// --- patch list
-const PROFILE_HINT = {
-  minimal: "Recommended. Adds only the decoy audio track. Got full 1080p60 passthrough in testing, with the fewest changes to your file.",
-  reference: "All 8 patches. Same result as C in testing. Try it if C ever stops working.",
-  none: "Control: same file, normal layout, no patches. For comparison only.",
-};
-function renderPatches() {
-  $("#pa-list").innerHTML = state.catalog.map(p => {
-    const locked = p.id === "faststart";
-    return `<label class="patch${locked ? " locked" : ""}"><input type="checkbox" value="${p.id}" ${locked ? "checked disabled" : ""}>
-      <div><div class="id">${esc(p.id)}</div><div class="s">${esc(p.summary)}</div><div class="e">Seen in: ${esc(p.seen_in)} · ${esc(p.evidence)}</div></div></label>`;
-  }).join("");
-  $$("#pa-list input").forEach(i => i.onchange = () => {
-    $$("#pa-profile button").forEach(b => b.classList.remove("on"));
-    $("#pa-profile-hint").textContent = "Custom selection.";
-  });
-  applyProfile(segValue("pa-profile") || "minimal");
-}
-function applyProfile(name) {
-  const on = new Set(state.profiles[name]);
-  $$("#pa-list input:not(:disabled)").forEach(i => i.checked = on.has(i.value));
-  $("#pa-profile-hint").textContent = PROFILE_HINT[name];
-}
 
 // --- uploads
 const drop = $("#drop");
@@ -342,15 +302,22 @@ $("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).ca
 
 // --- running jobs
 const PARAMS = {
-  export: () => ({ input: $("#ex-in").value, codec: segValue("ex-codec"), crf: $("#ex-crf").value, fps: $("#ex-fps").value, fit: $("#ex-fit").value }),
-  patch: () => ({ input: $("#pa-in").value, profile: segValue("pa-profile") || "custom", patches: $$("#pa-list input:checked").map(i => i.value), inflate: $("#pa-inflate").value,
-                  dummy_size: $("#pa-dummy").value, encoder_tag: $("#pa-enc").value, trailing_bytes: $("#pa-trail").value }),
   measure: () => ({ master: $("#me-master").value, served: $("#me-served").value, vmaf: $("#me-vmaf").checked }),
   abtest: () => ({ input: $("#ab-in").value }),
   inspect: () => ({ input: $("#in-in").value }),
   testcard: () => ({ fps: $("#tc-fps").value, seconds: $("#tc-sec").value }),
 };
-$$("[data-run]").forEach(b => b.onclick = () => run(b.dataset.run));
+$$("[data-run]").forEach(b => b.onclick = () => (b.dataset.run === "make" ? runMake() : run(b.dataset.run)));
+
+async function runJob(action, params) {
+  const { job } = await api("/api/run", { method: "POST", body: JSON.stringify({ action, params }) });
+  for (;;) {
+    await sleep(600);
+    const j = await api("/api/jobs/" + job);
+    if (j.status === "done") return j.result;
+    if (j.status === "error") throw new Error(j.error);
+  }
+}
 
 async function run(action) {
   const box = $("#r-" + action), t0 = Date.now();
@@ -359,13 +326,35 @@ async function run(action) {
   const tick = setInterval(() => { const el = box.querySelector(".el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
   try {
     if (action === "measure" && $("#me-master").value === $("#me-served").value) throw new Error("Pick two different files: your master and TikTok's served copy.");
-    const { job } = await api("/api/run", { method: "POST", body: JSON.stringify({ action, params: PARAMS[action]() }) });
-    for (;;) {
-      await sleep(600);
-      const j = await api("/api/jobs/" + job);
-      if (j.status === "done") { box.innerHTML = RENDER[action](j.result); break; }
-      if (j.status === "error") throw new Error(j.error);
-    }
+    const result = await runJob(action, PARAMS[action]());
+    box.innerHTML = RENDER[action](result);
+  } catch (e) {
+    box.innerHTML = `<div class="err">${esc(e.message)}</div>`;
+  } finally {
+    clearInterval(tick); busy = false; await refresh();
+  }
+}
+
+async function runMake() {
+  const box = $("#r-make"), t0 = Date.now();
+  busy = true; updateRunButtons();
+  const tick = setInterval(() => { const el = box.querySelector(".el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
+  const stage = s => box.innerHTML = `<div class="running"><div class="spin"></div><span>${esc(s)}… <span class="el">0s</span></span></div>`;
+  try {
+    const input = $("#mk-in").value;
+    if (!input) throw new Error("Pick a video first.");
+    stage("Exporting master");
+    const exp = await runJob("export", {
+      input, codec: segValue("mk-codec"), crf: $("#mk-crf").value,
+      kbps: $("#mk-kbps").value, fps: $("#mk-fps").value, fit: $("#mk-fit").value,
+    });
+    stage("Patching + verifying (full method)");
+    const pat = await runJob("patch", {
+      input: exp.output, profile: "reference", patches: state.profiles.reference,
+      inflate: $("#mk-inflate").value, dummy_size: $("#mk-dummy").value,
+      encoder_tag: $("#mk-enc").value, trailing_bytes: $("#mk-trail").value,
+    });
+    box.innerHTML = RENDER.make(exp, pat);
   } catch (e) {
     box.innerHTML = `<div class="err">${esc(e.message)}</div>`;
   } finally {
@@ -383,13 +372,14 @@ function checksTable(checks) {
 const verdict = (good, title, text) => `<div class="verdict ${good ? "good" : "bad"}"><div class="big">${good ? "✓" : "✕"}</div><div><b>${esc(title)}</b><span class="muted">${esc(text)}</span></div></div>`;
 
 const RENDER = {
-  export: r => outRow(r.output) + `<p class="note">${esc(r.codec)} · CRF ${esc(r.crf)} · ${esc(r.fps)} fps · keyframe every ${esc(r.gop)} frames${r.fit ? " · " + esc(r.fit) : ""}. Next: patch it in step 2.</p>`,
-  patch: r => verdict(r.ok, r.ok ? "Safe to upload" : "Verification failed", r.ok ? "Video and primary audio are bit-identical to the source." : "Something real changed. Don't upload this file.")
-    + outRow(r.output)
-    + `<p class="note"><b>Applied:</b> ${r.applied.map(esc).join(", ")}</p>`
-    + r.skipped.map(s => `<p class="note"><b>Skipped:</b> ${esc(s)}</p>`).join("")
-    + r.notes.map(s => `<p class="note">${esc(s)}</p>`).join("")
-    + checksTable(r.checks),
+  make: (exp, pat) => verdict(pat.ok, pat.ok ? "Safe to upload" : "Verification failed",
+      pat.ok ? "Video and primary audio are bit-identical to the master." : "Something real changed. Don't upload this file.")
+    + outRow(pat.output)
+    + `<p class="note"><b>Master:</b> ${esc(exp.codec)} · ${exp.kbps ? esc(exp.kbps) + " kbps (2-pass)" : "CRF " + esc(exp.crf)} · ${esc(exp.fps)} fps${exp.fit ? " · " + esc(exp.fit) : ""}</p>`
+    + `<p class="note"><b>Patched with:</b> ${pat.applied.map(esc).join(", ")}</p>`
+    + pat.skipped.map(s => `<p class="note"><b>Skipped:</b> ${esc(s)}</p>`).join("")
+    + pat.notes.map(s => `<p class="note">${esc(s)}</p>`).join("")
+    + checksTable(pat.checks),
   measure: r => {
     const rows = [["Served codec / resolution", `${r.served_codec}  ${r.served_resolution}`], ["Frame rate (declared)", `${r.master_fps} → ${r.served_fps}`],
       ["Frame rate (unique frames)", `${r.master_unique_fps} → ${r.served_unique_fps}`], ["Video bitrate (kbps)", `${r.master_video_kbps} → ${r.served_video_kbps}`],
@@ -407,10 +397,10 @@ const RENDER = {
   inspect: r => `<table style="margin-bottom:14px"><tr><th>#</th><th>Type</th><th>Codec</th><th>Size</th><th>FPS</th><th>Declared</th><th>Decoded</th></tr>${r.streams.map(s =>
       `<tr><td>${s.index}</td><td>${esc(s.type)}</td><td>${esc(s.codec)}</td><td class="num">${s.width ? s.width + "×" + s.height : ""}</td><td class="num">${s.type === "video" ? s.fps : ""}</td>
        <td class="num">${esc(s.declared)}</td><td class="num">${esc(s.decoded)}</td></tr>`).join("")}</table><pre>${esc(r.tree.join("\n"))}</pre>`,
-  testcard: r => outRow(r.output) + `<p class="note">Run it through Export → Patch, or straight into the A/B kit.</p>`,
+  testcard: r => outRow(r.output) + `<p class="note">Run it through Make, or straight into the A/B kit.</p>`,
 };
 
-refresh().then(renderPatches).catch(e => { $("#banner").style.display = "block"; $("#banner").textContent = "Can't reach the OQM server: " + e.message; });
+refresh().catch(e => { $("#banner").style.display = "block"; $("#banner").textContent = "Can't reach the OQM server: " + e.message; });
 </script>
 </body>
 </html>

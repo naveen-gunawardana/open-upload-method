@@ -28,13 +28,14 @@ One upload proves nothing. TikTok may serve different renditions to different de
 For each post, from a **different** account or device:
 1. Download the video, or screen-record at full resolution with no overlays.
 2. Run `oqm measure master.mp4 served_B.mp4 --json` (always compare to the **master**, not the patched file).
-3. Copy the numbers into `RESULTS.csv`. Also note playback problems (no sound, stutter, won't seek, won't loop) and 24 h views.
+3. Copy the numbers into `RESULTS.csv`. Also fill in `loops_normally` (yes/no - watch it loop a few times, on the phone app, not a desktop preview), and `guideline_flag` / `flag_reason` / `appeal_result` if TikTok flags or removes it. Note playback problems (no sound, stutter, won't seek) and 24 h views too.
 
 ## Reading the result
 
 - If **B is no better than A**, the method isn't working for you right now. Stop paying for it if you were.
 - If **B beats A and C matches B**, the decoy track is doing the work.
 - If **B beats A and D matches B**, the decoy doesn't matter. Drop it, since it's the riskiest change.
+- **Flags:** if `guideline_flag` shows up only on arms with `decoy-audio`, `trailing-pad`, or `zero-times` enabled (not on A_control), that patch's container fingerprint is the likely trigger - it doesn't mean the content violated anything, since an approved appeal already tells you that. Public patchers (buwryme, CompressBase, NoBlur) all produce a similar-shaped anomaly (duplicate/inflated track, scrubbed metadata, or both); if TikTok has learned to flag that shape as a generic "non-standard upload tool" signal, it would hit every honest user of every one of these tools, not just you.
 - **Views:** one post with low views proves nothing. Look for a pattern across several kits before calling anything a "shadowban."
 - Repeat on another day before you trust a difference.
 

@@ -9,8 +9,9 @@ from . import __version__, abtest, export, ff, measure, mp4, patches, testcard, 
 
 
 def cmd_export(a):
-    info = export.export(a.input, a.output, codec=a.codec, crf=a.crf, fps=a.fps, fit=a.fit)
-    print(f"  master written: {a.output}  ({info['codec']} crf {info['crf']}, {info['fps']:g} fps, keyframe every {info['gop']} frames)")
+    info = export.export(a.input, a.output, codec=a.codec, crf=a.crf, kbps=a.kbps, fps=a.fps, fit=a.fit)
+    rate = f"{info['kbps']} kbps (2-pass)" if info["kbps"] else f"crf {info['crf']}"
+    print(f"  master written: {a.output}  ({info['codec']} {rate}, {info['fps']:g} fps, keyframe every {info['gop']} frames)")
 
 
 def cmd_patch(a):
@@ -92,6 +93,7 @@ def main(argv=None):
     s.add_argument("input"); s.add_argument("output")
     s.add_argument("--codec", choices=["h264", "h265"], default="h264")
     s.add_argument("--crf", type=int, default=17)
+    s.add_argument("--kbps", type=int, help="target this exact average video bitrate instead (2-pass, overrides --crf)")
     s.add_argument("--fps", type=float, help="force constant frame rate (no interpolation)")
     s.add_argument("--fit", help="scale+pad to WxH, e.g. 1080x1920")
     s.set_defaults(fn=cmd_export)

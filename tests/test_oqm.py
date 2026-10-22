@@ -52,6 +52,16 @@ class OQMTest(unittest.TestCase):
         self.assertEqual(counts[1], counts[0] * 10)
         self.assertNotEqual(mp4.track_id(audio[0]), mp4.track_id(audio[1]))
 
+    def test_decoy_track_does_not_extend_container_duration(self):
+        # Regression: the public reference method drops the edit list when cloning the
+        # audio track, which un-trims the encoder's priming samples and silently extends
+        # the container's declared (and played/looped) duration past the real video length.
+        out = self.dir / "decoy_duration.mp4"
+        patches.patch_file(self.src, out, patches.PatchOptions(enabled={"faststart", "decoy-audio"}, inflate=10))
+        src_dur = float(ff.probe(self.src)["format"]["duration"])
+        out_dur = float(ff.probe(out)["format"]["duration"])
+        self.assertAlmostEqual(src_dur, out_dur, places=2)
+
     def test_control_profile_adds_nothing(self):
         out = self.dir / "control.mp4"
         report = patches.patch_file(self.src, out, patches.PatchOptions(enabled=set(patches.PROFILES["none"])))
