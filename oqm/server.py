@@ -110,12 +110,13 @@ class App:
         src = self.src(p["input"])
         out = self.unique_path(f"{src.stem}_master.mp4")
         info = export.export(src, out, codec=p.get("codec", "h264"), crf=int(p.get("crf", 17)),
+                             kbps=int(p["kbps"]) if p.get("kbps") else None,
                              fps=float(p["fps"]) if p.get("fps") else None, fit=p.get("fit") or None)
         return {"output": self.rel(out), **info}
 
     def do_patch(self, p):
         src = self.src(p["input"])
-        tag = {"minimal": "C", "reference": "B", "none": "control"}.get(p.get("profile"), "oqm")
+        tag = {"minimal": "C", "reference": "B", "none": "control", "structure": "D"}.get(p.get("profile"), "oqm")
         out = self.unique_path(f"{src.stem}_{tag}.mp4")
         opts = patches.PatchOptions(enabled=set(p.get("patches", [])) | {"faststart"},
                                     inflate=int(p.get("inflate", 10)),

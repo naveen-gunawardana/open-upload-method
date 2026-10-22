@@ -35,17 +35,20 @@
 
 ## Stage 2: Patch
 
-`oqm patch master.mp4 [--profile reference|minimal|none]`
+`oqm patch master.mp4 [--profile reference|minimal|structure|none]`
 
 First, the file is stream-copied (`ffmpeg -c copy`) into a clean single-`mdat` MP4: first video stream plus first audio stream. Then the enabled patches run. Chunk offsets are recomputed, so every index entry still points at the same bytes.
+
+The app's **Make** tab always uses `reference` (the full method) - the first A/B round found the decoy alone (`minimal`, "C") sufficient, but that stopped holding up in later testing. The other profiles stay available via the CLI and the A/B kit, since this is worth periodically re-testing (TikTok's behavior moves).
 
 ### Profiles
 
 | Profile | Patches | Use |
 |---|---|---|
-| `none` | faststart | Control arm. Same bitstream, normal file. |
-| `minimal` (default, "C") | faststart, decoy-audio | The decoy alone. Got full 1080p60 passthrough in the first A/B round, with the fewest changes. |
-| `reference` ("B") | all eight | Full replication of the public reference method, without its bugs or branding. |
+| `none` ("A") | faststart | Control arm. Same bitstream, normal file. |
+| `minimal` ("C") | faststart, decoy-audio | The decoy alone. Got full 1080p60 passthrough in the first A/B round, with the fewest changes; stopped being sufficient later. |
+| `structure` ("D") | everything except decoy-audio | Isolates whether the decoy itself matters. |
+| `reference` ("B", used by the app) | all eight | Full replication of the public reference method, without its bugs or branding. |
 
 ### Patch catalog
 
@@ -56,13 +59,13 @@ First, the file is stream-copied (`ffmpeg -c copy`) into a clean single-`mdat` M
 | `zero-times` | Set creation and modification times in every `tkhd` and `mdhd` to 0 (1904-01-01). | Hides when you exported. |
 | `mvhd-unknown-duration` | Rewrite `mvhd` as version 1, keeping every other field, with duration `0xFFFFFFFFFFFFFFFF`. | Players fall back to track durations. |
 | `video-elst-plus-one` | Add 1 tick to the video edit list's segment duration. | Declared playback about 1 ms longer. |
-| `decoy-audio` | See below. | Container duration grows slightly; decoy track won't decode cleanly. |
+| `decoy-audio` | See below. | None on container duration (the clone keeps the real track's edit list - see below). Decoy track decodes cleanly too, since the edit list bounds it to the real sample range. |
 | `clean-metadata` | Replace `moov/udta` with one `meta/ilst` holding `©too` = encoder tag (default `Lavf59.27.100`, the string the reference method uses). | Removes your editor's tags. |
 | `trailing-pad` | Append 184,100 bytes after `mdat`, starting with a malformed box `00000004 'VOID'` followed by repeated `00000004`. | File is about 180 KB larger; parsers stop at the bad box. |
 
 ### The decoy audio track (the core claimed trigger)
 
-1. Deep-copy the audio `trak`, then drop its `edts` and `tref`.
+1. Deep-copy the audio `trak`, then drop its `tref`. **Keep its `edts`** (edit list), if it has one.
 2. Give it a new track ID (max + 1) and update `mvhd.next_track_ID`.
 3. Inflate its sample tables. With N real samples and inflation factor k (default 10):
    - `stsz`: N real sizes, then `N x (k-1)` dummy sizes of *d* bytes (d = 8 for H.264 video, 16 for HEVC)
@@ -72,6 +75,8 @@ First, the file is stream-copied (`ffmpeg -c copy`) into a clean single-`mdat` M
 4. Nothing is added to `mdat`. The dummy samples point at bytes that already exist, and their reads are clamped to stay inside `mdat`.
 
 Result on a 4 s, 60 fps test card: primary audio declares 189 samples, decoy declares 1,890. Video and primary audio hash identically to the master.
+
+**Why we keep the edit list:** AAC encoders add priming/padding samples; a normal audio track carries an edit list that trims those back out so the track's *played* duration matches the video. The public reference method drops this edit list when cloning the track. That silently un-trims the clone back to its raw (longer) sample-table duration, which becomes the container's reported duration once a second audio track exists - the exact "duration drift" measured below, and the likely cause of loop/playback stutter reports, since the loop point is then later than the actual video content. Keeping the edit list on the clone costs nothing (the dummy samples are appended after its segment) and is covered by a regression test (`test_decoy_track_does_not_extend_container_duration`).
 
 **Why it's supposed to work:** the claim from tool authors is that TikTok's ingest sees the structural mismatch and skips transcoding, while phone players ignore the second audio track. The structure is verifiable. The server-side behaviour is not, which is why Stage 3 exists.
 
@@ -89,8 +94,8 @@ Result on a 4 s, 60 fps test card: primary audio declares 189 samples, decoy dec
 | primary audio identical | First audio track's packets differ |
 | video duration within 1 frame | The video track got longer or shorter |
 | video + primary audio decode clean | FFmpeg reports decode errors on the streams viewers hear and see |
-| container duration (**warn**) | Expected with `decoy-audio`: dummy ticks extend the file's longest track |
-| decoy track decodes (**warn**) | Expected: dummy samples aren't real AAC |
+| container duration (**warn**) | Shouldn't trigger with `decoy-audio` any more (fixed by keeping the clone's edit list); a hit here with decoy-audio on means something's off |
+| decoy track decodes (**warn**) | Usually clean now too (the edit list bounds it to the real sample range); dummy samples still aren't real AAC if a reader ignores the edit list |
 
 ### 3b. Measure
 

@@ -32,7 +32,10 @@ CATALOG = [
               "buwryme/tiktok-lossless-upload.", "Unverified effect. Forces readers to derive duration from tracks."),
     PatchInfo("video-elst-plus-one", "Lengthen the video edit list segment by one movie-timescale tick.",
               "buwryme/tiktok-lossless-upload.", "Unverified effect. ~1 ms longer declared playback."),
-    PatchInfo("decoy-audio", "Clone the audio track and inflate the clone's sample tables with tiny dummy samples.",
+    PatchInfo("decoy-audio", "Clone the audio track and inflate the clone's sample tables with tiny dummy samples. "
+              "Keeps the real track's edit list on the clone (the public reference drops it, which silently "
+              "extends the container's declared duration past the real video - this was the cause of the "
+              "looping/playback-stutter reports; fixed here, verified duration-identical in tests).",
               "buwryme, CompressBase-style implementations, NoBlur (video-track variant).",
               "The core claimed trigger. Mechanism inspectable; TikTok-side effect unverified."),
     PatchInfo("clean-metadata", "Replace moov/udta with a single minimal tag set (encoder string only, no branding).",
@@ -49,6 +52,8 @@ PROFILES = {
     "minimal": {"faststart", "decoy-audio"},
     # Full replication of the public reference method (copy mode), minus its bugs and branding.
     "reference": set(PATCH_IDS),
+    # Arm D: everything except the decoy. Isolates whether the decoy itself is doing the work.
+    "structure": set(PATCH_IDS) - {"decoy-audio"},
 }
 
 DUMMY_SIZE_BY_CODEC = {b"avc1": 8, b"avc3": 8, b"hvc1": 16, b"hev1": 16, b"vp09": 4, b"av01": 4, b"mp4v": 8}
@@ -220,9 +225,19 @@ def _build_decoy(audio, inflate, dummy_size, mdat_len, mdat_payload_offset):
 
     Dummy samples live in one extra chunk that points at the first real audio
     chunk, so they reference existing bytes (no data is added to mdat).
+
+    Keeps the real track's edit list (`edts`), if any. The public reference
+    method drops it on the clone; that's what caused the "duration drift"
+    seen in testing (an encoder's priming/padding samples are declared in the
+    raw sample table but trimmed from presentation by the edit list - drop
+    the edit list on the clone and its implied duration reverts to the
+    untrimmed, longer value, which becomes the container's reported max-track
+    duration once a second audio track exists). Keeping it costs nothing: the
+    dummy samples are appended after the edit list's segment, so real
+    playback duration is unaffected either way.
     """
     clone = audio.copy()
-    clone.children = [c for c in clone.children if c.type not in (b"edts", b"tref")]
+    clone.children = [c for c in clone.children if c.type != b"tref"]
     stbl = clone.find(b"mdia", b"minf", b"stbl")
     stsz, stts, stsc = stbl.find(b"stsz"), stbl.find(b"stts"), stbl.find(b"stsc")
     co = stbl.find(b"stco") or stbl.find(b"co64")

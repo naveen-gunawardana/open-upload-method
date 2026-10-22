@@ -15,13 +15,8 @@ VARIANTS = [
 
 COLUMNS = ["variant", "file", "sha256", "patches", "upload_date", "account", "upload_route",
            "posted_public_or_private_first", "post_url", "served_resolution", "served_fps",
-           "served_unique_fps", "ssim", "psnr_db", "vmaf", "views_24h", "playback_issues", "notes"]
-
-
-def _profile(name):
-    if name == "structure":
-        return set(patches.PROFILES["reference"]) - {"decoy-audio"}
-    return set(patches.PROFILES[name])
+           "served_unique_fps", "ssim", "psnr_db", "vmaf", "views_24h", "playback_issues",
+           "loops_normally", "guideline_flag", "flag_reason", "appeal_result", "notes"]
 
 
 def build(master, out_dir, log=print):
@@ -32,7 +27,7 @@ def build(master, out_dir, log=print):
     rows, all_ok = [], True
     for name, profile, why in VARIANTS:
         dst = out_dir / f"{stem}_{name}.mp4"
-        report = patches.patch_file(master, dst, patches.PatchOptions(enabled=_profile(profile)))
+        report = patches.patch_file(master, dst, patches.PatchOptions(enabled=set(patches.PROFILES[profile])))
         checks = verify.verify(master, dst)
         ok = all(c.ok or c.warn for c in checks)
         all_ok &= ok
