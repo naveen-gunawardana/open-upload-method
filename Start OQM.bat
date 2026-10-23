@@ -3,7 +3,7 @@ setlocal EnableExtensions
 rem OQM launcher (Windows).
 rem   Double-click it          - opens the app in your browser.
 rem   Drag videos onto it      - patches them on the spot (C or B), saved next to the originals.
-cd /d "%~dp0"
+cd /d "%~dp0program"
 chcp 65001 >nul
 for /f %%e in ('echo prompt $E^| cmd') do set "E=%%e"
 title OQM
