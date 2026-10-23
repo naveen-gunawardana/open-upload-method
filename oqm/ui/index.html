@@ -4,42 +4,50 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OQM · Open Quality Method</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%234f7a3d%22/%3E%3Cpath d=%22M9 16l5 5 9-10%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%23111%22/%3E%3Cpath d=%22M9 16l5 5 9-10%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
 <style>
 :root {
-  --bg: #f2efe2; --panel: #faf8ee; --panel2: #ece8d6; --line: #d6d0b8; --text: #2b3324; --muted: #6c7560;
-  --accent: #4c7a3a; --accent2: #3f7a93; --ok: #3f8f4f; --warn: #b9872f; --bad: #b24a33;
-  --radius: 8px; --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
-  --serif: Georgia, "Iowan Old Style", "Palatino Linotype", ui-serif, serif;
+  --bg: #ffffff; --panel: #ffffff; --panel2: #f4f4f4; --line: #e3e3e3; --text: #111111; --muted: #6c6c6c;
+  --accent: #111111; --accent-ink: #ffffff; --ok: #1f7a40; --warn: #96650f; --bad: #b23b2e;
+  --radius: 10px; --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
 }
 @media (prefers-color-scheme: dark) {
-  :root { --bg: #171f15; --panel: #1f281b; --panel2: #263120; --line: #3b4830; --text: #e7e4d2; --muted: #98a287; --accent: #7bb562; --accent2: #5ea0c6; --ok: #6cc06a; --warn: #d7a84e; --bad: #dd7259; }
+  :root {
+    --bg: #0b0b0c; --panel: #141415; --panel2: #1d1d1f; --line: #2c2c2f; --text: #f2f2f0; --muted: #9b9b9e;
+    --accent: #f2f2f0; --accent-ink: #0b0b0c; --ok: #4fb379; --warn: #dba34a; --bad: #e07a63;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+  }
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
 button, input, select { font: inherit; color: inherit; }
 header { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
-.logo { font-family: var(--serif); font-weight: 700; letter-spacing: .3px; font-size: 19px; color: var(--accent); }
+.logo { font-weight: 800; letter-spacing: -.3px; font-size: 18px; }
 .sub { color: var(--muted); font-size: 13px; }
 header .grow { flex: 1; }
 .ws { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
-.btn:hover { border-color: var(--muted); }
+.btn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+.btn:hover { border-color: var(--text); }
 a.btn { display: inline-block; text-decoration: none; color: var(--text); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; padding: 10px 18px; }
-.btn.primary:disabled { opacity: .45; cursor: not-allowed; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 11px 20px; width: 100%; }
+.btn.primary:disabled { opacity: .35; cursor: not-allowed; }
 .btn.sm { padding: 3px 8px; font-size: 12px; }
-#banner { display: none; margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--bad) 15%, transparent); border: 1px solid var(--bad); }
-.layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; padding: 18px 22px; align-items: start; }
+#banner { display: none; margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--bad) 10%, transparent); border: 1px solid var(--bad); }
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; padding: 24px; align-items: start; max-width: 1180px; margin: 0 auto; }
 @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; } header { padding: 12px 16px; } .ws, .sub { display: none; } section { order: -1; } }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
 aside .card + .card { margin-top: 14px; }
-h2 { font-family: var(--serif); font-size: 17px; font-weight: 700; margin: 0 0 4px; } h3 { font-size: 13px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
-.drop { display: block; border: 2px dashed var(--line); border-radius: var(--radius); padding: 22px 12px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
-.drop.over { border-color: var(--accent2); color: var(--text); background: color-mix(in srgb, var(--accent2) 8%, transparent); }
+h2 { font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -.2px; }
+h3.eyebrow { font-size: 11px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+h3 { font-size: 13px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
+.section { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); }
+.section:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
+.drop { display: block; border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 22px 12px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
+.drop.over { border-color: var(--text); color: var(--text); background: var(--panel2); }
 .drop strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 2px; }
 .prog { margin-top: 8px; font-size: 12px; } .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
-.bar > i { display: block; height: 100%; background: var(--accent2); width: 0; transition: width .2s; }
+.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
 #files { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; }
 #files li { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--line); }
 #files li:last-child { border-bottom: 0; }
@@ -48,19 +56,21 @@ h2 { font-family: var(--serif); font-size: 17px; font-weight: 700; margin: 0 0 4
 #files a, .ico { color: var(--muted); text-decoration: none; cursor: pointer; border: 0; background: none; padding: 2px 4px; }
 #files a:hover, .ico:hover { color: var(--text); }
 .empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
-.lead { color: var(--muted); margin: 0 0 16px; max-width: 70ch; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 16px; }
+.lead { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
 label.f { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
 select, input[type=number], input[type=text] { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
 .hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 6px; padding: 3px; gap: 2px; flex-wrap: wrap; }
-.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: var(--muted); }
-.seg button.on { background: var(--accent); color: #fff; }
-details { margin-bottom: 16px; } summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; }
-.actions { display: flex; align-items: center; gap: 12px; }
-.result { margin-top: 18px; } .result:empty { display: none; }
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; color: var(--muted); }
+.seg button.on { background: var(--accent); color: var(--accent-ink); }
+.seg.wide { display: flex; margin-bottom: 14px; }
+.seg.wide button { flex: 1; }
+details { margin: 18px 0 0; } summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; font-size: 13px; }
+.actions { margin-top: 20px; }
+.result { margin-top: 20px; } .result:empty { display: none; }
 .running { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); }
-.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: s .8s linear infinite; }
+.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--text); border-radius: 50%; animation: s .8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
@@ -71,8 +81,8 @@ td.num { font-family: var(--mono); }
 .pill.WARN { border-color: var(--warn); color: var(--warn); }
 .pill.FAIL { border-color: var(--bad); color: var(--bad); }
 .verdict { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: var(--radius); margin-bottom: 14px; border: 1px solid; }
-.verdict.good { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
-.verdict.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+.verdict.good { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
+.verdict.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
 .verdict .big { font-size: 22px; } .verdict b { display: block; font-size: 15px; }
 .out { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel2); border-radius: var(--radius); margin-bottom: 12px; font-family: var(--mono); font-size: 13px; }
 .out .grow { flex: 1; }
@@ -111,15 +121,38 @@ pre { background: var(--panel2); border-radius: var(--radius); padding: 12px; fo
     <!-- MAKE (export + patch, chained) -->
     <div class="card panel on" id="p-make">
       <h2>Make an upload-ready file</h2>
-      <p class="lead">Upload your best export, set a target bitrate (or leave it on quality mode), and hit one button. This re-encodes a clean master, then applies the full patch and verifies it - automatically, one step.</p>
-      <div class="grid">
-        <div><label class="f">Your video</label><select data-files="video" id="mk-in"></select></div>
-        <div><label class="f">Codec</label><div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
-        <div><label class="f">Target bitrate (kbps)</label><input type="number" id="mk-kbps" placeholder="e.g. 20000" min="500"><div class="hint">Exact 2-pass target. Leave blank to use quality (CRF) below instead.</div></div>
-        <div><label class="f">Quality (CRF)</label><input type="number" id="mk-crf" value="17" min="10" max="30"><div class="hint">Only used if bitrate is blank. Lower = better + bigger.</div></div>
-        <div><label class="f">Frame rate</label><select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select></div>
-        <div><label class="f">Size</label><select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
+      <p class="lead">Upload your best export, set your quality, and hit one button. This re-encodes a clean master, then applies the full patch and verifies it - automatically, one step.</p>
+
+      <div class="section">
+        <h3 class="eyebrow">Source</h3>
+        <div class="grid">
+          <div><label class="f">Your video</label><select data-files="video" id="mk-in"></select></div>
+          <div><label class="f">Codec</label><div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
+        </div>
       </div>
+
+      <div class="section">
+        <h3 class="eyebrow">Quality</h3>
+        <div class="seg wide" data-seg="mk-qmode">
+          <button data-v="crf" class="on">By quality (CRF)</button>
+          <button data-v="kbps">By exact bitrate</button>
+        </div>
+        <div class="grid" id="mk-qmode-crf">
+          <div><label class="f">Quality (CRF)</label><input type="number" id="mk-crf" value="17" min="10" max="30"><div class="hint">Lower = better and bigger. 17 is visually transparent for most edits.</div></div>
+        </div>
+        <div class="grid" id="mk-qmode-kbps" style="display:none">
+          <div><label class="f">Target bitrate (kbps)</label><input type="number" id="mk-kbps" placeholder="e.g. 20000" min="500"><div class="hint">Exact 2-pass target average video bitrate.</div></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 class="eyebrow">Frame &amp; size</h3>
+        <div class="grid">
+          <div><label class="f">Frame rate</label><select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select></div>
+          <div><label class="f">Size</label><select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
+        </div>
+      </div>
+
       <details id="mk-advanced"><summary>Patch settings (rarely needed)</summary>
         <div class="grid">
           <div><label class="f">Decoy inflation ×</label><input type="number" id="mk-inflate" value="10" min="2" max="50"><div class="hint">Decoy sample count = real samples × this.</div></div>
@@ -184,11 +217,15 @@ function updateRunButtons() {
   $$("[data-run]").forEach(b => b.disabled = busy || !!state?.ffmpeg_error || !hasVideo);
 }
 
-// --- segmented controls (codec picker)
+// --- segmented controls (codec picker, quality mode)
 function segValue(id) { return $(`[data-seg="${id}"] .on, #${id} .on`)?.dataset.v; }
 $$(".seg").forEach(seg => seg.onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  if (seg.dataset.seg === "mk-qmode") {
+    $("#mk-qmode-crf").style.display = b.dataset.v === "crf" ? "" : "none";
+    $("#mk-qmode-kbps").style.display = b.dataset.v === "kbps" ? "" : "none";
+  }
 });
 
 // --- uploads
@@ -215,7 +252,6 @@ function upload(files) {
 
 $("#files").onclick = async e => {
   const name = e.target.dataset?.del; if (!name) return;
-  if (!confirm(`Delete ${name}?`)) return;
   try { await api("/api/delete", { method: "POST", body: JSON.stringify({ name }) }); } catch (err) { alert(err.message); }
   refresh();
 };
@@ -243,9 +279,10 @@ async function runMake() {
     const input = $("#mk-in").value;
     if (!input) throw new Error("Pick a video first.");
     stage("Exporting master");
+    const byBitrate = segValue("mk-qmode") === "kbps";
     const exp = await runJob("export", {
       input, codec: segValue("mk-codec"), crf: $("#mk-crf").value,
-      kbps: $("#mk-kbps").value, fps: $("#mk-fps").value, fit: $("#mk-fit").value,
+      kbps: byBitrate ? $("#mk-kbps").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
     });
     stage("Patching + verifying (full method)");
     const pat = await runJob("patch", {
