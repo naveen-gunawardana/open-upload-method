@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "oqm"
 version = "1.0.0"
 description = "Open Quality Method: an open, testable upload-quality workflow for TikTok editors"
-readme = "README.md"
+readme = "../README.md"
 license = { text = "MIT" }
 requires-python = ">=3.10"
 dependencies = []

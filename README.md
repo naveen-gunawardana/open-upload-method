@@ -2,7 +2,7 @@
 
 A free tool to stop TikTok from crushing the quality of your edits. It runs on your PC and doesn't upload anything.
 
-![OQM](docs/ui.png)
+![OQM](program/docs/ui.png)
 
 ## What it does
 
@@ -16,13 +16,13 @@ In our first test, TikTok served the patched files **exactly as uploaded, at 108
 | **B: full method** (decoy + 7 other patches) | 1080p · 60 fps · 11.5 Mbps, untouched |
 | D: the 7 other patches, no decoy | 576p · 30 fps · 1.5 Mbps, re-encoded |
 
-That first round pointed at the decoy track as the trigger, so C (fewest changes) was the default. Later testing didn't hold up the same way - C alone stopped being enough. **The app now always applies the full method (all 8 patches)**, since that's what's actually been working; it no longer asks you to pick. The A/B kit still builds all four arms if you want to re-test this yourself - TikTok's behavior moves, so what matters today may not tomorrow (see [TEST-PROTOCOL.md](docs/TEST-PROTOCOL.md)).
+That first round pointed at the decoy track as the trigger, so C (fewest changes) was the default. Later testing didn't hold up the same way - C alone stopped being enough. **The app now always applies the full method (all 8 patches)**, since that's what's actually been working; it no longer asks you to pick. The A/B kit still builds all four arms if you want to re-test this yourself - TikTok's behavior moves, so what matters today may not tomorrow (see [TEST-PROTOCOL.md](program/docs/TEST-PROTOCOL.md)).
 
 ## Setup (once)
 
 1. Install **Python**: https://www.python.org/downloads/ (tick **"Add python.exe to PATH"**)
 2. Install **FFmpeg**: open a terminal and run `winget install Gyan.FFmpeg` (the launcher can do this for you)
-3. Download this repo: green **Code** button → **Download ZIP** → unzip
+3. Download this repo: green **Code** button → **Download ZIP** → unzip. You'll get `Start OQM.bat` (or `start-oqm.command`), this guide, the license, and a `program/` folder with everything OQM needs to run.
 
 ## Use it
 
@@ -40,9 +40,9 @@ This is one test. TikTok can change how it processes uploads at any time, so not
 
 ## More
 
-- [How it works](docs/METHOD.md), byte by byte
-- [Run your own A/B test](docs/TEST-PROTOCOL.md) - `python -m oqm abtest` builds all four versions, `oqm measure` scores what came back
-- [What the paid methods actually do](docs/LANDSCAPE.md)
-- Command line: `python -m oqm --help` (export, patch, verify, measure, abtest, inspect, patches, testcard - everything the app's Make tab doesn't expose)
+- [How it works](program/docs/METHOD.md), byte by byte
+- [Run your own A/B test](program/docs/TEST-PROTOCOL.md) - `python -m oqm abtest` builds all four versions, `oqm measure` scores what came back
+- [What the paid methods actually do](program/docs/LANDSCAPE.md)
+- Command line: `cd program && python -m oqm --help` (export, patch, verify, measure, abtest, inspect, patches, testcard - everything the app's Make tab doesn't expose)
 
 Based on public work by [buwryme/tiktok-lossless-upload](https://github.com/buwryme/tiktok-lossless-upload) and others. MIT license.
