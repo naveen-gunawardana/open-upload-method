@@ -17,14 +17,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
-from . import __version__, abtest, export, ff, measure, mp4, patches, testcard, verify
+from . import __version__, export, ff, patches, verify
 
 UI_DIR = Path(__file__).parent / "ui"
 CHUNK = 1 << 20
 
 
 class App:
-    ACTIONS = {"export", "patch", "abtest", "measure", "inspect", "testcard"}
+    ACTIONS = {"export", "patch"}
 
     def __init__(self, workspace):
         self.ws = Path(workspace).expanduser().resolve()
@@ -34,10 +34,8 @@ class App:
         try:
             ff.require()
             self.ffmpeg_error = None
-            self.vmaf = ff.has_filter("libvmaf")
         except ff.FFmpegError as e:
             self.ffmpeg_error = str(e)
-            self.vmaf = False
 
     # --- workspace files ----------------------------------------------------
 
@@ -79,7 +77,6 @@ class App:
             "version": __version__,
             "workspace": str(self.ws),
             "ffmpeg_error": self.ffmpeg_error,
-            "vmaf": self.vmaf,
             "files": self.files(),
             "catalog": [asdict(p) for p in patches.CATALOG],
             "profiles": {k: sorted(v) for k, v in patches.PROFILES.items()},
@@ -128,34 +125,6 @@ class App:
         return {"output": self.rel(out), "applied": report.applied, "skipped": report.skipped,
                 "notes": report.notes, "checks": [asdict(c) for c in checks],
                 "ok": all(c.ok or c.warn for c in checks)}
-
-    def do_abtest(self, p):
-        src = self.src(p["input"])
-        out_dir = self.ws / f"{src.stem}_abtest"
-        ok, rows = abtest.build(src, out_dir, log=lambda *_: None)
-        for r in rows:
-            r["file"] = self.rel(out_dir / r["file"])
-        return {"ok": ok, "rows": rows, "csv": self.rel(out_dir / "RESULTS.csv"), "folder": self.rel(out_dir)}
-
-    def do_measure(self, p):
-        return measure.measure(self.src(p["master"]), self.src(p["served"]), vmaf=bool(p.get("vmaf", True)))
-
-    def do_inspect(self, p):
-        src = self.src(p["input"])
-        _, top = mp4.read_file(src)
-        streams = []
-        for s in ff.probe(src, count_frames=True)["streams"]:
-            streams.append({"index": s["index"], "type": s["codec_type"], "codec": s.get("codec_name"),
-                            "width": s.get("width"), "height": s.get("height"),
-                            "fps": round(ff.fraction(s.get("avg_frame_rate")), 3),
-                            "declared": s.get("nb_frames"), "decoded": s.get("nb_read_frames")})
-        return {"tree": mp4.tree(top), "streams": streams}
-
-    def do_testcard(self, p):
-        fps, seconds = int(p.get("fps", 60)), int(p.get("seconds", 10))
-        out = self.unique_path(f"testcard_{fps}fps.mp4")
-        testcard.make(out, fps=fps, seconds=seconds)
-        return {"output": self.rel(out)}
 
     def open_folder(self, rel=None):
         target = self.path(rel) if rel else self.ws

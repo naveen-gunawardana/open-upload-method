@@ -41,8 +41,8 @@ This is one test. TikTok can change how it processes uploads at any time, so not
 ## More
 
 - [How it works](docs/METHOD.md), byte by byte
-- [Run your own A/B test](docs/TEST-PROTOCOL.md) (the **A/B kit** tab builds all four versions)
+- [Run your own A/B test](docs/TEST-PROTOCOL.md) - `python -m oqm abtest` builds all four versions, `oqm measure` scores what came back
 - [What the paid methods actually do](docs/LANDSCAPE.md)
-- Command line: `python -m oqm --help`
+- Command line: `python -m oqm --help` (export, patch, verify, measure, abtest, inspect, patches, testcard - everything the app's Make tab doesn't expose)
 
 Based on public work by [buwryme/tiktok-lossless-upload](https://github.com/buwryme/tiktok-lossless-upload) and others. MIT license.
