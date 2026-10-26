@@ -7,94 +7,137 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%23111%22/%3E%3Cpath d=%22M9 16l5 5 9-10%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
 <style>
 :root {
-  --bg: #ffffff; --panel: #ffffff; --panel2: #f4f4f4; --line: #e3e3e3; --text: #111111; --muted: #6c6c6c;
-  --accent: #111111; --accent-ink: #ffffff; --ok: #1f7a40; --warn: #96650f; --bad: #b23b2e;
-  --radius: 10px; --mono: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
-  --shadow: 0 1px 2px rgba(0,0,0,.04), 0 8px 24px rgba(0,0,0,.05);
+  --bg: #fbfbfa; --panel: #ffffff; --panel2: #f4f4f3; --line: #e6e6e4; --text: #141414; --muted: #767672;
+  --accent: #141414; --accent-ink: #ffffff; --ok: #1f7a40; --warn: #96650f; --bad: #b23b2e;
+  --radius: 16px; --radius-sm: 10px;
+  --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+  --shadow: 0 1px 2px rgba(0,0,0,.03), 0 14px 40px rgba(0,0,0,.06);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #0b0b0c; --panel: #141415; --panel2: #1d1d1f; --line: #2c2c2f; --text: #f2f2f0; --muted: #9b9b9e;
-    --accent: #f2f2f0; --accent-ink: #0b0b0c; --ok: #4fb379; --warn: #dba34a; --bad: #e07a63;
-    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 30px rgba(0,0,0,.45);
+    --bg: #0a0a0b; --panel: #141415; --panel2: #1c1c1e; --line: #2a2a2d; --text: #f3f3f1; --muted: #93938f;
+    --accent: #f3f3f1; --accent-ink: #0a0a0b; --ok: #4fb379; --warn: #dba34a; --bad: #e07a63;
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 16px 44px rgba(0,0,0,.5);
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
   }
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 -apple-system, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
 button, input, select { font: inherit; color: inherit; }
-header { display: flex; align-items: center; gap: 14px; padding: 14px 22px; border-bottom: 1px solid var(--line); background: var(--panel); position: sticky; top: 0; z-index: 5; }
-.logo { font-weight: 800; letter-spacing: -.3px; font-size: 18px; }
+
+header { display: flex; align-items: center; gap: 12px; padding: 16px 28px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 5; }
+.mark { width: 28px; height: 28px; border-radius: 7px; background: linear-gradient(135deg, #1f7fe0, #ffce5c); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+.mark svg { width: 15px; height: 15px; }
+.logo { font-weight: 800; letter-spacing: -.3px; font-size: 16px; }
 .sub { color: var(--muted); font-size: 13px; }
 header .grow { flex: 1; }
-.ws { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 40vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.btn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
-.btn:hover { border-color: var(--text); }
-a.btn { display: inline-block; text-decoration: none; color: var(--text); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 11px 20px; width: 100%; text-align: center; }
-.btn.primary:disabled { opacity: .35; cursor: not-allowed; }
-.btn.sm { padding: 3px 8px; font-size: 12px; }
-#banner { display: none; margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--bad) 10%, transparent); border: 1px solid var(--bad); }
-.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; padding: 24px; align-items: start; max-width: 1180px; margin: 0 auto; }
+.ws { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer; transition: border-color .12s, background .12s, transform .05s; }
+.btn:hover { border-color: color-mix(in srgb, var(--text) 35%, var(--line)); }
+.btn:active { transform: scale(.98); }
+a.btn { text-decoration: none; color: var(--text); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 15px; padding: 13px 20px; width: 100%; text-align: center; box-shadow: var(--shadow-sm); }
+.btn.primary:hover { opacity: .92; }
+.btn.primary:disabled { opacity: .3; cursor: not-allowed; }
+.btn.sm { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
+.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+
+#banner { display: none; margin: 16px 28px 0; padding: 12px 16px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bad) 10%, transparent); border: 1px solid var(--bad); font-size: 13px; }
+
+.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; padding: 28px; align-items: start; max-width: 1180px; margin: 0 auto; }
 @media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; } header { padding: 12px 16px; } .ws, .sub { display: none; } section { order: -1; } }
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
 aside .card + .card { margin-top: 14px; }
-h2 { font-size: 18px; font-weight: 700; margin: 0 0 4px; letter-spacing: -.2px; }
-h3.eyebrow { font-size: 11px; margin: 0 0 8px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-h3 { font-size: 13px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .6px; }
-.section { padding-top: 18px; margin-top: 18px; border-top: 1px solid var(--line); }
-.section:first-of-type { padding-top: 0; margin-top: 0; border-top: 0; }
-.drop { display: block; border: 1.5px dashed var(--line); border-radius: var(--radius); padding: 22px 12px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
+h2 { font-size: 19px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.3px; }
+.lead { color: var(--muted); margin: 0 0 24px; max-width: 60ch; font-size: 14px; }
+
+.drop { display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1.5px dashed var(--line); border-radius: var(--radius-sm); padding: 28px 14px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
+.drop:hover { background: var(--panel2); }
 .drop.over { border-color: var(--text); color: var(--text); background: var(--panel2); }
-.drop strong { color: var(--text); display: block; font-size: 15px; margin-bottom: 2px; }
-.prog { margin-top: 8px; font-size: 12px; } .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 3px; }
+.drop svg { width: 26px; height: 26px; color: var(--muted); }
+.drop strong { color: var(--text); display: block; font-size: 15px; font-weight: 600; margin-bottom: 1px; }
+.drop span.hint { font-size: 12.5px; }
+
+.prog { margin-top: 10px; font-size: 12px; } .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 4px; }
 .bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
-#files { list-style: none; margin: 0; padding: 0; max-height: 60vh; overflow: auto; }
-#files li { display: flex; align-items: center; gap: 8px; padding: 7px 4px; border-bottom: 1px solid var(--line); }
+
+#files { list-style: none; margin: 0; padding: 0; max-height: 58vh; overflow: auto; }
+#files li { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line); }
 #files li:last-child { border-bottom: 0; }
+#files .vicon { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 7px; background: var(--panel2); display: flex; align-items: center; justify-content: center; color: var(--muted); }
+#files .vicon svg { width: 13px; height: 13px; }
 #files .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-#files .dir { color: var(--muted); } #files .sz { color: var(--muted); font-family: var(--mono); font-size: 11px; }
-#files a, .ico { color: var(--muted); text-decoration: none; cursor: pointer; border: 0; background: none; padding: 2px 4px; }
-#files a:hover, .ico:hover { color: var(--text); }
+#files .dir { color: var(--muted); } #files .sz { color: var(--muted); font-family: var(--mono); font-size: 11px; flex: 0 0 auto; }
+#files a, .ico { color: var(--muted); text-decoration: none; cursor: pointer; border: 0; background: none; padding: 3px; display: flex; border-radius: 6px; }
+#files a:hover, .ico:hover { color: var(--text); background: var(--panel2); }
+#files a svg, .ico svg { width: 15px; height: 15px; }
 .empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
-.lead { color: var(--muted); margin: 0 0 20px; max-width: 70ch; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
-label.f { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: 600; }
-select, input[type=number], input[type=text] { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
-.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 3px; gap: 2px; flex-wrap: wrap; }
-.seg button { border: 0; background: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; color: var(--muted); }
+
+h3 { font-size: 11px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; font-weight: 700; }
+
+.field { margin-bottom: 20px; }
+.field:last-child { margin-bottom: 0; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
+label.f { display: block; font-size: 13px; color: var(--text); margin-bottom: 7px; font-weight: 600; }
+select, input[type=number], input[type=text] { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; }
+select:focus, input:focus { outline: none; border-color: color-mix(in srgb, var(--text) 40%, var(--line)); }
+.hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
+
+.quality-row { display: flex; align-items: center; gap: 14px; }
+input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; border-radius: 2px; background: var(--line); outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
+.quality-badge { flex: 0 0 auto; min-width: 118px; text-align: right; font-size: 13px; font-weight: 600; }
+.quality-badge .num { font-family: var(--mono); color: var(--muted); font-weight: 400; font-size: 12px; display: block; }
+
+.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 3px; gap: 2px; flex-wrap: wrap; }
+.seg button { border: 0; background: none; padding: 7px 13px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13px; transition: background .12s, color .12s; }
 .seg button.on { background: var(--accent); color: var(--accent-ink); }
-.seg.wide { display: flex; margin-bottom: 14px; }
+.seg.wide { display: flex; margin-bottom: 16px; }
 .seg.wide button { flex: 1; }
-details { margin: 18px 0 0; } summary { cursor: pointer; color: var(--muted); margin-bottom: 10px; font-size: 13px; }
-.actions { margin-top: 20px; }
+
+details { margin: 4px 0 0; border-top: 1px solid var(--line); padding-top: 18px; }
+summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px; }
+summary::-webkit-details-marker { display: none; }
+summary .chev { transition: transform .15s; }
+details[open] summary .chev { transform: rotate(90deg); }
+details > .adv-body { padding-top: 18px; }
+
+.actions { margin-top: 24px; }
 .result { margin-top: 20px; } .result:empty { display: none; }
-.running { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 14px; border: 1px solid var(--line); border-radius: var(--radius); }
+.running { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
 .spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--text); border-radius: 50%; animation: s .8s linear infinite; }
 @keyframes s { to { transform: rotate(360deg); } }
+
 table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted); font-weight: 600; font-size: 12px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
 td.num { font-family: var(--mono); }
-.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 3px; letter-spacing: .4px; border: 1px solid; }
+.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .4px; border: 1px solid; }
 .pill.PASS { border-color: var(--ok); color: var(--ok); }
 .pill.WARN { border-color: var(--warn); color: var(--warn); }
 .pill.FAIL { border-color: var(--bad); color: var(--bad); }
-.verdict { display: flex; gap: 14px; align-items: center; padding: 14px 16px; border-radius: var(--radius); margin-bottom: 14px; border: 1px solid; }
+
+.verdict { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid; }
 .verdict.good { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
 .verdict.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
-.verdict .big { font-size: 22px; } .verdict b { display: block; font-size: 15px; }
-.out { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 10px 12px; background: var(--panel2); border-radius: var(--radius); margin-bottom: 12px; font-family: var(--mono); font-size: 13px; }
-.out .grow { flex: 1; }
-pre { background: var(--panel2); border-radius: var(--radius); padding: 12px; font-size: 12px; overflow: auto; max-height: 420px; margin: 0; }
-.err { color: var(--bad); white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 12px; border: 1px solid var(--bad); border-radius: var(--radius); }
-.note { font-size: 13px; color: var(--muted); margin: 6px 0; }
+.verdict .big { font-size: 22px; flex: 0 0 auto; } .verdict b { display: block; font-size: 15px; }
+
+.out { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 11px 14px; background: var(--panel2); border-radius: var(--radius-sm); margin-bottom: 12px; font-family: var(--mono); font-size: 12.5px; }
+.out .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.err { color: var(--bad); white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 14px; border: 1px solid var(--bad); border-radius: var(--radius-sm); }
+.note { font-size: 13px; color: var(--muted); margin: 7px 0; }
 .muted { color: var(--muted); }
 </style>
 </head>
 <body>
 <header>
-  <div class="logo"><span>OQM</span></div>
+  <div class="mark"><svg viewBox="0 0 32 32"><path d="M9 16l5 5 9-10" stroke="white" stroke-width="3.5" fill="none" stroke-linecap="round"/></svg></div>
+  <div class="logo">OQM</div>
   <div class="sub">Open Quality Method <span id="ver"></span></div>
   <div class="grow"></div>
   <div class="ws" id="ws" title="Workspace folder"></div>
@@ -106,7 +149,9 @@ pre { background: var(--panel2); border-radius: var(--radius); padding: 12px; fo
   <aside>
     <div class="card">
       <label class="drop" id="drop">
-        <strong>Drop videos here</strong>or click to browse
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 4l-4 4M12 4l4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <strong>Drop videos here</strong>
+        <span class="hint">or click to browse</span>
         <input type="file" id="pick" multiple accept="video/*,.mp4,.mov,.mkv,.m4v,.webm" hidden>
       </label>
       <div id="uploads"></div>
@@ -121,49 +166,80 @@ pre { background: var(--panel2); border-radius: var(--radius); padding: 12px; fo
     <!-- MAKE (export + patch, chained) -->
     <div class="card panel on" id="p-make">
       <h2>Make an upload-ready file</h2>
-      <p class="lead">Upload your best export, set your quality, and hit one button. This re-encodes a clean master, then applies the full patch and verifies it - automatically, one step.</p>
+      <p class="lead">Pick your video and quality, hit one button. OQM re-encodes a clean master, patches it, and verifies the result &mdash; automatically.</p>
 
-      <div class="section">
-        <h3 class="eyebrow">Source</h3>
-        <div class="grid">
-          <div><label class="f">Your video</label><select data-files="video" id="mk-in"></select></div>
-          <div><label class="f">Codec</label><div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div></div>
+      <div class="field">
+        <label class="f">Video</label>
+        <select data-files="video" id="mk-in"></select>
+      </div>
+
+      <div class="field" id="mk-quality-field">
+        <label class="f">Quality</label>
+        <div class="quality-row">
+          <input type="range" id="mk-crf" value="17" min="10" max="30" step="1">
+          <div class="quality-badge"><span id="mk-crf-label">Visually transparent</span><span class="num" id="mk-crf-num">CRF 17</span></div>
+        </div>
+        <div class="hint">Drag left for max quality (bigger file), right for a smaller file.</div>
+      </div>
+
+      <div class="field-row">
+        <div>
+          <label class="f">Frame rate</label>
+          <select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select>
+        </div>
+        <div>
+          <label class="f">Size</label>
+          <select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select>
         </div>
       </div>
 
-      <div class="section">
-        <h3 class="eyebrow">Quality</h3>
-        <div class="seg wide" data-seg="mk-qmode">
-          <button data-v="crf" class="on">By quality (CRF)</button>
-          <button data-v="kbps">By exact bitrate</button>
-        </div>
-        <div class="grid" id="mk-qmode-crf">
-          <div><label class="f">Quality (CRF)</label><input type="number" id="mk-crf" value="17" min="10" max="30"><div class="hint">Lower = better and bigger. 17 is visually transparent for most edits.</div></div>
-        </div>
-        <div class="grid" id="mk-qmode-kbps" style="display:none">
-          <div><label class="f">Target bitrate (kbps)</label><input type="number" id="mk-kbps" placeholder="e.g. 20000" min="500"><div class="hint">Exact 2-pass target average video bitrate.</div></div>
-        </div>
-      </div>
-
-      <div class="section">
-        <h3 class="eyebrow">Frame &amp; size</h3>
-        <div class="grid">
-          <div><label class="f">Frame rate</label><select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select></div>
-          <div><label class="f">Size</label><select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select></div>
-        </div>
-      </div>
-
-      <details id="mk-advanced"><summary>Patch settings (rarely needed)</summary>
-        <div class="grid">
-          <div><label class="f">Decoy inflation ×</label><input type="number" id="mk-inflate" value="10" min="2" max="50"><div class="hint">Decoy sample count = real samples × this.</div></div>
-          <div><label class="f">Dummy sample bytes</label><input type="number" id="mk-dummy" placeholder="auto (by codec)" min="1" max="64"></div>
-          <div><label class="f">Encoder tag</label><input type="text" id="mk-enc" value="Lavf59.27.100"></div>
-          <div><label class="f">Trailing pad bytes</label><input type="number" id="mk-trail" value="184100" min="16"></div>
+      <details id="mk-advanced">
+        <summary><svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 1l4 4-4 4"/></svg>Advanced settings</summary>
+        <div class="adv-body">
+          <div class="field">
+            <label class="f">Codec</label>
+            <div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div>
+          </div>
+          <div class="field">
+            <label class="f">Quality mode</label>
+            <div class="seg wide" data-seg="mk-qmode">
+              <button data-v="crf" class="on">By quality (CRF)</button>
+              <button data-v="kbps">By exact bitrate</button>
+            </div>
+            <div id="mk-qmode-kbps-field" style="display:none">
+              <input type="number" id="mk-kbps-visible" placeholder="target kbps, e.g. 20000" min="500">
+              <div class="hint">Exact 2-pass target average video bitrate.</div>
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label class="f">Decoy inflation &times;</label>
+              <input type="number" id="mk-inflate" value="10" min="2" max="50">
+            </div>
+            <div>
+              <label class="f">Dummy sample bytes</label>
+              <input type="number" id="mk-dummy" placeholder="auto (by codec)" min="1" max="64">
+            </div>
+          </div>
+          <div class="field-row">
+            <div>
+              <label class="f">Encoder tag</label>
+              <input type="text" id="mk-enc" value="Lavf59.27.100">
+            </div>
+            <div>
+              <label class="f">Trailing pad bytes</label>
+              <input type="number" id="mk-trail" value="184100" min="16">
+            </div>
+          </div>
         </div>
       </details>
+
       <div class="actions"><button class="btn primary" data-run="make">Make it</button></div>
       <div class="actions" id="mk-download" style="display:none">
-        <a class="btn primary" id="mk-download-link" href="#" download>Download file</a>
+        <a class="btn primary" id="mk-download-link" href="#" download>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 15l-4-4M12 15l4-4"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>
+          Download file
+        </a>
       </div>
       <div class="result" id="r-make"></div>
     </div>
@@ -176,6 +252,9 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const fileUrl = n => "/files/" + n.split("/").map(encodeURIComponent).join("/");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const VIDEO = /\.(mp4|mov|m4v|mkv|webm)$/i;
+const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 15l-4-4M12 15l4-4"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>';
+const DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M9 6V4h6v2M7 6l1 14h8l1-14"/></svg>';
+const VID_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>';
 let state = null, busy = false;
 
 async function api(path, opts = {}) {
@@ -200,8 +279,8 @@ function renderFiles() {
   ul.innerHTML = state.files.map(f => {
     const i = f.name.lastIndexOf("/");
     const label = i < 0 ? esc(f.name) : `<span class="dir">${esc(f.name.slice(0, i + 1))}</span>${esc(f.name.slice(i + 1))}`;
-    return `<li><span class="nm" title="${esc(f.name)}">${label}</span><span class="sz">${fmtSize(f.size)}</span>
-      <a href="${fileUrl(f.name)}" title="Download">↓</a><button class="ico" data-del="${esc(f.name)}" title="Delete">✕</button></li>`;
+    return `<li><span class="vicon">${VID_ICON}</span><span class="nm" title="${esc(f.name)}">${label}</span><span class="sz">${fmtSize(f.size)}</span>
+      <a href="${fileUrl(f.name)}" title="Download">${DL_ICON}</a><button class="ico" data-del="${esc(f.name)}" title="Delete">${DEL_ICON}</button></li>`;
   }).join("");
 }
 
@@ -220,14 +299,31 @@ function updateRunButtons() {
   $$("[data-run]").forEach(b => b.disabled = busy || !!state?.ffmpeg_error || !hasVideo);
 }
 
+// --- quality slider
+function qualityLabel(crf) {
+  crf = Number(crf);
+  if (crf <= 14) return "Maximum quality";
+  if (crf <= 19) return "Visually transparent";
+  if (crf <= 24) return "Balanced";
+  return "Smaller file";
+}
+function updateQualityBadge() {
+  const v = $("#mk-crf").value;
+  $("#mk-crf-label").textContent = qualityLabel(v);
+  $("#mk-crf-num").textContent = "CRF " + v;
+}
+$("#mk-crf").addEventListener("input", updateQualityBadge);
+updateQualityBadge();
+
 // --- segmented controls (codec picker, quality mode)
 function segValue(id) { return $(`[data-seg="${id}"] .on, #${id} .on`)?.dataset.v; }
 $$(".seg").forEach(seg => seg.onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
   if (seg.dataset.seg === "mk-qmode") {
-    $("#mk-qmode-crf").style.display = b.dataset.v === "crf" ? "" : "none";
-    $("#mk-qmode-kbps").style.display = b.dataset.v === "kbps" ? "" : "none";
+    const byBitrate = b.dataset.v === "kbps";
+    $("#mk-qmode-kbps-field").style.display = byBitrate ? "" : "none";
+    $("#mk-quality-field").style.display = byBitrate ? "none" : "";
   }
 });
 
@@ -254,7 +350,7 @@ function upload(files) {
 }
 
 $("#files").onclick = async e => {
-  const name = e.target.dataset?.del; if (!name) return;
+  const name = e.target.closest("[data-del]")?.dataset?.del; if (!name) return;
   try { await api("/api/delete", { method: "POST", body: JSON.stringify({ name }) }); } catch (err) { alert(err.message); }
   refresh();
 };
@@ -295,7 +391,7 @@ async function runMake() {
     const byBitrate = segValue("mk-qmode") === "kbps";
     const exp = await runJob("export", {
       input, codec: segValue("mk-codec"), crf: $("#mk-crf").value,
-      kbps: byBitrate ? $("#mk-kbps").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
+      kbps: byBitrate ? $("#mk-kbps-visible").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
     });
     stage("Patching + verifying (full method)");
     const pat = await runJob("patch", {
