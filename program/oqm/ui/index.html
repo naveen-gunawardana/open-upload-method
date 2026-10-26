@@ -30,7 +30,7 @@ header .grow { flex: 1; }
 .btn { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
 .btn:hover { border-color: var(--text); }
 a.btn { display: inline-block; text-decoration: none; color: var(--text); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 11px 20px; width: 100%; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; padding: 11px 20px; width: 100%; text-align: center; }
 .btn.primary:disabled { opacity: .35; cursor: not-allowed; }
 .btn.sm { padding: 3px 8px; font-size: 12px; }
 #banner { display: none; margin: 14px 22px 0; padding: 12px 14px; border-radius: var(--radius); background: color-mix(in srgb, var(--bad) 10%, transparent); border: 1px solid var(--bad); }
@@ -162,6 +162,9 @@ pre { background: var(--panel2); border-radius: var(--radius); padding: 12px; fo
         </div>
       </details>
       <div class="actions"><button class="btn primary" data-run="make">Make it</button></div>
+      <div class="actions" id="mk-download" style="display:none">
+        <a class="btn primary" id="mk-download-link" href="#" download>Download file</a>
+      </div>
       <div class="result" id="r-make"></div>
     </div>
   </section>
@@ -270,9 +273,19 @@ async function runJob(action, params) {
   }
 }
 
+function showDownload(rel) {
+  const wrap = $("#mk-download"), link = $("#mk-download-link");
+  link.href = fileUrl(rel);
+  link.download = rel.split("/").pop();
+  wrap.style.display = "";
+}
+function hideDownload() {
+  $("#mk-download").style.display = "none";
+}
+
 async function runMake() {
   const box = $("#r-make"), t0 = Date.now();
-  busy = true; updateRunButtons();
+  busy = true; updateRunButtons(); hideDownload();
   const tick = setInterval(() => { const el = box.querySelector(".el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
   const stage = s => box.innerHTML = `<div class="running"><div class="spin"></div><span>${esc(s)}… <span class="el">0s</span></span></div>`;
   try {
@@ -291,6 +304,7 @@ async function runMake() {
       encoder_tag: $("#mk-enc").value, trailing_bytes: $("#mk-trail").value,
     });
     box.innerHTML = RENDER.make(exp, pat);
+    if (pat.ok) showDownload(pat.output);
   } catch (e) {
     box.innerHTML = `<div class="err">${esc(e.message)}</div>`;
   } finally {
