@@ -18,6 +18,10 @@ In our first test, TikTok served the patched files **exactly as uploaded, at 108
 
 **Use C.** It gets the same result as B with far fewer changes to your file. Keep B as a backup if C ever stops working.
 
+## Use it in your browser
+
+No install: open **https://www.openqualitymethod.com**, click **Patch a video now**, and drop your MP4 in. It does option C right in the page, and your video never leaves your computer. The code is in `website/`. It was checked to produce the same file as the Python tool.
+
 ## Setup (once)
 
 1. Install **Python**: https://www.python.org/downloads/ (tick **"Add python.exe to PATH"**)
