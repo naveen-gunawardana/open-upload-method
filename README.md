@@ -11,4 +11,6 @@ A free tool that stops TikTok from crushing the quality of your video uploads. I
 5. It opens in your browser. Drop your video in, set a bitrate (or leave it blank for quality mode) and your frame rate/size, then hit **Make it**
 6. Upload the file it gives you to TikTok, same as always
 
+No install option: open **https://www.openqualitymethod.com**, click **Patch a video now**, and drop in a finished MP4. It runs the same patch (option B) in your browser and your video never leaves your computer. Use the app above if you need to re-encode first.
+
 That's it. Free, open source, MIT license.
