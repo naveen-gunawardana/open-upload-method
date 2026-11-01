@@ -4,7 +4,6 @@ import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
-const Patcher = dynamic(() => import("@/components/Patcher"), { ssr: false });
 
 const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
 const ZIP_URL = "/api/download";
@@ -76,8 +75,6 @@ function DownloadCount() {
 }
 
 export default function Home() {
-  const [patching, setPatching] = useState(false);
-
   return (
     <>
       <Scene />
@@ -96,7 +93,7 @@ export default function Home() {
           <div className="hero-card">
             <DownloadCount />
             <h1>Stop TikTok from crushing your video.</h1>
-            <p className="sub">Upload in 4K, no compression. Patch a video right here in your browser, or run it on your machine. Free, no account needed.</p>
+            <p className="sub">Upload in 4K, no compression. It runs locally on your machine. Free, no account needed.</p>
 
             <div className="compare">
               <span className="pill no">
@@ -108,9 +105,6 @@ export default function Home() {
             </div>
 
             <div className="cta-row">
-              <button type="button" className="btn btn-patch" onClick={() => setPatching(true)}>
-                Patch a video now
-              </button>
               <a className="btn btn-star" href={GITHUB_URL} target="_blank" rel="noopener">
                 <StarIcon />
                 Star on GitHub
@@ -128,7 +122,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-      {patching && <Patcher onClose={() => setPatching(false)} />}
     </>
   );
 }
