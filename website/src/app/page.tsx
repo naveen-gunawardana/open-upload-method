@@ -135,10 +135,10 @@ export default function Home() {
               </a>
             </div>
             <div className="cta-row">
-              <a className="btn btn-star" href={GITHUB_URL} target="_blank" rel="noopener">
+              <button type="button" className="btn btn-star" onClick={() => setReviewing(true)}>
                 <StarIcon />
-                Star on GitHub
-              </a>
+                Leave a review
+              </button>
               <a className="btn btn-ghost" href={GITHUB_URL} target="_blank" rel="noopener">
                 <GithubIcon />
                 View code
@@ -146,10 +146,7 @@ export default function Home() {
             </div>
 
             <div className="credit">
-              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a> ·{" "}
-              <button type="button" className="linklike" onClick={() => setReviewing(true)}>
-                Leave a review
-              </button>
+              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
             </div>
 
             <div className="credit">Zero compression · completely free forever</div>
