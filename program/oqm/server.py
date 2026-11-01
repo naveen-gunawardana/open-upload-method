@@ -24,7 +24,7 @@ CHUNK = 1 << 20
 
 
 class App:
-    ACTIONS = {"export", "patch"}
+    ACTIONS = {"make", "export", "patch"}
 
     def __init__(self, workspace):
         self.ws = Path(workspace).expanduser().resolve()
@@ -88,7 +88,7 @@ class App:
     def submit(self, action, params):
         if action not in self.ACTIONS:
             raise ValueError(f"unknown action: {action}")
-        job = {"id": uuid.uuid4().hex[:10], "action": action, "status": "queued", "result": None, "error": None}
+        job = {"id": uuid.uuid4().hex[:10], "action": action, "status": "queued", "stage": "", "result": None, "error": None}
         self.jobs[job["id"]] = job
         threading.Thread(target=self._run, args=(job, params), daemon=True).start()
         return job["id"]
@@ -97,11 +97,35 @@ class App:
         with self.run_lock:
             job["status"] = "running"
             try:
-                job["result"] = getattr(self, f"do_{job['action']}")(params)
+                job["result"] = getattr(self, f"do_{job['action']}")(params, job) if job["action"] == "make" else getattr(self, f"do_{job['action']}")(params)
                 job["status"] = "done"
             except Exception as e:  # surfaced to the UI verbatim
                 job["error"] = str(e)
                 job["status"] = "error"
+
+    def do_make(self, p, job):
+        """One step for the UI: re-encode a clean intermediate, patch it, verify, keep only `<name>_oqm.mp4`."""
+        src = self.src(p["input"])
+        out = self.unique_path(f"{src.stem}_oqm.mp4")
+        tmp = self.ws / f".{out.stem}.intermediate.mp4"  # dot-name: hidden from the file list
+        try:
+            job["stage"] = "Re-encoding your video"
+            info = export.export(src, tmp, codec=p.get("codec", "h264"), crf=int(p.get("crf", 17)),
+                                 kbps=int(p["kbps"]) if p.get("kbps") else None,
+                                 fps=float(p["fps"]) if p.get("fps") else None, fit=p.get("fit") or None)
+            job["stage"] = "Applying the patch and checking it"
+            opts = patches.PatchOptions(enabled=set(p.get("patches", [])) | {"faststart"},
+                                        inflate=int(p.get("inflate", 10)),
+                                        dummy_size=int(p["dummy_size"]) if p.get("dummy_size") else None,
+                                        encoder_tag=p.get("encoder_tag", "Lavf59.27.100"),
+                                        trailing_bytes=int(p.get("trailing_bytes", 184_100)))
+            report = patches.patch_file(tmp, out, opts)
+            checks = verify.verify(tmp, out)
+        finally:
+            tmp.unlink(missing_ok=True)
+        return {"output": self.rel(out), "export": info, "applied": report.applied, "skipped": report.skipped,
+                "notes": report.notes, "checks": [asdict(c) for c in checks],
+                "ok": all(c.ok or c.warn for c in checks)}
 
     def do_export(self, p):
         src = self.src(p["input"])
@@ -127,15 +151,17 @@ class App:
                 "ok": all(c.ok or c.warn for c in checks)}
 
     def open_folder(self, rel=None):
+        """Open the workspace, or show one file selected in its folder."""
         target = self.path(rel) if rel else self.ws
-        if target.is_file():
-            target = target.parent
         if sys.platform == "win32":
-            os.startfile(target)
+            if target.is_file():
+                subprocess.Popen(["explorer", f"/select,{target}"])
+            else:
+                os.startfile(target)
         elif sys.platform == "darwin":
-            subprocess.Popen(["open", str(target)])
+            subprocess.Popen(["open", "-R", str(target)] if target.is_file() else ["open", str(target)])
         else:
-            subprocess.Popen(["xdg-open", str(target)])
+            subprocess.Popen(["xdg-open", str(target.parent if target.is_file() else target)])
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -168,6 +194,8 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path in ("/", "/index.html"):
                 self._send(200, (UI_DIR / "index.html").read_bytes(), "text/html; charset=utf-8")
+            elif path.startswith("/fonts/") and "/" not in path[7:] and ".." not in path:
+                self._send(200, (UI_DIR / "fonts" / path[7:]).read_bytes(), "font/woff2")
             elif path == "/api/state":
                 self._json(self.app.state())
             elif path.startswith("/api/jobs/"):

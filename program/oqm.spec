@@ -5,7 +5,7 @@ import sys
 exe_ext = ".exe" if sys.platform == "win32" else ""
 a = Analysis(
     ["app.py"],
-    datas=[("oqm/ui/index.html", "oqm/ui")],
+    datas=[("oqm/ui/index.html", "oqm/ui"), ("oqm/ui/fonts", "oqm/ui/fonts")],
     hiddenimports=["webview"],
     binaries=[(f"bin/ffmpeg{exe_ext}", "bin"), (f"bin/ffprobe{exe_ext}", "bin")],
 )

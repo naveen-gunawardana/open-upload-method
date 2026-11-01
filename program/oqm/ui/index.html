@@ -4,300 +4,211 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OQM · Open Quality Method</title>
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%226%22 fill=%22%23111%22/%3E%3Cpath d=%22M9 16l5 5 9-10%22 stroke=%22white%22 stroke-width=%223.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%229%22 fill=%22%231f7fe0%22/%3E%3Cpath d=%22M9 9L9 23L20 16L9 9Z%22 fill=%22white%22/%3E%3Cpath d=%22M22 13L25 8L28 13%22 stroke=%22white%22 stroke-width=%222.4%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22 fill=%22none%22/%3E%3C/svg%3E">
 <style>
+@font-face { font-family: "Quicksand"; src: url(/fonts/quicksand-latin-wght-normal.woff2) format("woff2"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-400-normal.woff2) format("woff2"); font-weight: 400; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-500-normal.woff2) format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "IBM Plex Sans"; src: url(/fonts/ibm-plex-sans-latin-600-normal.woff2) format("woff2"); font-weight: 600; font-display: swap; }
+
 :root {
-  color-scheme: dark;
-  --bg: #05171a; --panel: rgba(10,36,39,.72); --panel2: rgba(255,255,255,.045); --line: rgba(120,255,214,.14); --text: #e8fbf4; --muted: #8fb3aa;
-  --accent: #38f2c0; --accent-ink: #03211b; --firefly: #c4ff5e; --ok: #4dffb0; --warn: #ffcf5a; --bad: #ff7a6b;
-  --radius: 18px; --radius-sm: 12px;
+  color-scheme: light;
+  --fg: #17304a; --muted: #4c6a7d; --line: rgba(22,48,73,.14); --panel: rgba(255,255,255,.78); --field: rgba(255,255,255,.9);
+  --blue: #1f7fe0; --blue-deep: #145a9f; --sun: #ffd98a; --sun-ink: #4a3200; --hill: #3f8a4c;
+  --ok: #246b3b; --ok-bg: rgba(228,246,232,.95); --ok-line: #bfe4c9;
+  --bad: #8a3b2e; --bad-bg: rgba(253,235,230,.95); --bad-line: #f3c7ba;
+  --warn: #7a5200; --warn-bg: #fff4d6; --warn-line: #f0d9a0;
+  --display: "Quicksand", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --body: "IBM Plex Sans", -apple-system, "Segoe UI", system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
-  --shadow: 0 0 0 1px rgba(56,242,192,.05), 0 18px 50px rgba(0,0,0,.45);
-  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
-  --glow: 0 0 18px rgba(56,242,192,.45), 0 0 44px rgba(56,242,192,.22);
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 -apple-system, "SF Pro Text", system-ui, "Segoe UI", Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+html { min-height: 100%; }
+body { margin: 0; min-height: 100vh; color: var(--fg); font: 15px/1.55 var(--body); -webkit-font-smoothing: antialiased;
+  background: linear-gradient(to bottom, #1368d6, #2aa0ff 38%, #7ed6ff 64%, #ffd876 90%, #fff6cc 100%) fixed; }
 button, input, select { font: inherit; color: inherit; }
 
-header { display: flex; align-items: center; gap: 12px; padding: 16px 28px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 5; }
-.mark { width: 28px; height: 28px; border-radius: 7px; background: linear-gradient(135deg, #1f7fe0, #ffce5c); display: flex; align-items: center; justify-content: center; flex: 0 0 auto; }
-.mark svg { width: 15px; height: 15px; }
-.logo { font-weight: 800; letter-spacing: -.3px; font-size: 16px; }
-.sub { color: var(--muted); font-size: 13px; }
+.hills { position: fixed; left: 0; right: 0; bottom: 0; height: 24vh; min-height: 120px; z-index: 0; pointer-events: none; }
+.hills svg { width: 100%; height: 100%; display: block; }
+.app { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 18px 16px 150px; }
+
+header { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px 9px 16px; backdrop-filter: blur(6px); box-shadow: 0 2px 0 rgba(22,48,73,.1); }
+.mark { display: block; border-radius: 6px; }
+.logo { font-family: var(--display); font-weight: 700; font-size: 18px; letter-spacing: .01em; }
+.chip { font-size: 11.5px; font-weight: 600; color: #2e6b2f; background: rgba(234,247,226,.95); border: 1px solid #bfe0ac; padding: 4px 11px; border-radius: 6px; }
 header .grow { flex: 1; }
-.ws { font-family: var(--mono); font-size: 12px; color: var(--muted); max-width: 36vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 14px; cursor: pointer; transition: border-color .12s, background .12s, transform .05s; }
-.btn:hover { border-color: color-mix(in srgb, var(--text) 35%, var(--line)); }
-.btn:active { transform: scale(.98); }
-a.btn { text-decoration: none; color: var(--text); }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 15px; padding: 13px 20px; width: 100%; text-align: center; box-shadow: var(--shadow-sm); }
-.btn.primary:hover { opacity: .92; }
-.btn.primary:disabled { opacity: .3; cursor: not-allowed; }
-.btn.sm { padding: 4px 10px; font-size: 12px; border-radius: 7px; }
-.btn svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; font-size: 14px; padding: 9px 16px; border-radius: 8px; border: 1.5px solid var(--hill); color: var(--hill); background: rgba(255,255,255,.85); cursor: pointer; text-decoration: none; transition: transform .15s ease, filter .15s ease, background .15s ease, box-shadow .15s ease; }
+.btn:hover { background: #eaf7e2; transform: translateY(-1px); }
+.btn:focus-visible, select:focus-visible, input:focus-visible, summary:focus-visible, .row:focus-visible { outline: 3px solid rgba(31,127,224,.55); outline-offset: 2px; }
+.btn svg { width: 15px; height: 15px; flex: none; }
+.btn.blue { background: var(--blue); color: #fff; border-color: transparent; box-shadow: 0 3px 0 var(--blue-deep); }
+.btn.blue:hover { background: var(--blue); filter: brightness(1.08); box-shadow: 0 4px 0 var(--blue-deep); }
+.btn.blue:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--blue-deep); }
+.btn.big { width: 100%; font-size: 17px; padding: 15px 22px; font-family: var(--display); font-weight: 700; letter-spacing: .01em; }
+.btn:disabled { opacity: .45; cursor: not-allowed; transform: none; filter: grayscale(.3); }
 
-#banner { display: none; margin: 16px 28px 0; padding: 12px 16px; border-radius: var(--radius-sm); background: color-mix(in srgb, var(--bad) 10%, transparent); border: 1px solid var(--bad); font-size: 13px; }
+#banner { display: none; margin-top: 14px; padding: 12px 16px; border-radius: 10px; background: var(--bad-bg); border: 1px solid var(--bad-line); color: var(--bad); font-size: 13.5px; }
 
-.layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 22px; padding: 28px; align-items: start; max-width: 1180px; margin: 0 auto; }
-@media (max-width: 860px) { .layout { grid-template-columns: minmax(0, 1fr); padding: 16px; } header { padding: 12px 16px; } .ws, .sub { display: none; } section { order: -1; } }
+.card { margin-top: 14px; background: var(--panel); border: 1px solid rgba(255,255,255,.75); border-radius: 14px; padding: clamp(18px, 4vw, 30px); backdrop-filter: blur(8px); box-shadow: 0 2px 0 rgba(22,48,73,.14); }
+h1 { margin: 0 0 6px; font-family: var(--display); font-size: clamp(25px, 5vw, 34px); line-height: 1.1; letter-spacing: -.01em; text-wrap: balance; }
+.lead { margin: 0 0 22px; color: var(--muted); max-width: 56ch; }
+h2 { margin: 0 0 10px; font-family: var(--display); font-size: 17px; }
+.step + .step { margin-top: 22px; }
+.hint { font-size: 13px; color: var(--muted); margin-top: 7px; }
 
-.card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
-aside .card + .card { margin-top: 14px; }
-h2 { font-size: 19px; font-weight: 700; margin: 0 0 6px; letter-spacing: -.3px; }
-.lead { color: var(--muted); margin: 0 0 24px; max-width: 60ch; font-size: 14px; }
+.drop { display: flex; align-items: center; gap: 14px; border: 2px dashed rgba(31,127,224,.45); border-radius: 12px; padding: 16px 18px; background: rgba(31,127,224,.06); cursor: pointer; transition: background .15s, border-color .15s; }
+.drop:hover, .drop.over { background: rgba(31,127,224,.13); border-color: var(--blue); }
+.drop svg { width: 28px; height: 28px; color: var(--blue); flex: none; }
+.drop b { display: block; font-family: var(--display); font-size: 16px; }
+.drop span { color: var(--muted); font-size: 13px; }
+.prog { margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+.bar { height: 6px; background: rgba(22,48,73,.1); border-radius: 3px; overflow: hidden; margin-top: 4px; }
+.bar > i { display: block; height: 100%; width: 0; background: var(--blue); transition: width .2s; }
 
-.drop { display: flex; flex-direction: column; align-items: center; gap: 10px; border: 1.5px dashed var(--line); border-radius: var(--radius-sm); padding: 28px 14px; text-align: center; color: var(--muted); transition: .15s; cursor: pointer; }
-.drop:hover { background: var(--panel2); }
-.drop.over { border-color: var(--text); color: var(--text); background: var(--panel2); }
-.drop svg { width: 26px; height: 26px; color: var(--muted); }
-.drop strong { color: var(--text); display: block; font-size: 15px; font-weight: 600; margin-bottom: 1px; }
-.drop span.hint { font-size: 12.5px; }
+#files { list-style: none; margin: 12px 0 0; padding: 0; max-height: 230px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; background: var(--field); }
+#files:empty { display: none; }
+#files li.row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--line); cursor: pointer; }
+#files li.row:last-child { border-bottom: 0; }
+#files li.row:hover { background: rgba(31,127,224,.06); }
+#files li.row.sel { background: rgba(31,127,224,.12); box-shadow: inset 3px 0 0 var(--blue); }
+.radio { flex: none; width: 16px; height: 16px; border-radius: 50%; border: 2px solid rgba(22,48,73,.35); background: #fff; }
+.sel .radio { border: 5px solid var(--blue); }
+.nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; font-weight: 500; }
+.sz { flex: none; color: var(--muted); font-family: var(--mono); font-size: 11.5px; }
+.tag { flex: none; font-size: 11px; font-weight: 600; color: var(--ok); background: var(--ok-bg); border: 1px solid var(--ok-line); padding: 1px 8px; border-radius: 5px; }
+.ico { flex: none; display: flex; padding: 5px; border: 0; background: none; color: var(--muted); border-radius: 6px; cursor: pointer; }
+.ico:hover { color: var(--blue); background: rgba(31,127,224,.1); }
+.ico.del:hover { color: var(--bad); background: var(--bad-bg); }
+.ico svg { width: 16px; height: 16px; }
 
-.prog { margin-top: 10px; font-size: 12px; } .bar { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: 4px; }
-.bar > i { display: block; height: 100%; background: var(--accent); width: 0; transition: width .2s; }
+label.f { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
+select, input[type=number], input[type=text] { width: 100%; background: var(--field); border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; font-size: 14px; }
+.seg { display: flex; gap: 6px; flex-wrap: wrap; }
+.seg button { flex: 1; min-width: 110px; border: 1.5px solid var(--line); background: var(--field); border-radius: 10px; padding: 10px 12px; cursor: pointer; text-align: left; transition: border-color .15s, background .15s; }
+.seg button b { display: block; font-family: var(--display); font-size: 15px; }
+.seg button span { display: block; font-size: 12px; color: var(--muted); }
+.seg button:hover { border-color: rgba(31,127,224,.5); }
+.seg button.on { border-color: var(--blue); background: rgba(31,127,224,.1); box-shadow: 0 0 0 1px var(--blue); }
+.seg.small button { min-width: 0; text-align: center; padding: 8px 12px; font-size: 13.5px; font-weight: 600; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 520px) { .cols { grid-template-columns: 1fr; } }
 
-#files { list-style: none; margin: 0; padding: 0; max-height: 58vh; overflow: auto; }
-#files li { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--line); }
-#files li:last-child { border-bottom: 0; }
-#files .vicon { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 7px; background: var(--panel2); display: flex; align-items: center; justify-content: center; color: var(--muted); }
-#files .vicon svg { width: 13px; height: 13px; }
-#files .nm { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
-#files .dir { color: var(--muted); } #files .sz { color: var(--muted); font-family: var(--mono); font-size: 11px; flex: 0 0 auto; }
-#files a, .ico { color: var(--muted); text-decoration: none; cursor: pointer; border: 0; background: none; padding: 3px; display: flex; border-radius: 6px; }
-#files a:hover, .ico:hover { color: var(--text); background: var(--panel2); }
-#files a svg, .ico svg { width: 15px; height: 15px; }
-.empty { color: var(--muted); font-size: 13px; padding: 6px 0; }
-
-h3 { font-size: 11px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; font-weight: 700; }
-
-.field { margin-bottom: 20px; }
-.field:last-child { margin-bottom: 0; }
-.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 20px; }
-label.f { display: block; font-size: 13px; color: var(--text); margin-bottom: 7px; font-weight: 600; }
-select, input[type=number], input[type=text] { width: 100%; background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 10px 12px; font-size: 14px; }
-select:focus, input:focus { outline: none; border-color: color-mix(in srgb, var(--text) 40%, var(--line)); }
-.hint { font-size: 12.5px; color: var(--muted); margin-top: 6px; }
-
-.quality-row { display: flex; align-items: center; gap: 14px; }
-input[type=range] { -webkit-appearance: none; appearance: none; flex: 1; height: 4px; border-radius: 2px; background: var(--line); outline: none; }
-input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
-input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--accent); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--line); cursor: pointer; }
-.quality-badge { flex: 0 0 auto; min-width: 118px; text-align: right; font-size: 13px; font-weight: 600; }
-.quality-badge .num { font-family: var(--mono); color: var(--muted); font-weight: 400; font-size: 12px; display: block; }
-
-.seg { display: inline-flex; background: var(--panel2); border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 3px; gap: 2px; flex-wrap: wrap; }
-.seg button { border: 0; background: none; padding: 7px 13px; border-radius: 7px; cursor: pointer; color: var(--muted); font-size: 13px; transition: background .12s, color .12s; }
-.seg button.on { background: var(--accent); color: var(--accent-ink); }
-.seg.wide { display: flex; margin-bottom: 16px; }
-.seg.wide button { flex: 1; }
-
-details { margin: 4px 0 0; border-top: 1px solid var(--line); padding-top: 18px; }
-summary { cursor: pointer; color: var(--muted); font-size: 13px; font-weight: 600; list-style: none; display: flex; align-items: center; gap: 6px; }
+details { margin-top: 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+summary { cursor: pointer; font-weight: 600; font-size: 13.5px; color: var(--muted); list-style: none; display: flex; align-items: center; gap: 8px; }
 summary::-webkit-details-marker { display: none; }
 summary .chev { transition: transform .15s; }
-details[open] summary .chev { transform: rotate(90deg); }
-details > .adv-body { padding-top: 18px; }
+details[open] > summary .chev { transform: rotate(90deg); }
+.adv { padding-top: 16px; display: grid; gap: 16px; }
 
-.actions { margin-top: 24px; }
-.result { margin-top: 20px; } .result:empty { display: none; }
-.running { display: flex; align-items: center; gap: 10px; color: var(--muted); padding: 16px; border: 1px solid var(--line); border-radius: var(--radius-sm); }
-.spin { width: 16px; height: 16px; border: 2px solid var(--line); border-top-color: var(--text); border-radius: 50%; animation: s .8s linear infinite; }
+.go { margin-top: 24px; }
+.result { margin-top: 18px; } .result:empty { display: none; }
+.running { display: flex; align-items: center; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); font-weight: 500; }
+.spin { width: 20px; height: 20px; border: 3px solid rgba(31,127,224,.2); border-top-color: var(--blue); border-radius: 50%; animation: s .8s linear infinite; flex: none; }
 @keyframes s { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } .btn, .drop { transition: none; } }
 
-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
-th { color: var(--muted); font-weight: 600; font-size: 11.5px; }
-td.num { font-family: var(--mono); }
-.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; letter-spacing: .4px; border: 1px solid; }
-.pill.PASS { border-color: var(--ok); color: var(--ok); }
-.pill.WARN { border-color: var(--warn); color: var(--warn); }
-.pill.FAIL { border-color: var(--bad); color: var(--bad); }
-
-.verdict { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: var(--radius-sm); margin-bottom: 14px; border: 1px solid; }
-.verdict.good { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 8%, transparent); }
-.verdict.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 8%, transparent); }
-.verdict .big { font-size: 22px; flex: 0 0 auto; } .verdict b { display: block; font-size: 15px; }
-
-.out { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 11px 14px; background: var(--panel2); border-radius: var(--radius-sm); margin-bottom: 12px; font-family: var(--mono); font-size: 12.5px; }
-.out .grow { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.err { color: var(--bad); white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 14px; border: 1px solid var(--bad); border-radius: var(--radius-sm); }
-.note { font-size: 13px; color: var(--muted); margin: 7px 0; }
-.muted { color: var(--muted); }
-
-/* ---- night forest: neon + nature ---- */
-body { background: var(--bg); min-height: 100vh; position: relative; overflow-x: hidden; font-family: "Avenir Next", "SF Pro Rounded", ui-rounded, -apple-system, "Segoe UI", system-ui, sans-serif; }
-.sky { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden;
-  background:
-    radial-gradient(70% 45% at 18% -5%, rgba(56,242,192,.30), transparent 70%),
-    radial-gradient(55% 40% at 88% 0%, rgba(120,110,255,.22), transparent 70%),
-    radial-gradient(60% 35% at 60% 8%, rgba(196,255,94,.10), transparent 70%),
-    linear-gradient(180deg, #06222a 0%, #05171a 55%, #030f11 100%); }
-.sky::before { content: ""; position: absolute; inset: -20% -10% auto; height: 60%;
-  background: conic-gradient(from 200deg at 50% 0%, transparent, rgba(56,242,192,.16), transparent 30%, rgba(150,120,255,.12), transparent 60%);
-  filter: blur(40px); animation: aurora 24s ease-in-out infinite alternate; }
-@keyframes aurora { to { transform: translateX(6%) skewX(-6deg); opacity: .7; } }
-.ridge { position: fixed; left: 0; right: 0; bottom: 0; height: 190px; z-index: -1; pointer-events: none; }
-.ridge svg { width: 100%; height: 100%; display: block; }
-.fly { position: fixed; z-index: -1; width: 5px; height: 5px; border-radius: 50%; background: var(--firefly); box-shadow: 0 0 10px 3px rgba(196,255,94,.7); opacity: 0; pointer-events: none; animation: fly 11s ease-in-out infinite; }
-.fly:nth-of-type(1) { left: 12%; bottom: 14%; animation-delay: 0s; }
-.fly:nth-of-type(2) { left: 31%; bottom: 22%; animation-delay: 3s; animation-duration: 13s; }
-.fly:nth-of-type(3) { left: 58%; bottom: 12%; animation-delay: 6s; }
-.fly:nth-of-type(4) { left: 77%; bottom: 20%; animation-delay: 1.5s; animation-duration: 15s; }
-.fly:nth-of-type(5) { left: 92%; bottom: 10%; animation-delay: 8s; }
-@keyframes fly { 0%,100% { opacity: 0; transform: translate(0,0); } 20%,70% { opacity: .9; } 50% { transform: translate(24px,-46px); } }
-@media (prefers-reduced-motion: reduce) { .sky::before, .fly { animation: none; } .fly { display: none; } }
-
-header { background: rgba(5,23,26,.55); border-bottom: 1px solid var(--line); backdrop-filter: blur(14px); }
-.mark { background: linear-gradient(135deg, var(--accent), var(--firefly)); box-shadow: var(--glow); }
-.logo { font-size: 18px; letter-spacing: .5px; }
-.card { background: var(--panel); border: 1px solid var(--line); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
-h2 { font-size: 22px; }
-h3 { color: var(--accent); }
-.btn { background: var(--panel2); border-color: var(--line); }
-.btn:hover { border-color: var(--accent); box-shadow: 0 0 14px rgba(56,242,192,.25); }
-a.btn { color: var(--text); }
-.btn.primary { background: linear-gradient(135deg, var(--accent), var(--firefly)); border: 0; color: var(--accent-ink); font-weight: 700; letter-spacing: .2px; box-shadow: var(--glow); }
-.btn.primary:hover { opacity: 1; filter: brightness(1.08); transform: translateY(-1px); }
-.btn.primary:disabled { opacity: .35; box-shadow: none; filter: grayscale(.4); }
-.drop { border-color: rgba(56,242,192,.35); background: rgba(56,242,192,.04); }
-.drop:hover, .drop.over { border-color: var(--accent); background: rgba(56,242,192,.09); color: var(--text); box-shadow: inset 0 0 30px rgba(56,242,192,.08), 0 0 22px rgba(56,242,192,.18); }
-.drop svg { color: var(--accent); }
-.bar { background: rgba(255,255,255,.08); } .bar > i { background: linear-gradient(90deg, var(--accent), var(--firefly)); box-shadow: 0 0 10px var(--accent); }
-select, input[type=number], input[type=text] { background: rgba(0,0,0,.28); color: var(--text); }
-select:focus, input:focus, .btn:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-color: var(--accent); }
-option { background: #0a2427; color: var(--text); }
-input[type=range] { background: rgba(255,255,255,.12); }
-input[type=range]::-webkit-slider-thumb { background: var(--accent); border: 3px solid #05171a; box-shadow: 0 0 12px var(--accent); }
-.quality-badge span:first-child { color: var(--firefly); }
-.seg { background: rgba(0,0,0,.28); }
-.seg button.on { background: var(--accent); color: var(--accent-ink); font-weight: 600; box-shadow: 0 0 12px rgba(56,242,192,.4); }
-#files .vicon { color: var(--accent); background: rgba(56,242,192,.08); }
-#files a:hover, .ico:hover { color: var(--accent); background: rgba(56,242,192,.1); }
-.spin { border-color: rgba(255,255,255,.12); border-top-color: var(--accent); filter: drop-shadow(0 0 4px var(--accent)); }
-.pill.PASS { box-shadow: 0 0 8px rgba(77,255,176,.25); }
-.verdict.good { background: rgba(77,255,176,.08); box-shadow: 0 0 24px rgba(77,255,176,.12); }
-.verdict.good .big { color: var(--ok); text-shadow: 0 0 14px var(--ok); }
-.out { background: rgba(0,0,0,.28); }
-#banner { background: rgba(255,122,107,.12); }
-::selection { background: rgba(56,242,192,.35); }
+.verdict { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: 12px; border: 1px solid; }
+.verdict.good { background: var(--ok-bg); border-color: var(--ok-line); color: var(--ok); }
+.verdict.bad { background: var(--bad-bg); border-color: var(--bad-line); color: var(--bad); }
+.verdict .big { font-size: 24px; font-weight: 700; flex: none; }
+.verdict b { display: block; font-family: var(--display); font-size: 18px; }
+.verdict span { color: var(--fg); font-size: 13.5px; }
+.outfile { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 12px; padding: 12px 14px; background: var(--field); border: 1px solid var(--line); border-radius: 12px; }
+.outfile .nm { font-family: var(--mono); font-size: 13px; }
+.outfile .acts { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.note { font-size: 13px; color: var(--muted); margin: 8px 0 0; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 12px; }
+th, td { text-align: left; padding: 8px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-size: 12px; font-weight: 600; }
+td.num { font-family: var(--mono); font-size: 12px; }
+.pill { display: inline-block; font-size: 11px; font-weight: 700; padding: 1px 8px; border-radius: 5px; border: 1px solid; }
+.pill.PASS { color: var(--ok); background: var(--ok-bg); border-color: var(--ok-line); }
+.pill.WARN { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-line); }
+.pill.FAIL { color: var(--bad); background: var(--bad-bg); border-color: var(--bad-line); }
+.err { white-space: pre-wrap; font-family: var(--mono); font-size: 12px; padding: 14px; border: 1px solid var(--bad-line); background: var(--bad-bg); color: var(--bad); border-radius: 12px; }
+.foot { margin-top: 16px; text-align: center; font-size: 12px; color: var(--fg); opacity: .8; }
+.foot span { font-family: var(--mono); }
 </style>
 </head>
 <body>
-<div class="sky"></div>
-<div class="ridge" aria-hidden="true"><svg viewBox="0 0 1440 190" preserveAspectRatio="none"><path d="M0 190V120l30-34 22 26 34-66 30 58 26-34 38 52 28-30 44 74 30-46 36 38 32-72 28 50 40-40 34 62 26-28 38 58 30-80 32 66 36-44 28 36 40-64 30 56 34-30 28 48 36-70 32 62 40-36 26 40 34-58 30 54 38-44 28 30 40-68 34 60 26-26 36 50 32-78 30 70 40-40 32 34 36-56 28 60 34-34 30 40 38-66 30 58 28-30 36 44 34-72 30 66 36-38 26 32 40-54 32 58 28-28 38 42 34-70 28 62 32-34 30 36V190Z" fill="#041013"/><path d="M0 190V150l40-22 30 30 36-52 32 46 30-28 44 46 28-34 38 52 34-44 30 28 40-56 32 50 36-30 28 34 40-48 30 44 34-26 32 38 38-58 30 52 28-24 40 36 34-50 30 46 36-28 28 30 38-44 32 40 30-22 36 34 34-52 28 46 40-26 32 28 36-40 30 38 28-20 38 30 34-46 30 40 34-24 28 26 40-36 32 34 30-18 36 24V190Z" fill="#020a0c"/></svg></div>
-<i class="fly"></i><i class="fly"></i><i class="fly"></i><i class="fly"></i><i class="fly"></i>
-<header>
-  <div class="mark"><svg viewBox="0 0 32 32"><path d="M9 16l5 5 9-10" stroke="#03211b" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
-  <div class="logo">OQM</div>
-  <div class="sub">Open Quality Method <span id="ver"></span></div>
-  <div class="grow"></div>
-  <div class="ws" id="ws" title="Workspace folder"></div>
-  <button class="btn" id="openWs">Open folder</button>
-</header>
-<div id="banner"></div>
+<div class="hills" aria-hidden="true"><svg viewBox="0 0 1440 240" preserveAspectRatio="none"><path d="M0 240V120C140 70 260 60 400 100s260 90 420 50 280-90 400-60 160 40 220 20v170Z" fill="#6fb26a"/><path d="M0 240V160c120-40 240-50 380-20s300 60 460 20 300-70 600-10v90Z" fill="#3f8a4c"/></svg></div>
 
-<div class="layout">
-  <aside>
-    <div class="card">
+<div class="app">
+  <header>
+    <svg class="mark" width="28" height="28" viewBox="0 0 32 32" fill="none" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#1f7fe0"/><path d="M9 9L9 23L20 16L9 9Z" fill="white"/><path d="M22 13L25 8L28 13" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+    <div class="logo">OQM</div>
+    <span class="chip">100% free · open source</span>
+    <div class="grow"></div>
+    <button class="btn" id="openWs" title="Show the folder where your videos are kept">Open folder</button>
+  </header>
+  <div id="banner"></div>
+
+  <main class="card">
+    <h1>Make your video upload-ready</h1>
+    <p class="lead">Drop in your edit, pick a quality, and get one file to post. OQM re-encodes it cleanly, applies the patch, and checks that the video and sound are untouched.</p>
+
+    <div class="step">
+      <h2>Your video</h2>
       <label class="drop" id="drop">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 4l-4 4M12 4l4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-        <strong>Drop videos here</strong>
-        <span class="hint">or click to browse</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 4l-4 4M12 4l4 4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        <div><b>Drop a video here</b><span>or click to choose one</span></div>
         <input type="file" id="pick" multiple accept="video/*,.mp4,.mov,.mkv,.m4v,.webm" hidden>
       </label>
       <div id="uploads"></div>
-    </div>
-    <div class="card">
-      <h3>Workspace</h3>
       <ul id="files"></ul>
     </div>
-  </aside>
 
-  <section>
-    <!-- MAKE (export + patch, chained) -->
-    <div class="card panel on" id="p-make">
-      <h2>Make an upload-ready file</h2>
-      <p class="lead">Pick your video and quality, hit one button. OQM re-encodes a clean master, patches it, and verifies the result &mdash; automatically.</p>
-
-      <div class="field">
-        <label class="f">Video</label>
-        <select data-files="video" id="mk-in"></select>
+    <div class="step" id="mk-quality-field">
+      <h2>Quality</h2>
+      <div class="seg" id="mk-preset">
+        <button type="button" data-crf="14"><b>Highest</b><span>Biggest file</span></button>
+        <button type="button" data-crf="17" class="on"><b>Recommended</b><span>Looks identical</span></button>
+        <button type="button" data-crf="23"><b>Smaller</b><span>Lighter file</span></button>
       </div>
-
-      <div class="field" id="mk-quality-field">
-        <label class="f">Quality</label>
-        <div class="quality-row">
-          <input type="range" id="mk-crf" value="17" min="10" max="30" step="1">
-          <div class="quality-badge"><span id="mk-crf-label">Visually transparent</span><span class="num" id="mk-crf-num">CRF 17</span></div>
-        </div>
-        <div class="hint">Drag left for max quality (bigger file), right for a smaller file.</div>
-      </div>
-
-      <div class="field-row">
-        <div>
-          <label class="f">Frame rate</label>
-          <select id="mk-fps"><option value="">Keep source</option><option>60</option><option>30</option><option>24</option></select>
-        </div>
-        <div>
-          <label class="f">Size</label>
-          <select id="mk-fit"><option value="">Keep source</option><option>1080x1920</option><option>720x1280</option></select>
-        </div>
-      </div>
-
-      <details id="mk-advanced">
-        <summary><svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 1l4 4-4 4"/></svg>Advanced settings</summary>
-        <div class="adv-body">
-          <div class="field">
-            <label class="f">Codec</label>
-            <div class="seg" data-seg="mk-codec"><button data-v="h264" class="on">H.264</button><button data-v="h265">H.265</button></div>
-          </div>
-          <div class="field">
-            <label class="f">Quality mode</label>
-            <div class="seg wide" data-seg="mk-qmode">
-              <button data-v="crf" class="on">By quality (CRF)</button>
-              <button data-v="kbps">By exact bitrate</button>
-            </div>
-            <div id="mk-qmode-kbps-field" style="display:none">
-              <input type="number" id="mk-kbps-visible" placeholder="target kbps, e.g. 20000" min="500">
-              <div class="hint">Exact 2-pass target average video bitrate.</div>
-            </div>
-          </div>
-          <div class="field-row">
-            <div>
-              <label class="f">Decoy inflation &times;</label>
-              <input type="number" id="mk-inflate" value="10" min="2" max="50">
-            </div>
-            <div>
-              <label class="f">Dummy sample bytes</label>
-              <input type="number" id="mk-dummy" placeholder="auto (by codec)" min="1" max="64">
-            </div>
-          </div>
-          <div class="field-row">
-            <div>
-              <label class="f">Encoder tag</label>
-              <input type="text" id="mk-enc" value="Lavf59.27.100">
-            </div>
-            <div>
-              <label class="f">Trailing pad bytes</label>
-              <input type="number" id="mk-trail" value="184100" min="16">
-            </div>
-          </div>
-        </div>
-      </details>
-
-      <div class="actions"><button class="btn primary" data-run="make">Make it</button></div>
-      <div class="actions" id="mk-download" style="display:none">
-        <a class="btn primary" id="mk-download-link" href="#" download>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 15l-4-4M12 15l4-4"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>
-          Download file
-        </a>
-      </div>
-      <div class="result" id="r-make"></div>
     </div>
-  </section>
+
+    <div class="step cols">
+      <div>
+        <label class="f" for="mk-fps">Frame rate</label>
+        <select id="mk-fps"><option value="">Same as your video</option><option>60</option><option>30</option><option>24</option></select>
+      </div>
+      <div>
+        <label class="f" for="mk-fit">Size</label>
+        <select id="mk-fit"><option value="">Same as your video</option><option value="1080x1920">1080 × 1920 (vertical HD)</option><option value="720x1280">720 × 1280</option></select>
+      </div>
+    </div>
+
+    <details id="mk-advanced">
+      <summary><svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 1l4 4-4 4"/></svg>More options</summary>
+      <div class="adv">
+        <div>
+          <label class="f">Codec</label>
+          <div class="seg small" data-seg="mk-codec"><button type="button" data-v="h264" class="on">H.264</button><button type="button" data-v="h265">H.265</button></div>
+        </div>
+        <div>
+          <label class="f">How to set quality</label>
+          <div class="seg small" data-seg="mk-qmode"><button type="button" data-v="crf" class="on">Use the quality above</button><button type="button" data-v="kbps">Exact bitrate</button></div>
+          <div id="mk-qmode-kbps-field" style="display:none; margin-top:10px">
+            <input type="number" id="mk-kbps-visible" placeholder="Target kbps, e.g. 20000" min="500">
+            <div class="hint">Two passes, aiming for this average video bitrate.</div>
+          </div>
+        </div>
+        <div class="cols">
+          <div><label class="f" for="mk-inflate">Decoy size (×)</label><input type="number" id="mk-inflate" value="10" min="2" max="50"></div>
+          <div><label class="f" for="mk-dummy">Dummy sample bytes</label><input type="number" id="mk-dummy" placeholder="Automatic" min="1" max="64"></div>
+        </div>
+        <div class="cols">
+          <div><label class="f" for="mk-enc">Encoder tag</label><input type="text" id="mk-enc" value="Lavf59.27.100"></div>
+          <div><label class="f" for="mk-trail">Trailing pad bytes</label><input type="number" id="mk-trail" value="184100" min="16"></div>
+        </div>
+      </div>
+    </details>
+
+    <div class="go"><button class="btn blue big" id="makeBtn" type="button">Make upload-ready file</button></div>
+    <div class="result" id="r-make" aria-live="polite"></div>
+  </main>
+  <div class="foot">Your videos stay on this computer. <span id="ws"></span> <span id="ver"></span></div>
 </div>
 
 <script>
@@ -306,10 +217,9 @@ const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt
 const fileUrl = n => "/files/" + n.split("/").map(encodeURIComponent).join("/");
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const VIDEO = /\.(mp4|mov|m4v|mkv|webm)$/i;
-const DL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 15l-4-4M12 15l4-4"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>';
+const SAVE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V4M12 15l-4-4M12 15l4-4"/><path d="M4 18v1a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/></svg>';
 const DEL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6h14M9 6V4h6v2M7 6l1 14h8l1-14"/></svg>';
-const VID_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>';
-let state = null, busy = false;
+let state = null, busy = false, selected = null;
 
 async function api(path, opts = {}) {
   const r = await fetch(path, { ...opts, headers: { "X-OQM": "1", "Content-Type": "application/json", ...(opts.headers || {}) } });
@@ -318,169 +228,135 @@ async function api(path, opts = {}) {
   return j;
 }
 function fmtSize(b) { const u = ["B","KB","MB","GB"]; let i = 0; while (b >= 1024 && i < 3) { b /= 1024; i++; } return b.toFixed(i ? 1 : 0) + " " + u[i]; }
+const isReady = n => /_oqm( \(\d+\))?\.mp4$/i.test(n);
 
 async function refresh() {
   state = await api("/api/state");
-  $("#ver").textContent = "v" + state.version;
+  $("#ver").textContent = "· v" + state.version;
   $("#ws").textContent = state.workspace;
   if (state.ffmpeg_error) { $("#banner").style.display = "block"; $("#banner").textContent = state.ffmpeg_error; }
-  renderFiles(); fillSelects();
+  const vids = state.files.filter(f => VIDEO.test(f.name));
+  if (!vids.some(f => f.name === selected)) selected = (vids.find(f => !isReady(f.name)) || vids[0])?.name || null;
+  renderFiles(vids); updateGo();
 }
 
-function renderFiles() {
-  const ul = $("#files");
-  if (!state.files.length) { ul.innerHTML = '<li class="empty">No files yet. Drop a video above.</li>'; return; }
-  ul.innerHTML = state.files.map(f => {
-    const i = f.name.lastIndexOf("/");
-    const label = i < 0 ? esc(f.name) : `<span class="dir">${esc(f.name.slice(0, i + 1))}</span>${esc(f.name.slice(i + 1))}`;
-    return `<li><span class="vicon">${VID_ICON}</span><span class="nm" title="${esc(f.name)}">${label}</span><span class="sz">${fmtSize(f.size)}</span>
-      <a href="${fileUrl(f.name)}" title="Download">${DL_ICON}</a><button class="ico" data-del="${esc(f.name)}" title="Delete">${DEL_ICON}</button></li>`;
-  }).join("");
+function renderFiles(vids) {
+  $("#files").innerHTML = vids.map(f => `<li class="row${f.name === selected ? " sel" : ""}" tabindex="0" data-name="${esc(f.name)}" role="option" aria-selected="${f.name === selected}">
+    <span class="radio"></span><span class="nm" title="${esc(f.name)}">${esc(f.name)}</span>${isReady(f.name) ? '<span class="tag">Ready to post</span>' : ""}<span class="sz">${fmtSize(f.size)}</span>
+    <button class="ico" data-save="${esc(f.name)}" title="Save a copy…" aria-label="Save a copy of ${esc(f.name)}">${SAVE_ICON}</button>
+    <button class="ico del" data-del="${esc(f.name)}" title="Delete" aria-label="Delete ${esc(f.name)}">${DEL_ICON}</button></li>`).join("");
 }
+function updateGo() { $("#makeBtn").disabled = busy || !!state?.ffmpeg_error || !selected; }
 
-function fillSelects() {
-  const vids = state.files.filter(f => VIDEO.test(f.name)).map(f => f.name);
-  $$("select[data-files]").forEach(sel => {
-    const prev = sel.value;
-    sel.innerHTML = vids.length ? vids.map(n => `<option value="${esc(n)}">${esc(n)}</option>`).join("") : '<option value="">(no videos yet)</option>';
-    if (vids.includes(prev)) sel.value = prev;
-  });
-  updateRunButtons();
-}
+$("#files").addEventListener("click", async e => {
+  const del = e.target.closest("[data-del]"), save = e.target.closest("[data-save]"), row = e.target.closest(".row");
+  if (del) { e.stopPropagation(); try { await api("/api/delete", { method: "POST", body: JSON.stringify({ name: del.dataset.del }) }); } catch (err) { alert(err.message); } return refresh(); }
+  if (save) { e.stopPropagation(); return saveFile(save.dataset.save); }
+  if (row) { selected = row.dataset.name; renderFiles(state.files.filter(f => VIDEO.test(f.name))); updateGo(); }
+});
+$("#files").addEventListener("keydown", e => { if ((e.key === "Enter" || e.key === " ") && e.target.classList.contains("row")) { e.preventDefault(); e.target.click(); } });
 
-function updateRunButtons() {
-  const hasVideo = state && state.files.some(f => VIDEO.test(f.name));
-  $$("[data-run]").forEach(b => b.disabled = busy || !!state?.ffmpeg_error || !hasVideo);
+// Save a copy: a native "Save as" window in the desktop app, a normal download in a browser.
+async function saveFile(rel) {
+  if (window.pywebview?.api?.save_file) { try { await window.pywebview.api.save_file(rel); } catch (e) { alert(e.message || e); } return; }
+  const a = document.createElement("a"); a.href = fileUrl(rel); a.download = rel.split("/").pop(); document.body.append(a); a.click(); a.remove();
 }
+const revealFile = rel => api("/api/open", { method: "POST", body: JSON.stringify({ name: rel }) }).catch(e => alert(e.message));
+$("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).catch(e => alert(e.message));
 
-// --- quality slider
-function qualityLabel(crf) {
-  crf = Number(crf);
-  if (crf <= 14) return "Maximum quality";
-  if (crf <= 19) return "Visually transparent";
-  if (crf <= 24) return "Balanced";
-  return "Smaller file";
-}
-function updateQualityBadge() {
-  const v = $("#mk-crf").value;
-  $("#mk-crf-label").textContent = qualityLabel(v);
-  $("#mk-crf-num").textContent = "CRF " + v;
-}
-$("#mk-crf").addEventListener("input", updateQualityBadge);
-updateQualityBadge();
-
-// --- segmented controls (codec picker, quality mode)
-function segValue(id) { return $(`[data-seg="${id}"] .on, #${id} .on`)?.dataset.v; }
-$$(".seg").forEach(seg => seg.onclick = e => {
+// quality presets + segmented controls
+$("#mk-preset").onclick = e => { const b = e.target.closest("button"); if (b) $$("#mk-preset button").forEach(x => x.classList.toggle("on", x === b)); };
+const crf = () => $("#mk-preset .on").dataset.crf;
+const segValue = id => $(`[data-seg="${id}"] .on`)?.dataset.v;
+$$(".seg.small").forEach(seg => seg.onclick = e => {
   const b = e.target.closest("button"); if (!b) return;
   seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
   if (seg.dataset.seg === "mk-qmode") {
-    const byBitrate = b.dataset.v === "kbps";
-    $("#mk-qmode-kbps-field").style.display = byBitrate ? "" : "none";
-    $("#mk-quality-field").style.display = byBitrate ? "none" : "";
+    const exact = b.dataset.v === "kbps";
+    $("#mk-qmode-kbps-field").style.display = exact ? "" : "none";
+    $("#mk-quality-field").style.opacity = exact ? ".45" : "";
   }
 });
 
-// --- uploads
+// uploads (also catches files dropped anywhere in the window, so the page never navigates away)
 const drop = $("#drop");
-["dragenter", "dragover"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add("over"); }));
-["dragleave", "drop"].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove("over"); }));
-drop.addEventListener("drop", ev => upload([...ev.dataTransfer.files]));
+["dragenter", "dragover"].forEach(t => window.addEventListener(t, ev => { ev.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(t => window.addEventListener(t, ev => { ev.preventDefault(); drop.classList.remove("over"); }));
+window.addEventListener("drop", ev => upload([...(ev.dataTransfer?.files || [])]));
 $("#pick").onchange = e => { upload([...e.target.files]); e.target.value = ""; };
 
 function upload(files) {
-  files.forEach(file => {
+  files.filter(f => VIDEO.test(f.name)).forEach(file => {
     const row = document.createElement("div");
-    row.className = "prog"; row.innerHTML = `${esc(file.name)}<div class="bar"><i></i></div>`;
+    row.className = "prog"; row.innerHTML = `Adding ${esc(file.name)}<div class="bar"><i></i></div>`;
     $("#uploads").append(row);
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/upload?name=" + encodeURIComponent(file.name));
     xhr.setRequestHeader("X-OQM", "1");
     xhr.upload.onprogress = e => { if (e.lengthComputable) row.querySelector("i").style.width = (100 * e.loaded / e.total) + "%"; };
-    xhr.onload = () => { row.remove(); if (xhr.status !== 200) alert("Upload failed: " + xhr.responseText); refresh(); };
-    xhr.onerror = () => { row.remove(); alert("Upload failed: " + file.name); };
+    xhr.onload = () => {
+      row.remove();
+      if (xhr.status !== 200) return alert("Couldn't add that video: " + xhr.responseText);
+      try { selected = JSON.parse(xhr.responseText).name; } catch {}
+      refresh();
+    };
+    xhr.onerror = () => { row.remove(); alert("Couldn't add " + file.name + ". Try again."); };
     xhr.send(file);
   });
 }
 
-$("#files").onclick = async e => {
-  const name = e.target.closest("[data-del]")?.dataset?.del; if (!name) return;
-  try { await api("/api/delete", { method: "POST", body: JSON.stringify({ name }) }); } catch (err) { alert(err.message); }
-  refresh();
-};
-$("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).catch(e => alert(e.message));
-
-// --- running jobs
-$("button[data-run='make']").onclick = () => runMake();
-
-async function runJob(action, params) {
+async function runJob(action, params, onStage) {
   const { job } = await api("/api/run", { method: "POST", body: JSON.stringify({ action, params }) });
   for (;;) {
-    await sleep(600);
+    await sleep(500);
     const j = await api("/api/jobs/" + job);
+    if (j.stage && onStage) onStage(j.stage);
     if (j.status === "done") return j.result;
     if (j.status === "error") throw new Error(j.error);
   }
 }
 
-function showDownload(rel) {
-  const wrap = $("#mk-download"), link = $("#mk-download-link");
-  link.href = fileUrl(rel);
-  link.download = rel.split("/").pop();
-  wrap.style.display = "";
-}
-function hideDownload() {
-  $("#mk-download").style.display = "none";
-}
-
-async function runMake() {
+$("#makeBtn").onclick = async () => {
   const box = $("#r-make"), t0 = Date.now();
-  busy = true; updateRunButtons(); hideDownload();
-  const tick = setInterval(() => { const el = box.querySelector(".el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
-  const stage = s => box.innerHTML = `<div class="running"><div class="spin"></div><span>${esc(s)}… <span class="el">0s</span></span></div>`;
+  busy = true; updateGo();
+  let label = "Starting";
+  const draw = () => box.innerHTML = `<div class="running"><div class="spin"></div><span>${esc(label)}… <span id="el">${Math.round((Date.now() - t0) / 1000)}s</span></span></div>`;
+  draw(); const tick = setInterval(() => { const el = $("#el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
   try {
-    const input = $("#mk-in").value;
-    if (!input) throw new Error("Pick a video first.");
-    stage("Exporting master");
-    const byBitrate = segValue("mk-qmode") === "kbps";
-    const exp = await runJob("export", {
-      input, codec: segValue("mk-codec"), crf: $("#mk-crf").value,
-      kbps: byBitrate ? $("#mk-kbps-visible").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
-    });
-    stage("Patching + verifying (full method)");
-    const pat = await runJob("patch", {
-      input: exp.output, profile: "reference", patches: state.profiles.reference,
-      inflate: $("#mk-inflate").value, dummy_size: $("#mk-dummy").value,
+    if (!selected) throw new Error("Choose a video first.");
+    const exact = segValue("mk-qmode") === "kbps";
+    const res = await runJob("make", {
+      input: selected, codec: segValue("mk-codec"), crf: crf(),
+      kbps: exact ? $("#mk-kbps-visible").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
+      patches: state.profiles.reference, inflate: $("#mk-inflate").value, dummy_size: $("#mk-dummy").value,
       encoder_tag: $("#mk-enc").value, trailing_bytes: $("#mk-trail").value,
-    });
-    box.innerHTML = RENDER.make(exp, pat);
-    if (pat.ok) showDownload(pat.output);
+    }, s => { label = s; draw(); });
+    box.innerHTML = renderResult(res);
+    if (res.ok) selected = res.output;
   } catch (e) {
     box.innerHTML = `<div class="err">${esc(e.message)}</div>`;
   } finally {
     clearInterval(tick); busy = false; await refresh();
   }
-}
-
-const outRow = (rel, extra = "") => `<div class="out"><span class="grow">→ ${esc(rel)}</span>${extra}<a class="btn sm" href="${fileUrl(rel)}">Download</a></div>`;
-function checksTable(checks) {
-  return `<table><tr><th style="width:70px"></th><th>Check</th><th>Detail</th></tr>${checks.map(c => {
-    const tag = c.ok ? "PASS" : c.warn ? "WARN" : "FAIL";
-    return `<tr><td><span class="pill ${tag}">${tag}</span></td><td>${esc(c.name)}</td><td class="num">${esc(c.detail)}</td></tr>`;
-  }).join("")}</table>`;
-}
-const verdict = (good, title, text) => `<div class="verdict ${good ? "good" : "bad"}"><div class="big">${good ? "✓" : "✕"}</div><div><b>${esc(title)}</b><span class="muted">${esc(text)}</span></div></div>`;
-
-const RENDER = {
-  make: (exp, pat) => verdict(pat.ok, pat.ok ? "Safe to upload" : "Verification failed",
-      pat.ok ? "Video and primary audio are bit-identical to the master." : "Something real changed. Don't upload this file.")
-    + outRow(pat.output)
-    + `<p class="note"><b>Master:</b> ${esc(exp.codec)} · ${exp.kbps ? esc(exp.kbps) + " kbps (2-pass)" : "CRF " + esc(exp.crf)} · ${esc(exp.fps)} fps${exp.fit ? " · " + esc(exp.fit) : ""}</p>`
-    + `<p class="note"><b>Patched with:</b> ${pat.applied.map(esc).join(", ")}</p>`
-    + pat.skipped.map(s => `<p class="note"><b>Skipped:</b> ${esc(s)}</p>`).join("")
-    + pat.notes.map(s => `<p class="note">${esc(s)}</p>`).join("")
-    + checksTable(pat.checks),
 };
+
+function renderResult(r) {
+  const good = r.ok, name = r.output.split("/").pop();
+  const rows = r.checks.map(c => { const t = c.ok ? "PASS" : c.warn ? "WARN" : "FAIL"; return `<tr><td><span class="pill ${t}">${t}</span></td><td>${esc(c.name)}</td><td class="num">${esc(c.detail)}</td></tr>`; }).join("");
+  return `<div class="verdict ${good ? "good" : "bad"}"><div class="big">${good ? "✓" : "✕"}</div><div><b>${good ? "Ready to post" : "Don't post this file"}</b><span>${good ? "The video and sound are identical to what you gave us. Only the container changed." : "A check failed, so something real changed. Try again or use different settings."}</span></div></div>
+  <div class="outfile"><span class="nm" title="${esc(name)}">${esc(name)}</span><span class="acts">
+    <button class="btn blue" data-act="save" type="button">${SAVE_ICON}Save a copy…</button>
+    <button class="btn" data-act="show" type="button">Show in folder</button></span></div>
+  <details><summary><svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 1l4 4-4 4"/></svg>What was checked</summary>
+    <p class="note">Settings used: ${esc(r.export.codec)}, ${r.export.kbps ? esc(r.export.kbps) + " kbps (2 passes)" : "quality " + esc(r.export.crf)}, ${esc(r.export.fps)} fps${r.export.fit ? ", " + esc(r.export.fit) : ""}.</p>
+    <p class="note">Patches applied: ${r.applied.map(esc).join(", ")}</p>
+    ${r.skipped.map(s => `<p class="note">Skipped: ${esc(s)}</p>`).join("")}${r.notes.map(s => `<p class="note">${esc(s)}</p>`).join("")}
+    <table><tr><th style="width:64px"></th><th>Check</th><th>Detail</th></tr>${rows}</table></details>`;
+}
+$("#r-make").addEventListener("click", e => {
+  const b = e.target.closest("[data-act]"); if (!b || !selected) return;
+  b.dataset.act === "save" ? saveFile(selected) : revealFile(selected);
+});
 
 refresh().catch(e => { $("#banner").style.display = "block"; $("#banner").textContent = "Can't reach the OQM server: " + e.message; });
 </script>

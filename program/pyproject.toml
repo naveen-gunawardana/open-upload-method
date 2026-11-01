@@ -18,4 +18,4 @@ oqm = "oqm.cli:main"
 packages = ["oqm"]
 
 [tool.setuptools.package-data]
-oqm = ["ui/*.html"]
+oqm = ["ui/*.html", "ui/fonts/*"]
