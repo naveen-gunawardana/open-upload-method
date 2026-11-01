@@ -6,6 +6,9 @@ on:
   push:
     tags: ["v*"]
 
+permissions:
+  contents: write  # lets the tag build attach the zips to a release
+
 jobs:
   build:
     strategy:
