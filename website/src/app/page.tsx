@@ -137,7 +137,7 @@ export default function Home() {
               </a>
               <a className="btn btn-ghost" href={GITHUB_URL} target="_blank" rel="noopener">
                 <GithubIcon />
-                View repo
+                View code
               </a>
             </div>
 
