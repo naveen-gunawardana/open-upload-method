@@ -230,13 +230,18 @@ class Handler(BaseHTTPRequestHandler):
             self._json({"error": str(e)}, 400)
 
 
-def serve(workspace, port=8765, open_browser=True):
+def start(workspace, port=8765):
+    """Bind the UI server and return (httpd, url). Call httpd.serve_forever() to run it."""
     Handler.app = App(workspace)
     try:
         httpd = ThreadingHTTPServer(("127.0.0.1", port), Handler)
     except OSError:
         httpd = ThreadingHTTPServer(("127.0.0.1", 0), Handler)  # port busy: take any free one
-    url = f"http://127.0.0.1:{httpd.server_address[1]}/"
+    return httpd, f"http://127.0.0.1:{httpd.server_address[1]}/"
+
+
+def serve(workspace, port=8765, open_browser=True):
+    httpd, url = start(workspace, port)
     print(f"  OQM UI running at {url}\n  workspace: {Handler.app.ws}\n  press Ctrl+C to stop")
     if open_browser:
         threading.Timer(0.5, webbrowser.open, args=(url,)).start()

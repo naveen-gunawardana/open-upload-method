@@ -6,10 +6,11 @@ exe_ext = ".exe" if sys.platform == "win32" else ""
 a = Analysis(
     ["app.py"],
     datas=[("oqm/ui/index.html", "oqm/ui")],
+    hiddenimports=["webview"],
     binaries=[(f"bin/ffmpeg{exe_ext}", "bin"), (f"bin/ffprobe{exe_ext}", "bin")],
 )
 pyz = PYZ(a.pure)
-exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="OQM", console=True)
+exe = EXE(pyz, a.scripts, [], exclude_binaries=True, name="OQM", console=False)
 coll = COLLECT(exe, a.binaries, a.datas, name="OQM")
 if sys.platform == "darwin":
     app = BUNDLE(coll, name="OQM.app", bundle_identifier="com.openqualitymethod.oqm")
