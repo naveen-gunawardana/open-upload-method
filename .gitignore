@@ -3,3 +3,8 @@ __pycache__/
 *.mp4
 *.mov
 *_abtest/
+
+# desktop app build output
+program/build/
+program/dist/
+program/bin/
