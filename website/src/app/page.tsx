@@ -5,6 +5,8 @@ import { useEffect, useState } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
+const ReviewForm = dynamic(() => import("@/components/ReviewForm"), { ssr: false });
+
 const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
 const DOWNLOAD = (platform: string) => `/api/download?platform=${platform}`;
 
@@ -91,6 +93,8 @@ function DownloadCount() {
 }
 
 export default function Home() {
+  const [reviewing, setReviewing] = useState(false);
+
   return (
     <>
       <Scene />
@@ -142,13 +146,17 @@ export default function Home() {
             </div>
 
             <div className="credit">
-              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
+              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a> ·{" "}
+              <button type="button" className="linklike" onClick={() => setReviewing(true)}>
+                Leave a review
+              </button>
             </div>
 
             <div className="credit">Zero compression · completely free forever</div>
           </div>
         </div>
       </div>
+      {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}
     </>
   );
 }
