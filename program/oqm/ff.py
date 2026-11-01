@@ -1,18 +1,30 @@
 """Thin wrappers around the ffmpeg / ffprobe executables."""
 
 import json
+import os
 import re
 import shutil
 import subprocess
+import sys
+from pathlib import Path
 
 
 class FFmpegError(RuntimeError):
     pass
 
 
+def _find(name):
+    """The FFmpeg bundled inside the packaged app if there is one, else whatever is on PATH."""
+    exe = name + (".exe" if os.name == "nt" else "")
+    bundled = Path(getattr(sys, "_MEIPASS", "")) / "bin" / exe
+    if getattr(sys, "_MEIPASS", None) and bundled.is_file():
+        return str(bundled)
+    return shutil.which(name)
+
+
 def require():
     for exe in ("ffmpeg", "ffprobe"):
-        if not shutil.which(exe):
+        if not _find(exe):
             raise FFmpegError(f"{exe} not found on PATH. Install FFmpeg first: https://ffmpeg.org/download.html")
 
 
@@ -24,11 +36,11 @@ def run(args, check=True):
 
 
 def ffmpeg(*args, check=True):
-    return run(["ffmpeg", "-hide_banner", "-nostdin", "-y", *args], check=check)
+    return run([_find("ffmpeg") or "ffmpeg", "-hide_banner", "-nostdin", "-y", *args], check=check)
 
 
 def probe(path, count_frames=False):
-    args = ["ffprobe", "-v", "error", "-show_format", "-show_streams", "-of", "json"]
+    args = [_find("ffprobe") or "ffprobe", "-v", "error", "-show_format", "-show_streams", "-of", "json"]
     if count_frames:
         args.append("-count_frames")
     return json.loads(run([*args, str(path)]).stdout)
@@ -64,4 +76,4 @@ def decode_errors(path, spec=None):
 
 
 def has_filter(name):
-    return re.search(rf"\s{re.escape(name)}\s", run(["ffmpeg", "-hide_banner", "-filters"]).stdout) is not None
+    return re.search(rf"\s{re.escape(name)}\s", run([_find("ffmpeg") or "ffmpeg", "-hide_banner", "-filters"]).stdout) is not None
