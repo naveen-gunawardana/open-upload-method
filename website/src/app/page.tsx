@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
+const AuthForm = dynamic(() => import("@/components/AuthForm"), { ssr: false });
 const ReviewForm = dynamic(() => import("@/components/ReviewForm"), { ssr: false });
 
 const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
@@ -94,6 +95,55 @@ function DownloadCount() {
 
 export default function Home() {
   const [reviewing, setReviewing] = useState(false);
+  const [user, setUser] = useState<string | null>(null);
+  const [authOpen, setAuthOpen] = useState(false);
+  const [pending, setPending] = useState<string | null>(null); // the download to start once signed in
+
+  useEffect(() => {
+    let cancelled = false;
+    const wanted = new URLSearchParams(window.location.search).get("signin");
+    fetch("/api/auth/me")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled) return;
+        setUser(d.email ?? null);
+        if (wanted) {
+          window.history.replaceState(null, "", "/");
+          if (d.email) window.location.href = DOWNLOAD(wanted);
+          else {
+            setPending(wanted);
+            setAuthOpen(true);
+          }
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Download links ask for an account first; once signed in, the chosen download starts.
+  const dl = (platform: string) => ({
+    href: DOWNLOAD(platform),
+    onClick: (event: React.MouseEvent) => {
+      if (user) return;
+      event.preventDefault();
+      setPending(platform);
+      setAuthOpen(true);
+    },
+  });
+
+  const signedIn = (email: string) => {
+    setUser(email);
+    setAuthOpen(false);
+    if (pending) window.location.href = DOWNLOAD(pending);
+    setPending(null);
+  };
+
+  const logOut = async () => {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    setUser(null);
+  };
 
   return (
     <>
@@ -107,6 +157,18 @@ export default function Home() {
             <b>OQM</b>
           </div>
           <span className="chip">100% free · open source</span>
+          {user ? (
+            <span className="acct">
+              {user} ·{" "}
+              <button type="button" className="linklike" onClick={logOut}>
+                Log out
+              </button>
+            </span>
+          ) : (
+            <button type="button" className="linklike acct" onClick={() => { setPending(null); setAuthOpen(true); }}>
+              Log in
+            </button>
+          )}
         </div>
 
         <div className="hero">
@@ -125,11 +187,11 @@ export default function Home() {
             </div>
 
             <div className="cta-row">
-              <a className="btn btn-download" href={DOWNLOAD("mac")}>
+              <a className="btn btn-download" {...dl("mac")}>
                 <AppleIcon />
                 Download for Mac
               </a>
-              <a className="btn btn-download" href={DOWNLOAD("windows")}>
+              <a className="btn btn-download" {...dl("windows")}>
                 <WindowsIcon />
                 Download for Windows
               </a>
@@ -146,13 +208,23 @@ export default function Home() {
             </div>
 
             <div className="credit">
-              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
+              <a {...dl("mac-intel")}>Intel Mac</a> · <a {...dl("source")}>Source ZIP</a>
             </div>
 
             <div className="credit">Zero compression · completely free forever</div>
           </div>
         </div>
       </div>
+      {authOpen && (
+        <AuthForm
+          onClose={() => {
+            setAuthOpen(false);
+            setPending(null);
+          }}
+          onDone={signedIn}
+          reason={pending ? "Create a free account to download. It takes a few seconds." : undefined}
+        />
+      )}
       {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}
     </>
   );
