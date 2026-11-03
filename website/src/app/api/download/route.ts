@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 
@@ -15,10 +16,17 @@ const ASSETS: Record<string, string> = {
 
 export async function GET(request: Request) {
   const platform = new URL(request.url).searchParams.get("platform") ?? "source";
+  // One row per download. The IP is stored only as a salted hash: enough to count unique visitors, not to identify anyone.
+  const ip = (request.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+  const ipHash = createHash("sha256").update(`${process.env.REVIEW_SALT ?? "oqm"}:${ip}`).digest("hex");
+  const country = request.headers.get("x-vercel-ip-country");
+
   try {
-    await supabaseServer().rpc("increment_download_count");
+    const db = supabaseServer();
+    await db.rpc("increment_download_count");
+    await db.from("download_events").insert({ platform, ip_hash: ipHash, country });
   } catch {
-    // Don't block the download if the counter write fails.
+    // Don't block the download if the counter or log write fails.
   }
   return NextResponse.redirect(ASSETS[platform] ?? SOURCE_ZIP);
 }
