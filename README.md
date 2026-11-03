@@ -13,3 +13,7 @@ A free tool that stops TikTok from crushing the quality of your video uploads. I
 
 
 That's it. Free, open source, MIT license.
+
+## Privacy
+
+OQM runs on your computer and your videos never leave it. The desktop app does count how many videos get patched: after each patch it sends a random install ID, the app version, your operating system, the codec, whether the checks passed, and the input size in MB. It never sends file names, paths, or anything from the video. Turn it off under **More options → Share anonymous usage counts**, or set `OQM_NO_TELEMETRY=1`. The code is in `program/oqm/telemetry.py`.
