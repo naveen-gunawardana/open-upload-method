@@ -27,6 +27,18 @@ class Api:
         return str(dest)
 
 
+def bring_to_front():
+    """Unsigned apps can open behind other windows on macOS; ask to be put on top."""
+    if sys.platform != "darwin":
+        return
+    try:
+        from AppKit import NSApplication
+        from PyObjCTools import AppHelper
+        AppHelper.callAfter(lambda: NSApplication.sharedApplication().activateIgnoringOtherApps_(True))
+    except Exception:
+        pass
+
+
 def main():
     global window
     httpd, url = server.start(Path.home() / "OQM-workspace", port=0)
@@ -34,7 +46,7 @@ def main():
     webview.settings["ALLOW_DOWNLOADS"] = True
     window = webview.create_window(f"OQM {__version__}", url, js_api=Api(), width=1020, height=860,
                                    min_size=(520, 560), background_color="#2aa0ff")
-    webview.start()  # returns when the window is closed
+    webview.start(bring_to_front)  # returns when the window is closed
     httpd.shutdown()
     return 0
 
