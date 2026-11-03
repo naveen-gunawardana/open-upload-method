@@ -17,7 +17,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, quote, unquote, urlparse
 
-from . import __version__, export, ff, patches, verify
+from . import __version__, export, ff, patches, telemetry, verify
 
 UI_DIR = Path(__file__).parent / "ui"
 CHUNK = 1 << 20
@@ -77,6 +77,7 @@ class App:
             "version": __version__,
             "workspace": str(self.ws),
             "ffmpeg_error": self.ffmpeg_error,
+            "share_usage": telemetry.enabled(),
             "files": self.files(),
             "catalog": [asdict(p) for p in patches.CATALOG],
             "profiles": {k: sorted(v) for k, v in patches.PROFILES.items()},
@@ -108,6 +109,7 @@ class App:
         src = self.src(p["input"])
         out = self.unique_path(f"{src.stem}_oqm.mp4")
         tmp = self.ws / f".{out.stem}.intermediate.mp4"  # dot-name: hidden from the file list
+        done = False
         try:
             job["stage"] = "Re-encoding your video"
             info = export.export(src, tmp, codec=p.get("codec", "h264"), crf=int(p.get("crf", 17)),
@@ -121,11 +123,13 @@ class App:
                                         trailing_bytes=int(p.get("trailing_bytes", 184_100)))
             report = patches.patch_file(tmp, out, opts)
             checks = verify.verify(tmp, out)
+            done = True
         finally:
             tmp.unlink(missing_ok=True)
+            ok = done and all(c.ok or c.warn for c in checks)
+            telemetry.report(ok, p.get("codec", "h264"), src.stat().st_size)
         return {"output": self.rel(out), "export": info, "applied": report.applied, "skipped": report.skipped,
-                "notes": report.notes, "checks": [asdict(c) for c in checks],
-                "ok": all(c.ok or c.warn for c in checks)}
+                "notes": report.notes, "checks": [asdict(c) for c in checks], "ok": ok}
 
     def do_export(self, p):
         src = self.src(p["input"])
@@ -243,6 +247,9 @@ class Handler(BaseHTTPRequestHandler):
             elif url.path == "/api/run":
                 body = self._body_json()
                 self._json({"job": self.app.submit(body.get("action"), body.get("params") or {})})
+            elif url.path == "/api/settings":
+                telemetry.set_enabled(bool(self._body_json().get("share_usage")))
+                self._json({"share_usage": telemetry.enabled()})
             elif url.path == "/api/delete":
                 p = self.app.path(self._body_json()["name"])
                 p.unlink()

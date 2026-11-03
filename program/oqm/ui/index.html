@@ -129,6 +129,7 @@ td.num { font-family: var(--mono); font-size: 0.75rem; }
 .pill.WARN { color: var(--warn); background: var(--warn-bg); border-color: var(--warn-line); }
 .pill.FAIL { color: var(--bad); background: var(--bad-bg); border-color: var(--bad-line); }
 .err { white-space: pre-wrap; font-family: var(--mono); font-size: 0.75rem; padding: 0.875rem; border: 1px solid var(--bad-line); background: var(--bad-bg); color: var(--bad); border-radius: 0.75rem; }
+label.check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 600; cursor: pointer; }
 .foot { margin: 1rem auto 0; width: fit-content; max-width: 100%; text-align: center; font-size: 0.75rem; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.375rem 0.75rem; }
 .foot span { font-family: var(--mono); }
 </style>
@@ -196,6 +197,10 @@ td.num { font-family: var(--mono); font-size: 0.75rem; }
             <div class="hint">Two passes, aiming for this average video bitrate.</div>
           </div>
         </div>
+        <div>
+          <label class="check"><input type="checkbox" id="mk-share"> Share anonymous usage counts</label>
+          <div class="hint">Just that a video was patched, with the app version, your system and the file size. Never file names or video content.</div>
+        </div>
         <div class="cols">
           <div><label class="f" for="mk-inflate">Decoy size (×)</label><input type="number" id="mk-inflate" value="10" min="2" max="50"></div>
           <div><label class="f" for="mk-dummy">Dummy sample bytes</label><input type="number" id="mk-dummy" placeholder="Automatic" min="1" max="64"></div>
@@ -236,6 +241,7 @@ async function refresh() {
   state = await api("/api/state");
   $("#ver").textContent = "· v" + state.version;
   $("#ws").textContent = state.workspace;
+  $("#mk-share").checked = !!state.share_usage;
   if (state.ffmpeg_error) { $("#banner").style.display = "block"; $("#banner").textContent = state.ffmpeg_error; }
   const vids = state.files.filter(f => VIDEO.test(f.name));
   if (!vids.some(f => f.name === selected)) selected = (vids.find(f => !isReady(f.name)) || vids[0])?.name || null;
@@ -265,6 +271,8 @@ async function saveFile(rel) {
 }
 const revealFile = rel => api("/api/open", { method: "POST", body: JSON.stringify({ name: rel }) }).catch(e => alert(e.message));
 $("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).catch(e => alert(e.message));
+
+$("#mk-share").onchange = e => api("/api/settings", { method: "POST", body: JSON.stringify({ share_usage: e.target.checked }) }).catch(() => {});
 
 // quality presets + segmented controls
 $("#mk-preset").onclick = e => { const b = e.target.closest("button"); if (b) $$("#mk-preset button").forEach(x => x.classList.toggle("on", x === b)); };
