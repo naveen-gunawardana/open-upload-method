@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/session";
 import { supabaseServer } from "@/lib/supabase";
 
 const REPO = "https://github.com/naveen-gunawardana/open-upload-method";
@@ -16,17 +15,10 @@ const ASSETS: Record<string, string> = {
 
 export async function GET(request: Request) {
   const platform = new URL(request.url).searchParams.get("platform") ?? "source";
-
-  // Downloads need an account. Send people to the sign-up popup, which resumes the download afterwards.
-  const session = await getSession();
-  if (!session) return NextResponse.redirect(new URL(`/?signin=${encodeURIComponent(platform)}`, request.url));
-
   try {
-    const db = supabaseServer();
-    await db.rpc("increment_download_count");
-    await db.from("download_events").insert({ user_id: session.id, platform });
+    await supabaseServer().rpc("increment_download_count");
   } catch {
-    // Don't block the download if the counter or log write fails.
+    // Don't block the download if the counter write fails.
   }
   return NextResponse.redirect(ASSETS[platform] ?? SOURCE_ZIP);
 }
