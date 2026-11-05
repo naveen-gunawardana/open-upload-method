@@ -94,6 +94,7 @@ function DownloadCount() {
 
 export default function Home() {
   const [reviewing, setReviewing] = useState(false);
+  const [macNote, setMacNote] = useState(false);
 
   return (
     <>
@@ -125,7 +126,7 @@ export default function Home() {
             </div>
 
             <div className="cta-row">
-              <a className="btn btn-download" href={DOWNLOAD("mac")}>
+              <a className="btn btn-download" href={DOWNLOAD("mac")} onClick={() => setMacNote(true)}>
                 <AppleIcon />
                 Download for Mac
               </a>
@@ -145,8 +146,15 @@ export default function Home() {
               </a>
             </div>
 
+            {macNote && (
+              <div className="mac-note" role="status">
+                Mac says it can&rsquo;t verify the app? Open <b>System Settings → Privacy &amp; Security</b>, scroll down and
+                click <b>Open Anyway</b>. Or right-click the app and choose <b>Open</b>. You only do this once.
+              </div>
+            )}
+
             <div className="credit">
-              <a href={DOWNLOAD("mac-intel")}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
+              <a href={DOWNLOAD("mac-intel")} onClick={() => setMacNote(true)}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
             </div>
 
             <div className="credit">Zero compression · completely free forever</div>
