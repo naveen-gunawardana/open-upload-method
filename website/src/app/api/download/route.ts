@@ -8,8 +8,8 @@ const SOURCE_ZIP = `${REPO}/releases/download/v1.0.0/oqm.zip`;
 
 // Every download link on the site goes through here so the counter sees all of them.
 const ASSETS: Record<string, string> = {
-  mac: `${LATEST}/OQM-mac-apple-silicon.zip`,
-  "mac-intel": `${LATEST}/OQM-mac-intel.zip`,
+  mac: `${LATEST}/OQM-mac-apple-silicon.dmg`,
+  "mac-intel": `${LATEST}/OQM-mac-intel.dmg`,
   windows: `${LATEST}/OQM-windows.zip`,
   source: SOURCE_ZIP,
 };

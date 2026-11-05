@@ -148,8 +148,8 @@ export default function Home() {
 
             {macNote && (
               <div className="mac-note" role="status">
-                Mac says it can&rsquo;t verify the app? Open <b>System Settings → Privacy &amp; Security</b>, scroll down and
-                click <b>Open Anyway</b>. Or right-click the app and choose <b>Open</b>. You only do this once.
+                Open the downloaded file, drag <b>OQM</b> onto <b>Applications</b>, then open it from there. If Mac says it can&rsquo;t verify the
+                app, go to <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. You only do this once.
               </div>
             )}
 
