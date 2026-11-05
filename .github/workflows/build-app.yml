@@ -32,7 +32,7 @@ jobs:
       - name: Zip (macOS)
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent dist/OQM.app ${{ matrix.name }}.zip
-      - name: Disk image (macOS): drag OQM onto the Applications shortcut
+      - name: Disk image (macOS, with Applications shortcut)
         if: runner.os == 'macOS'
         run: |
           mkdir dmg
