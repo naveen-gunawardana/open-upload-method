@@ -15,7 +15,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { os: macos-14, name: OQM-mac-apple-silicon }
+          - { os: macos-15, name: OQM-mac-apple-silicon }
           - { os: macos-15-intel, name: OQM-mac-intel }
           - { os: windows-latest, name: OQM-windows }
     runs-on: ${{ matrix.os }}
