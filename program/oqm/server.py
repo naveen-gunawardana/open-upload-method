@@ -112,22 +112,18 @@ class App:
         done = False
         try:
             job["stage"] = "Re-encoding your video"
-            info = export.export(src, tmp, codec=p.get("codec", "h264"), crf=int(p.get("crf", 17)),
-                                 kbps=int(p["kbps"]) if p.get("kbps") else None,
-                                 fps=float(p["fps"]) if p.get("fps") else None, fit=p.get("fit") or None)
+            # One fixed recipe (the one the OQM docs recommend): clean H.264 at CRF 17, same size and frame rate,
+            # then the minimal patch (hidden decoy audio track + faststart).
+            info = export.export(src, tmp, codec="h264", crf=17)
             job["stage"] = "Applying the patch and checking it"
-            opts = patches.PatchOptions(enabled=set(p.get("patches", [])) | {"faststart"},
-                                        inflate=int(p.get("inflate", 10)),
-                                        dummy_size=int(p["dummy_size"]) if p.get("dummy_size") else None,
-                                        encoder_tag=p.get("encoder_tag", "Lavf59.27.100"),
-                                        trailing_bytes=int(p.get("trailing_bytes", 184_100)))
+            opts = patches.PatchOptions(enabled=set(patches.PROFILES["minimal"]))
             report = patches.patch_file(tmp, out, opts)
             checks = verify.verify(tmp, out)
             done = True
         finally:
             tmp.unlink(missing_ok=True)
             ok = done and all(c.ok or c.warn for c in checks)
-            telemetry.report(ok, p.get("codec", "h264"), src.stat().st_size)
+            telemetry.report(ok, "h264", src.stat().st_size)
         return {"output": self.rel(out), "export": info, "applied": report.applied, "skipped": report.skipped,
                 "notes": report.notes, "checks": [asdict(c) for c in checks], "ok": ok}
 

@@ -162,55 +162,10 @@ label.check { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125
       <ul id="files"></ul>
     </div>
 
-    <div class="step" id="mk-quality-field">
-      <h2>Quality</h2>
-      <div class="seg" id="mk-preset">
-        <button type="button" data-crf="14"><b>Highest</b><span>Biggest file</span></button>
-        <button type="button" data-crf="17" class="on"><b>Recommended</b><span>Looks identical</span></button>
-        <button type="button" data-crf="23"><b>Smaller</b><span>Lighter file</span></button>
-      </div>
+    <div class="step">
+      <p class="hint">One setting, no choices: your video keeps its size and frame rate, gets a clean high-quality re-encode, then the patch.</p>
+      <label class="check"><input type="checkbox" id="mk-share"> Share anonymous usage counts</label>
     </div>
-
-    <div class="step cols">
-      <div>
-        <label class="f" for="mk-fps">Frame rate</label>
-        <select id="mk-fps"><option value="">Same as your video</option><option>60</option><option>30</option><option>24</option></select>
-      </div>
-      <div>
-        <label class="f" for="mk-fit">Size</label>
-        <select id="mk-fit"><option value="">Same as your video</option><option value="1080x1920">1080 × 1920 (vertical HD)</option><option value="720x1280">720 × 1280</option></select>
-      </div>
-    </div>
-
-    <details id="mk-advanced">
-      <summary><svg class="chev" width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 1l4 4-4 4"/></svg>More options</summary>
-      <div class="adv">
-        <div>
-          <label class="f">Codec</label>
-          <div class="seg small" data-seg="mk-codec"><button type="button" data-v="h264" class="on">H.264</button><button type="button" data-v="h265">H.265</button></div>
-        </div>
-        <div>
-          <label class="f">How to set quality</label>
-          <div class="seg small" data-seg="mk-qmode"><button type="button" data-v="crf" class="on">Use the quality above</button><button type="button" data-v="kbps">Exact bitrate</button></div>
-          <div id="mk-qmode-kbps-field" style="display:none; margin-top:10px">
-            <input type="number" id="mk-kbps-visible" placeholder="Target kbps, e.g. 20000" min="500">
-            <div class="hint">Two passes, aiming for this average video bitrate.</div>
-          </div>
-        </div>
-        <div>
-          <label class="check"><input type="checkbox" id="mk-share"> Share anonymous usage counts</label>
-          <div class="hint">Just that a video was patched, with the app version, your system and the file size. Never file names or video content.</div>
-        </div>
-        <div class="cols">
-          <div><label class="f" for="mk-inflate">Decoy size (×)</label><input type="number" id="mk-inflate" value="10" min="2" max="50"></div>
-          <div><label class="f" for="mk-dummy">Dummy sample bytes</label><input type="number" id="mk-dummy" placeholder="Automatic" min="1" max="64"></div>
-        </div>
-        <div class="cols">
-          <div><label class="f" for="mk-enc">Encoder tag</label><input type="text" id="mk-enc" value="Lavf59.27.100"></div>
-          <div><label class="f" for="mk-trail">Trailing pad bytes</label><input type="number" id="mk-trail" value="184100" min="16"></div>
-        </div>
-      </div>
-    </details>
 
     <div class="go"><button class="btn blue big" id="makeBtn" type="button">Make upload-ready file</button></div>
     <div class="result" id="r-make" aria-live="polite"></div>
@@ -274,20 +229,6 @@ $("#openWs").onclick = () => api("/api/open", { method: "POST", body: "{}" }).ca
 
 $("#mk-share").onchange = e => api("/api/settings", { method: "POST", body: JSON.stringify({ share_usage: e.target.checked }) }).catch(() => {});
 
-// quality presets + segmented controls
-$("#mk-preset").onclick = e => { const b = e.target.closest("button"); if (b) $$("#mk-preset button").forEach(x => x.classList.toggle("on", x === b)); };
-const crf = () => $("#mk-preset .on").dataset.crf;
-const segValue = id => $(`[data-seg="${id}"] .on`)?.dataset.v;
-$$(".seg.small").forEach(seg => seg.onclick = e => {
-  const b = e.target.closest("button"); if (!b) return;
-  seg.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-  if (seg.dataset.seg === "mk-qmode") {
-    const exact = b.dataset.v === "kbps";
-    $("#mk-qmode-kbps-field").style.display = exact ? "" : "none";
-    $("#mk-quality-field").style.opacity = exact ? ".45" : "";
-  }
-});
-
 // uploads (also catches files dropped anywhere in the window, so the page never navigates away)
 const drop = $("#drop");
 ["dragenter", "dragover"].forEach(t => window.addEventListener(t, ev => { ev.preventDefault(); drop.classList.add("over"); }));
@@ -334,12 +275,7 @@ $("#makeBtn").onclick = async () => {
   draw(); const tick = setInterval(() => { const el = $("#el"); if (el) el.textContent = Math.round((Date.now() - t0) / 1000) + "s"; }, 500);
   try {
     if (!selected) throw new Error("Choose a video first.");
-    const exact = segValue("mk-qmode") === "kbps";
-    const res = await runJob("make", {
-      input: selected, codec: segValue("mk-codec"), crf: crf(),
-      kbps: exact ? $("#mk-kbps-visible").value : "", fps: $("#mk-fps").value, fit: $("#mk-fit").value,
-      patches: state.profiles.reference, inflate: $("#mk-inflate").value, dummy_size: $("#mk-dummy").value,
-      encoder_tag: $("#mk-enc").value, trailing_bytes: $("#mk-trail").value,
+    const res = await runJob("make", { input: selected
     }, s => { label = s; draw(); });
     box.innerHTML = renderResult(res);
     if (res.ok) selected = res.output;
