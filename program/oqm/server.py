@@ -112,11 +112,11 @@ class App:
         done = False
         try:
             job["stage"] = "Re-encoding your video"
-            # One fixed recipe (the one the OQM docs recommend): clean H.264 at CRF 17, same size and frame rate,
-            # then the minimal patch (hidden decoy audio track + faststart).
+            # One fixed recipe, the one that tested best: clean H.264 at CRF 17, same size and frame rate,
+            # then the full reference patch set (hidden decoy audio track and the container clean-up).
             info = export.export(src, tmp, codec="h264", crf=17)
             job["stage"] = "Applying the patch and checking it"
-            opts = patches.PatchOptions(enabled=set(patches.PROFILES["minimal"]))
+            opts = patches.PatchOptions(enabled=set(patches.PROFILES["reference"]))
             report = patches.patch_file(tmp, out, opts)
             checks = verify.verify(tmp, out)
             done = True
