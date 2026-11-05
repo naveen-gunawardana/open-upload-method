@@ -39,8 +39,18 @@ def bring_to_front():
         pass
 
 
+def running_from_disk_image():
+    return sys.platform == "darwin" and sys.executable.startswith("/Volumes/")
+
+
 def main():
     global window
+    if running_from_disk_image():
+        # Opened straight from the downloaded disk image: it has to be copied out first.
+        import subprocess
+        subprocess.run(["osascript", "-e", 'display dialog "Drag OQM onto the Applications folder in this window, then open it from Applications." '
+                        'buttons {"OK"} default button "OK" with title "OQM" with icon note'], check=False)
+        return 0
     httpd, url = server.start(Path.home() / "OQM-workspace", port=0)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
     webview.settings["ALLOW_DOWNLOADS"] = True

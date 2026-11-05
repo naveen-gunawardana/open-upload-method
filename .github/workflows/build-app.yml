@@ -32,14 +32,21 @@ jobs:
       - name: Zip (macOS)
         if: runner.os == 'macOS'
         run: ditto -c -k --keepParent dist/OQM.app ${{ matrix.name }}.zip
+      - name: Disk image (macOS): drag OQM onto the Applications shortcut
+        if: runner.os == 'macOS'
+        run: |
+          mkdir dmg
+          ditto dist/OQM.app dmg/OQM.app
+          ln -s /Applications dmg/Applications
+          hdiutil create -volname OQM -srcfolder dmg -ov -format UDZO ${{ matrix.name }}.dmg
       - name: Zip (Windows)
         if: runner.os == 'Windows'
         run: Compress-Archive -Path dist/OQM -DestinationPath ${{ matrix.name }}.zip
       - uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.name }}
-          path: program/${{ matrix.name }}.zip
+          path: program/${{ matrix.name }}.*
       - uses: softprops/action-gh-release@v2
         if: startsWith(github.ref, 'refs/tags/')
         with:
-          files: program/${{ matrix.name }}.zip
+          files: program/${{ matrix.name }}.*
