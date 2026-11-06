@@ -114,8 +114,8 @@ export default function Home() {
           <div className="hero-card">
             <DownloadCount />
             <div className="status-note" role="status">
-              <b>Heads up:</b> the patcher isn&rsquo;t working reliably right now. TikTok changed how it processes uploads, so some videos still get
-              compressed after a few minutes. We&rsquo;re testing fixes and will update this page.
+              <b>Heads up:</b> TikTok recently changed how it processes uploads, so results can vary right now. We&rsquo;re testing and will update
+              this page.
             </div>
             <h1>Stop TikTok from crushing your video.</h1>
             <p className="sub">Upload in 4K, no compression. It runs locally on your machine. Free, no account needed.</p>
