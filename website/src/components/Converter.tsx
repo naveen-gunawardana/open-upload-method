@@ -340,7 +340,7 @@ export default function Converter({
           <SettingsGroup className={embedded ? "settings-more" : "settings-groups"}>
             {embedded && <summary>Advanced settings <span>Video, audio, patches &amp; tools</span></summary>}
             <div className="settings-groups">
-          <details className="settings-section">
+          <details className="settings-section settings-video">
             <summary>
               <span>Video &amp; audio</span>
               <span className="section-meta">{e.reencode ? `${e.codec === "avc" ? "H.264" : "HEVC"} · ${e.fps ? `${e.fps} fps` : "Original fps"}` : "No re-encode"}</span>
@@ -445,7 +445,7 @@ export default function Converter({
           </details>
 
           {recipe.method === "silent-tail" ? (
-            <details className="settings-section">
+            <details className="settings-section settings-experimental">
               <summary><span>Silent-tail method</span><span className="section-meta">Experimental</span></summary>
               <div className="settings-body">
                 <p className="fine">Silent-tail runs independently of the current patches. It changes audio sample descriptions,
@@ -454,7 +454,7 @@ export default function Converter({
               </div>
             </details>
           ) : <>
-          <details className="settings-section">
+          <details className="settings-section settings-patches">
             <summary>
               <span>Container patches</span>
               <span className="section-meta">{enabled.size} active</span>
@@ -481,7 +481,7 @@ export default function Converter({
             </div>
           </details>
 
-          <details className="settings-section">
+          <details className="settings-section settings-advanced">
             <summary>
               <span>Advanced patch options</span>
               <span className="section-meta">Decoy, tags &amp; padding</span>
@@ -532,7 +532,7 @@ export default function Converter({
           </details>
           </>}
 
-          <details className="settings-section">
+          <details className="settings-section settings-tools">
             <summary><span>Tools &amp; help</span><span className="section-meta">Comparisons &amp; tips</span></summary>
             <div className="settings-body studio-tools">
               <button

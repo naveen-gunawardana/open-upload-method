@@ -39,7 +39,7 @@ function Logo({ size = 28 }: { size?: number }) {
       <defs>
         <linearGradient id="oqm-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
           <stop stopColor="#1f7fe0" />
-          <stop offset="1" stopColor="#65b3ff" />
+          <stop offset="1" stopColor="#ffce5c" />
         </linearGradient>
       </defs>
     </svg>
@@ -210,10 +210,16 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                   <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Upload in HD. No compression.</h1>
                   <p className="sub">1080p at 60fps, with no compression. Your video stays on your device. Free, with no account or installation.</p>
 
-                  <div className="quality-summary" aria-label="Video quality">
-                    <span>1080p HD</span>
-                    <span>60 fps</span>
-                    <span>No compression</span>
+                  <div className="quality-compare" aria-label="Upload quality comparison">
+                    <div className="quality-before">
+                      <span>Without OQM</span>
+                      <strong>Standard upload</strong>
+                    </div>
+                    <span className="quality-arrow" aria-hidden="true"><ArrowIcon /></span>
+                    <div className="quality-after">
+                      <span>With OQM</span>
+                      <strong>1080p · 60fps</strong>
+                    </div>
                   </div>
 
                   <div className="hero-actions">
@@ -225,7 +231,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                       Patch video <ArrowIcon />
                     </button>
                     <div className="hero-secondary">
-                      <button type="button" className="btn btn-secondary" onClick={() => setReviewing(true)}>
+                      <button type="button" className="btn btn-review" onClick={() => setReviewing(true)}>
                         <StarIcon />
                         Leave a review
                       </button>
