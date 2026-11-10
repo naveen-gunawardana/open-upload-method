@@ -114,7 +114,7 @@ export default function Home() {
           <div className="hero-card">
             <DownloadCount />
             <h1>Stop TikTok from crushing your video.</h1>
-            <p className="sub">Upload in 4K, no compression. It runs locally on your machine. Free, no account needed.</p>
+            <p className="sub">Upload in 1080p, no compression. It runs locally on your machine. Free, no account needed.</p>
 
             <div className="compare">
               <span className="pill no">
