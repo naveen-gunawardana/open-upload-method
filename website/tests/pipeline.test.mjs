@@ -18,10 +18,16 @@ for (const name of ["patch", "silentTail", "pipeline"]) {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   }).outputText);
 }
-const { convert, prepareComparison, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
+const { convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
 test("latest standalone UI exposes the experimental option before selecting a video", async () => {
+  const help = await readFile(new URL("../src/components/SettingHelp.tsx", import.meta.url), "utf8");
+  await writeFile(path.join(dir, "SettingHelp.mjs"), ts.transpileModule(help, {
+    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+    fileName: "SettingHelp.tsx",
+  }).outputText);
   const source = (await readFile(new URL("../src/components/Converter.tsx", import.meta.url), "utf8"))
-    .replaceAll('"@/lib/oqm/patch"', '"./patch.mjs"').replaceAll('"@/lib/oqm/pipeline"', '"./pipeline.mjs"');
+    .replaceAll('"@/lib/oqm/patch"', '"./patch.mjs"').replaceAll('"@/lib/oqm/pipeline"', '"./pipeline.mjs"')
+    .replaceAll('"@/components/SettingHelp"', '"./SettingHelp.mjs"');
   await writeFile(path.join(dir, "Converter.mjs"), ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
     fileName: "Converter.tsx",
@@ -33,8 +39,35 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   assert.ok(presetSelect, "Preset settings are available before choosing a video");
   assert.match(presetSelect, /<option value="current" selected="">Current OQM \(default\)<\/option>/);
   assert.match(presetSelect, /<option value="silent-tail">Silent-tail \(experimental\)<\/option>/);
+  assert.match(presetSelect, /<option value="1080p">1080p — high quality<\/option>/);
+  assert.match(presetSelect, /<option value="4k">4K — experimental<\/option>/);
   assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Make local comparison \(3\)<\/button>/);
+});
+test("resolution presets downscale in both orientations without upscaling or changing the default", () => {
+  const hd = PRESETS.find(p => p.id === "1080p").recipe;
+  const uhd = PRESETS.find(p => p.id === "4k").recipe;
+  assert.deepEqual(targetSize({ width: 3840, height: 2160 }, hd.encode.size), { width: 1920, height: 1080 });
+  assert.deepEqual(targetSize({ width: 2160, height: 3840 }, hd.encode.size), { width: 1080, height: 1920 });
+  assert.deepEqual(targetSize({ width: 7680, height: 4320 }, uhd.encode.size), { width: 3840, height: 2160 });
+  assert.deepEqual(targetSize({ width: 4320, height: 7680 }, uhd.encode.size), { width: 2160, height: 3840 });
+  assert.deepEqual(targetSize({ width: 1920, height: 1080 }, uhd.encode.size), {});
+  assert.deepEqual(targetSize({ width: 1280, height: 720 }, hd.encode.size), {});
+  for (const recipe of [hd, uhd]) {
+    assert.equal(recipe.encode.codec, "avc");
+    assert.equal(recipe.encode.reencode, true);
+    assert.equal(recipe.encode.rate, "bitrate");
+    assert.equal(recipe.encode.keyframeSec, 2);
+    assert.equal(recipe.encode.audioKbps, 320);
+    assert.notEqual(recipe.method, "silent-tail");
+    for (const fps of [24, 29.97, 30, 59.94, 60]) assert.equal(targetFrameRate(fps, recipe.encode.fps), undefined);
+    for (const fps of [90, 120]) assert.equal(targetFrameRate(fps, recipe.encode.fps), 60);
+  }
+  assert.equal(hd.encode.mbps, 20);
+  assert.equal(uhd.encode.mbps, 60);
+  assert.equal(targetFrameRate(120, null), undefined);
+  assert.equal(targetFrameRate(24, 60), 60);
+  assert.equal(PRESETS[0].recipe, DEFAULT_RECIPE);
 });
 test("comparison prepares one shared MP4 and reads back all three methods", async () => {
   const source = path.join(dir, "source.mp4");

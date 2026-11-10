@@ -224,7 +224,8 @@ export default function Converter({
   const current = runs.find((r) => r.status === "running");
   const files = Array.from(new Set(runs.map((r) => r.file)));
   const activeFile = runs[0]?.file ?? file;
-  const presetId = PRESETS.find((p) => same(p.recipe, recipe))?.id ?? "custom";
+  const selectedPreset = PRESETS.find((p) => same(p.recipe, recipe));
+  const presetId = selectedPreset?.id ?? "custom";
   const e = recipe.encode;
   const enabled = new Set(recipe.patch.enabled);
 
@@ -327,6 +328,7 @@ export default function Converter({
                 {presetId === "custom" && <option value="custom" disabled>Custom settings</option>}
               </select>
             </label>
+            {selectedPreset && <p className="fine preset-description">{selectedPreset.desc}</p>}
           </div>
 
           <div className="basic-settings adv">
@@ -351,9 +353,10 @@ export default function Converter({
                   </select>
                 </div>
                 <div className="setting-field">
-                  <span className="setting-title"><label htmlFor="setting-fps">Frame rate</label><SettingHelp label="Frame rate">Keep the source frame rate or convert it to 24, 30, or 60 frames per second.</SettingHelp></span>
-                  <select id="setting-fps" disabled={!e.reencode} value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value ? Number(ev.target.value) : null })}>
+                  <span className="setting-title"><label htmlFor="setting-fps">Frame rate</label><SettingHelp label="Frame rate">Up to 60 fps preserves lower source frame rates and caps higher ones. Fixed frame rates can duplicate or drop frames; they do not interpolate motion.</SettingHelp></span>
+                  <select id="setting-fps" disabled={!e.reencode} value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value === "source-max-60" ? "source-max-60" : ev.target.value ? Number(ev.target.value) : null })}>
                     <option value="">Keep original</option>
+                    <option value="source-max-60">Up to 60 fps (source)</option>
                     <option value="24">24 fps</option>
                     <option value="30">30 fps</option>
                     <option value="60">60 fps</option>
@@ -378,7 +381,7 @@ export default function Converter({
           <details className="settings-section settings-video">
             <summary>
               <span>Encoding</span>
-              <span className="section-meta">{e.reencode ? `${e.codec === "avc" ? "H.264" : "HEVC"} · ${e.fps ? `${e.fps} fps` : "Original fps"}` : "No re-encode"}</span>
+              <span className="section-meta">{e.reencode ? `${e.codec === "avc" ? "H.264" : "HEVC"} · ${e.fps === "source-max-60" ? "Up to 60 fps" : e.fps ? `${e.fps} fps` : "Original fps"}` : "No re-encode"}</span>
             </summary>
             <div className="settings-body adv">
               <fieldset>

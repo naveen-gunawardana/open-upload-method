@@ -12,6 +12,8 @@ The panel that opens has presets and an **Advanced** section with every option: 
 
 Free, open source, MIT license.
 
+The preset dropdown includes **1080p — high quality** (H.264, target 20 Mbps) and **4K — experimental** (H.264, target 60 Mbps). Both re-encode SDR input with AAC audio and two-second keyframe spacing, cap higher frame rates at 60 fps, and preserve lower source frame rates. They limit the shorter edge to 1080 or 2160 pixels without upscaling smaller inputs. Both use the current OQM patches; silent-tail remains a separate option. A 4K output requires a sufficiently large source and a browser/device capable of encoding it. TikTok may still reduce resolution, bitrate or frame rate.
+
 ## Privacy
 
 Your video never leaves your computer. When a conversion finishes, the site adds one to the public "videos converted" counter. Only that tick, a salted hash of your IP (for rate limiting) and your country are stored, never anything about the video.

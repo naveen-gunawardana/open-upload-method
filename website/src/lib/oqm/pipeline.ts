@@ -29,8 +29,8 @@ export type EncodeOptions = {
   /** Used when rate = "bitrate", quantizer fallback uses a size/frame-rate estimate. */
   mbps: number;
   size: SizeMode;
-  /** null keeps the source frame rate. */
-  fps: number | null;
+  /** null preserves timing; source-max-60 caps high-rate sources without duplicating lower-rate frames. */
+  fps: number | "source-max-60" | null;
   /** Seconds between keyframes. 0 = one keyframe at the start only (long GOP, like the reference tool). */
   keyframeSec: number;
   audioKbps: number;
@@ -65,6 +65,8 @@ const withPatches = (enabled: PatchOptions["enabled"], encode: Partial<EncodeOpt
 /** Independent options. The controlled comparison below uses only three shared-source arms. */
 export const PRESETS: Preset[] = [
   { id: "current", title: "Current OQM (default)", desc: "Clean H.264 re-encode (quality 17) + full patch set. What the desktop app did.", recipe: DEFAULT_RECIPE },
+  { id: "1080p", title: "1080p — high quality", desc: "H.264 at a target 20 Mbps, up to 1080p and 60 fps, AAC audio. Keeps lower source frame rates and dimensions. Current OQM patches; TikTok retention still needs testing.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 20, size: "short-1080", fps: "source-max-60" }) },
+  { id: "4k", title: "4K — experimental", desc: "H.264 at a target 60 Mbps, up to 2160p and 60 fps, AAC audio. Use a 4K SDR source; smaller videos stay smaller. Requires a capable browser/device. TikTok may downscale it.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 60, size: "short-2160", fps: "source-max-60" }) },
   { id: "silent-tail", title: "Silent-tail (experimental)", desc: "Keeps video packets, adds a short AAC silence tail and a second audio track. Requires a clean AAC-LC stereo MP4. TikTok results unverified.", recipe: { ...withPatches([], { reencode: false }), method: "silent-tail" } },
   { id: "noreencode", title: "No re-encode", desc: "Your video and audio are kept exactly as they are; only the container is patched.", recipe: withPatches(REFERENCE, { reencode: false }) },
   { id: "longgop", title: "Long keyframe gap", desc: "Re-encode with one keyframe at the start, like the public reference tool, + full patch set.", recipe: withPatches(REFERENCE, { keyframeSec: 0 }) },
@@ -116,13 +118,18 @@ async function probe(blob: Blob): Promise<Probe> {
   }
 }
 
-function targetSize(src: Probe, mode: SizeMode): { width?: number; height?: number } {
+export function targetSize(src: Pick<Probe, "width" | "height">, mode: SizeMode): { width?: number; height?: number } {
   if (mode === "original") return {};
   const target = Number(mode.split("-")[1]);
   const short = Math.min(src.width, src.height);
   if (short <= target) return {};
   const scale = target / short;
   return { width: even(src.width * scale), height: even(src.height * scale) };
+}
+
+export function targetFrameRate(sourceFps: number, mode: EncodeOptions["fps"]): number | undefined {
+  if (mode === "source-max-60") return sourceFps > 60 ? 60 : undefined;
+  return mode ?? undefined;
 }
 
 function quality(e: EncodeOptions, width: number, height: number, fps: number): Quality {
@@ -175,9 +182,11 @@ async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: 
   const size = targetSize(src, e.size);
   const width = size.width ?? src.width;
   const height = size.height ?? src.height;
-  const fps = e.fps ?? src.fps;
-  if (!(await canEncodeVideo(e.codec, { width, height }))) {
-    throw new OqmError(`This browser can't encode ${e.codec === "hevc" ? "H.265" : "H.264"} at ${width}x${height}. Pick H.264 or a smaller size.`);
+  const frameRate = targetFrameRate(src.fps, e.fps);
+  const fps = frameRate ?? src.fps;
+  const videoQuality = quality(e, width, height, fps);
+  if (!(await canEncodeVideo(e.codec, { width, height, frameRate: fps, quality: videoQuality }))) {
+    throw new OqmError(`This browser can't encode ${e.codec === "hevc" ? "H.265" : "H.264"} at ${width}x${height}, ${fps.toFixed(2)} fps with these settings. Try the 1080p preset or a lower bitrate.`);
   }
   const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: "in-memory" }), target: new BufferTarget() });
@@ -189,10 +198,10 @@ async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: 
       showWarnings: false,
       video: {
         codec: e.codec,
-        quality: quality(e, width, height, fps),
+        quality: videoQuality,
         ...size,
         fit: size.width ? "contain" : undefined,
-        frameRate: e.fps ?? undefined,
+        frameRate,
         // 0 = long GOP: the reference tool's 9999 frames, which is one keyframe for any TikTok-length clip.
         keyFrameInterval: e.keyframeSec > 0 ? e.keyframeSec : 9999 / fps,
         hardwareAcceleration: e.hardware,
