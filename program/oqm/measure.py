@@ -1,7 +1,7 @@
 """Stage 3b: measure what TikTok actually served, against your master.
 
-Feed it the file you uploaded and a copy of the published video (screen-record
-or download from a second account/device). Numbers beat promo sliders.
+Feed it the file you uploaded and a retrieved rendition from a second
+account/device. Screen recordings measure a playback/capture path, not the served file.
 """
 
 import re
@@ -56,7 +56,12 @@ def measure(master, served, vmaf=True):
     if vmaf and ff.has_filter("libvmaf"):
         m = re.search(r"VMAF score:\s*([\d.]+)", _compare(master, served, cmp_fps, w, h, "libvmaf"))
         r["vmaf"] = float(m.group(1)) if m else None
-    r["passthrough_likely"] = bool(r["ssim"] and r["ssim"] > 0.995 and sv["width"] == w and abs(s_fps - m_fps) < 0.5)
+    packet_a, packet_b = ff.stream_hash(master, "v:0"), ff.stream_hash(served, "v:0")
+    pixel_a, pixel_b = ff.decoded_hash(master), ff.decoded_hash(served)
+    r["video_packets_identical"] = packet_a is not None and packet_a == packet_b
+    r["decoded_frames_identical"] = pixel_a is not None and pixel_a == pixel_b
+    r["high_visual_similarity"] = bool(r["ssim"] and r["ssim"] > 0.995 and sv["width"] == w
+                                        and sv["height"] == h and abs(s_fps - m_fps) < 0.01)
     return r
 
 
@@ -66,10 +71,12 @@ def print_measure(r):
         ("Frame rate (declared)", f"{r['master_fps']} -> {r['served_fps']}"),
         ("Frame rate (unique)", f"{r['master_unique_fps']} -> {r['served_unique_fps']}"),
         ("Video bitrate kbps", f"{r['master_video_kbps']} -> {r['served_video_kbps']}"),
-        ("SSIM (1.0 = identical)", r["ssim"]),
+        ("SSIM (visual similarity)", r["ssim"]),
         ("PSNR dB (higher = closer)", r["psnr_db"]),
         ("VMAF (0-100)", r.get("vmaf", "n/a")),
-        ("Looks like passthrough?", "yes" if r["passthrough_likely"] else "no - TikTok re-encoded it"),
+        ("Video packets identical", r["video_packets_identical"]),
+        ("Decoded frames identical", r["decoded_frames_identical"]),
+        ("High visual similarity", r["high_visual_similarity"]),
     ]
     for k, v in rows:
         print(f"  {k:<28} {v}")

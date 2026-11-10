@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import __version__, abtest, export, ff, measure, mp4, patches, testcard, verify
+from . import __version__, abtest, compare, export, ff, measure, mp4, patches, testcard, verify
 
 
 def cmd_export(a):
@@ -34,7 +34,7 @@ def cmd_patch(a):
 
 
 def cmd_verify(a):
-    return 0 if verify.print_checks(verify.verify(a.original, a.patched)) else 1
+    return 0 if verify.print_checks(verify.verify(a.original, a.patched, silent_tail=a.method == "silent-tail")) else 1
 
 
 def cmd_measure(a):
@@ -49,6 +49,13 @@ def cmd_abtest(a):
     out = a.out or str(Path(a.input).with_name(f"{Path(a.input).stem}_abtest"))
     ok, _ = abtest.build(a.input, out)
     print(f"\n  kit: {out}\n  next: upload each variant (see docs/TEST-PROTOCOL.md), then fill RESULTS.csv")
+    return 0 if ok else 1
+
+
+def cmd_compare(a):
+    ok, manifest = compare.build(a.input, a.out)
+    print(json.dumps(manifest, indent=2))
+    print(f"\nLocal comparison: {a.out}. Retention measurements are pending; no uploads performed.")
     return 0 if ok else 1
 
 
@@ -113,6 +120,8 @@ def main(argv=None):
 
     s = sub.add_parser("verify", help="Stage 3a: prove the patched file is the same video")
     s.add_argument("original"); s.add_argument("patched")
+    s.add_argument("--method", choices=["legacy", "silent-tail"], default="legacy",
+                   help="explicitly allow and validate the silent-tail recipe's intentional audio change")
     s.set_defaults(fn=cmd_verify)
 
     s = sub.add_parser("measure", help="Stage 3b: score what TikTok served vs your master")
@@ -123,6 +132,10 @@ def main(argv=None):
     s = sub.add_parser("abtest", help="Build a 4-arm A/B upload kit + results sheet")
     s.add_argument("input"); s.add_argument("--out")
     s.set_defaults(fn=cmd_abtest)
+
+    s = sub.add_parser("compare", help="Local clean/current/silent-tail comparison; shared encoded source, no uploads")
+    s.add_argument("input"); s.add_argument("--out", required=True)
+    s.set_defaults(fn=cmd_compare)
 
     s = sub.add_parser("inspect", help="Show box tree and declared-vs-decoded counts")
     s.add_argument("input")

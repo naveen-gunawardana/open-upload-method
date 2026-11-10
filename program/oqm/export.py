@@ -10,7 +10,7 @@ from pathlib import Path
 from . import ff
 
 _VARGS = {
-    "h264": ["-c:v", "libx264", "-preset", "slow", "-profile:v", "high", "-level:v", "4.2",
+    "h264": ["-c:v", "libx264", "-preset", "slow", "-profile:v", "high",
              "-pix_fmt", "yuv420p"],
     "h265": ["-c:v", "libx265", "-preset", "slow", "-pix_fmt", "yuv420p", "-tag:v", "hvc1"],
 }
@@ -24,6 +24,8 @@ def export(src, dst, codec="h264", crf=17, kbps=None, fps=None, fit=None, audio_
         raise ValueError("codec must be h264 or h265")
     info = ff.probe(src)
     v = next(s for s in info["streams"] if s["codec_type"] == "video")
+    if v.get("color_transfer") in {"smpte2084", "arib-std-b67"} or v.get("color_primaries") == "bt2020":
+        raise ValueError("HDR/wide-gamut export needs an explicit colour conversion. Use an SDR master or stream-copy; HDR testing is separate.")
     out_fps = fps or ff.fraction(v.get("avg_frame_rate") or v.get("r_frame_rate")) or 30
     gop = max(1, round(out_fps * 2))  # keyframe every ~2 s: seekable, streamable
 
@@ -43,7 +45,6 @@ def export(src, dst, codec="h264", crf=17, kbps=None, fps=None, fit=None, audio_
     else:
         if baseline:  # Constrained Baseline: no B-frames, no CABAC; level left to the encoder
             i = vargs.index("-profile:v"); vargs[i + 1] = "baseline"
-            j = vargs.index("-level:v"); del vargs[j:j + 2]
         vargs += ["-g", str(gop), "-keyint_min", str(min(gop, round(out_fps * 2)))]
         if no_bframes:
             vargs += ["-bf", "0"]

@@ -3,8 +3,9 @@
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from oqm import ff, measure, mp4, patches, verify
+from oqm import compare, export, ff, measure, mp4, patches, verify
 
 
 def _clip(path, audio=True, fps=60, src_fps=None):
@@ -91,6 +92,48 @@ class OQMTest(unittest.TestCase):
         _clip(fake, audio=False, fps=60, src_fps=30)
         self.assertLess(measure.unique_fps(fake), 40)
         self.assertGreater(measure.unique_fps(self.src), 55)
+
+    def test_comparison_shares_video_and_keeps_silent_tail_explicit(self):
+        stereo = self.dir / "stereo.mp4"
+        ff.ffmpeg("-v", "error", "-i", str(self.src), "-c:v", "copy", "-ac", "2", "-c:a", "aac", str(stereo))
+        folder = self.dir / "comparison"
+        ok, manifest = compare.build(stereo, folder)
+        self.assertTrue(ok, [(r["file"], [c for c in r["checks"] if not c["ok"] and not c["warn"]]) for r in manifest["results"]])
+        self.assertEqual(len({r["video_sha256"] for r in manifest["results"]}), 1)
+        self.assertTrue(all(r["fps"] == 60 for r in manifest["results"]))
+        self.assertTrue((folder / "retention.csv").read_text().count("pending") == 24)
+        self.assertTrue(_hard_failures(verify.verify(stereo, folder / "C_silent_tail.mp4")))
+        with self.assertRaises(ValueError):
+            compare.build(stereo, folder)
+
+    def test_4k60_export_lets_encoder_choose_valid_level(self):
+        source, out = self.dir / "4k60-source.mp4", self.dir / "4k60-export.mp4"
+        ff.ffmpeg("-v", "error", "-f", "lavfi", "-i", "color=s=3840x2160:r=60:d=0.05",
+                  "-c:v", "libx264", "-preset", "ultrafast", str(source))
+        export.export(source, out)
+        video = next(s for s in ff.probe(out)["streams"] if s["codec_type"] == "video")
+        self.assertEqual((video["width"], video["height"]), (3840, 2160))
+        self.assertEqual(ff.fraction(video["avg_frame_rate"]), 60)
+        self.assertGreaterEqual(video["level"], 52)
+        baseline = self.dir / "baseline.mp4"
+        export.export(self.src, baseline, baseline=True)
+        self.assertIn("Baseline", ff.probe(baseline)["streams"][0]["profile"])
+
+    def test_hdr_export_rejects_silent_709_retag(self):
+        with patch.object(ff, "probe", return_value={"streams": [{"codec_type": "video", "color_transfer": "smpte2084"}]}):
+            with self.assertRaisesRegex(ValueError, "HDR"):
+                export.export(self.src, self.dir / "hdr.mp4")
+
+    def test_high_ssim_does_not_claim_passthrough(self):
+        with patch.object(measure, "unique_fps", return_value=60), \
+             patch.object(measure, "_compare", return_value="SSIM All:0.9999\nPSNR average:50.0"), \
+             patch.object(ff, "stream_hash", side_effect=["a", "b"]), \
+             patch.object(ff, "decoded_hash", side_effect=["c", "d"]):
+            result = measure.measure(self.src, self.src, vmaf=False)
+        self.assertTrue(result["high_visual_similarity"])
+        self.assertFalse(result["video_packets_identical"])
+        self.assertFalse(result["decoded_frames_identical"])
+        self.assertNotIn("passthrough_likely", result)
 
 
 if __name__ == "__main__":

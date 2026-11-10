@@ -17,7 +17,7 @@ def _streams(info, kind):
     return [s for s in info["streams"] if s["codec_type"] == kind]
 
 
-def verify(src, out):
+def verify(src, out, *, silent_tail=False):
     a, b = ff.probe(src, count_frames=True), ff.probe(out, count_frames=True)
     checks = []
 
@@ -30,15 +30,22 @@ def verify(src, out):
                         "pixel SHA-256 match" if da == db else "decoded pixels differ"))
 
     sa, sb = _streams(a, "video")[0], _streams(b, "video")[0]
+    checks.append(Check("video dimensions unchanged", (sa["width"], sa["height"]) == (sb["width"], sb["height"]),
+                        f"{sa['width']}x{sa['height']} -> {sb['width']}x{sb['height']}"))
     fa, fb = sa.get("nb_read_frames"), sb.get("nb_read_frames")
-    checks.append(Check("frame count unchanged", fa == fb, f"{fa} -> {fb}"))
+    checks.append(Check("frame count unchanged", fa is not None and fa == fb, f"{fa} -> {fb}"))
 
     ra, rb = ff.fraction(sa.get("avg_frame_rate")), ff.fraction(sb.get("avg_frame_rate"))
     checks.append(Check("frame rate unchanged", abs(ra - rb) < 0.01, f"{ra:.3f} -> {rb:.3f} fps"))
 
     if _streams(a, "audio"):
         ha, hb = ff.stream_hash(src, "a:0"), ff.stream_hash(out, "a:0")
-        checks.append(Check("primary audio identical", ha == hb, "packet SHA-256 match" if ha == hb else "audio differs"))
+        if silent_tail:
+            from .silent_tail import audio_tail_check
+            ok, detail = audio_tail_check(src, out)
+            checks.append(Check("original audio packets + silent tail", ok, detail))
+        else:
+            checks.append(Check("primary audio identical", ha is not None and ha == hb, "packet SHA-256 match" if ha == hb else "audio differs"))
 
     has_decoy = len(_streams(b, "audio")) > len(_streams(a, "audio"))
     dur_a, dur_b = float(a["format"].get("duration", 0)), float(b["format"].get("duration", 0))
@@ -48,7 +55,8 @@ def verify(src, out):
                         f"{vdur_a:.3f}s -> {vdur_b:.3f}s"))
     if abs(dur_a - dur_b) > frame + 1e-3:
         checks.append(Check("container duration", False, f"{dur_a:.3f}s -> {dur_b:.3f}s"
-                            + (" (decoy track's dummy samples extend it)" if has_decoy else ""), warn=has_decoy))
+                            + (" (intentional silent tail)" if silent_tail else " (decoy track's dummy samples extend it)" if has_decoy else ""),
+                            warn=(0 <= dur_b - dur_a <= 0.5) if silent_tail else has_decoy))
 
     primary = ["v:0"] + (["a:0"] if _streams(a, "audio") else [])
     errors = "\n".join(e for e in (ff.decode_errors(out, spec) for spec in primary) if e)
@@ -57,10 +65,11 @@ def verify(src, out):
     if has_decoy:
         decoy = ff.decode_errors(out, "a:1")
         checks.append(Check("decoy track decodes", not decoy,
-                            "clean" if not decoy else "errors (expected: dummy samples are not real audio)", warn=True))
+                            "clean" if not decoy else "errors (expected: dummy samples are not real audio)", warn=not silent_tail))
 
     tracks = f"{len(_streams(a, 'video'))}v/{len(_streams(a, 'audio'))}a -> {len(_streams(b, 'video'))}v/{len(_streams(b, 'audio'))}a"
-    checks.append(Check("track layout", True, tracks))
+    layout_ok = not silent_tail or (len(_streams(b, "video")) == 1 and len(_streams(b, "audio")) == 2)
+    checks.append(Check("track layout", layout_ok, tracks))
     return checks
 
 
@@ -69,5 +78,5 @@ def print_checks(checks):
         tag = "PASS" if c.ok else ("WARN" if c.warn else "FAIL")
         print(f"  [{tag}] {c.name:<34} {c.detail}")
     hard = [c for c in checks if not c.ok and not c.warn]
-    print(f"\n  {'OK: safe to upload' if not hard else f'{len(hard)} check(s) failed - read before uploading'}")
+    print(f"\n  {'Local integrity checks passed; TikTok quality and retention are unverified' if not hard else f'{len(hard)} check(s) failed - read before uploading'}")
     return not hard

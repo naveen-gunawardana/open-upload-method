@@ -15,6 +15,8 @@ import {
 } from "mediabunny";
 import { ALL_PATCHES, DEFAULT_PATCH, OqmError, REFERENCE, isPatchReady, patchVideo, type Check, type PatchOptions } from "./patch";
 
+import { silentTail } from "./silentTail";
+
 export type SizeMode = "original" | "short-720" | "short-1080" | "short-1440" | "short-2160";
 export type RateMode = "quantizer" | "bitrate" | "very-high" | "high";
 
@@ -24,7 +26,7 @@ export type EncodeOptions = {
   rate: RateMode;
   /** Like FFmpeg's CRF: lower is better. 0-51. */
   quantizer: number;
-  /** Used when rate = "bitrate", and as the fallback when the browser can't do quantizer encoding. */
+  /** Used when rate = "bitrate", quantizer fallback uses a size/frame-rate estimate. */
   mbps: number;
   size: SizeMode;
   /** null keeps the source frame rate. */
@@ -35,7 +37,7 @@ export type EncodeOptions = {
   hardware: "no-preference" | "prefer-hardware" | "prefer-software";
 };
 
-export type Recipe = { encode: EncodeOptions; patch: PatchOptions };
+export type Recipe = { method?: "legacy" | "silent-tail"; encode: EncodeOptions; patch: PatchOptions };
 
 export const DEFAULT_ENCODE: EncodeOptions = {
   reencode: true,
@@ -60,12 +62,13 @@ const withPatches = (enabled: PatchOptions["enabled"], encode: Partial<EncodeOpt
   patch: { ...DEFAULT_PATCH, enabled },
 });
 
-/** The lab variants, each changing one thing from the default. "A/B test set" builds all of them. */
+/** Independent options. The controlled comparison below uses only three shared-source arms. */
 export const PRESETS: Preset[] = [
-  { id: "current", title: "Recommended", desc: "Clean H.264 re-encode (quality 17) + full patch set. What the desktop app did.", recipe: DEFAULT_RECIPE },
+  { id: "current", title: "Current OQM (default)", desc: "Clean H.264 re-encode (quality 17) + full patch set. What the desktop app did.", recipe: DEFAULT_RECIPE },
+  { id: "silent-tail", title: "Silent-tail (experimental)", desc: "Keeps video packets, adds a short AAC silence tail and a second audio track. Requires a clean AAC-LC stereo MP4. TikTok results unverified.", recipe: { ...withPatches([], { reencode: false }), method: "silent-tail" } },
   { id: "noreencode", title: "No re-encode", desc: "Your video and audio are kept exactly as they are; only the container is patched.", recipe: withPatches(REFERENCE, { reencode: false }) },
   { id: "longgop", title: "Long keyframe gap", desc: "Re-encode with one keyframe at the start, like the public reference tool, + full patch set.", recipe: withPatches(REFERENCE, { keyframeSec: 0 }) },
-  { id: "videodecoy", title: "Full patch + video decoy", desc: "Recommended plus a hidden decoy video track (the NoBlur idea). Experimental.", recipe: withPatches(ALL_PATCHES) },
+  { id: "videodecoy", title: "Full patch + video decoy", desc: "Current patches plus a hidden duplicate video track. Experimental; differs from NoBlur's primary-track inflation.", recipe: withPatches(ALL_PATCHES) },
   { id: "minimal", title: "Decoy only", desc: "Re-encode + just the decoy audio track. Shows whether the other patches matter.", recipe: withPatches(["faststart", "decoy-audio"]) },
   { id: "control", title: "Control: no patch", desc: "Same re-encode, normal container. If this does as well as the others, the patch isn't doing anything.", recipe: withPatches(["faststart"]) },
 ];
@@ -83,7 +86,7 @@ export type ConvertResult = {
 
 const even = (n: number) => Math.max(2, Math.round(n / 2) * 2);
 
-type Probe = { width: number; height: number; fps: number; duration: number; codec: string; packets: number; hasAudio: boolean; channels: number };
+type Probe = { width: number; height: number; fps: number; duration: number; codec: string; packets: number; hasAudio: boolean; channels: number; mbps: number; hdr: boolean };
 
 async function probe(blob: Blob): Promise<Probe> {
   const input = new Input({ source: new BlobSource(blob), formats: ALL_FORMATS });
@@ -101,6 +104,9 @@ async function probe(blob: Blob): Promise<Probe> {
       packets: stats.packetCount,
       hasAudio: !!audio,
       channels: audio?.numberOfChannels ?? 0,
+      mbps: stats.averageBitrate / 1e6,
+      hdr: ["pq", "hlg", "smpte2084", "arib-std-b67"].includes((await video.getColorSpace()).transfer ?? "")
+        || String((await video.getColorSpace()).primaries) === "bt2020",
     };
   } catch (error) {
     if (error instanceof OqmError) throw error;
@@ -162,6 +168,7 @@ async function reencode(file: Blob, src: Probe, e: EncodeOptions, onStage: (s: S
 }
 
 async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: number, onStage: (s: Stage) => void, signal?: AbortSignal) {
+  if (src.hdr) throw new OqmError("HDR/wide-gamut re-encoding needs explicit colour conversion. Use an SDR master; test HDR separately.");
   if (typeof VideoEncoder === "undefined") {
     throw new OqmError("This browser can't encode video. Use a recent Chrome, Edge or Safari, or turn off re-encode in the options.");
   }
@@ -235,7 +242,7 @@ export async function convert(
   if (signal?.aborted) throw new OqmError("Stopped.");
 
   onStage({ label: "Applying the patch", progress: null });
-  const result = await patchVideo(base, recipe.patch);
+  const result = recipe.method === "silent-tail" ? await silentTail(base) : await patchVideo(base, recipe.patch);
   if (signal?.aborted) throw new OqmError("Stopped.");
 
   onStage({ label: "Checking the result", progress: null });
@@ -245,14 +252,16 @@ export async function convert(
   const frame = before.fps ? 1 / before.fps : 0.05;
   const checks: Check[] = [
     ...result.checks,
-    { name: "Same number of video frames", ok: after.packets === before.packets, detail: `${before.packets} -> ${after.packets}` },
+    { name: "Video dimensions unchanged by patch", ok: after.width === before.width && after.height === before.height, detail: `${before.width}x${before.height} -> ${after.width}x${after.height}` },
+    { name: "Video frame rate unchanged by patch", ok: Math.abs(after.fps - before.fps) < 0.01, detail: `${before.fps.toFixed(3)} -> ${after.fps.toFixed(3)} fps` },
+    { name: "Same number of video packets", ok: after.packets === before.packets, detail: `${before.packets} -> ${after.packets}` },
     {
       name: "Video duration within 1 frame",
       ok: Math.abs(after.duration - before.duration) <= frame + 1e-3,
       detail: `${before.duration.toFixed(3)}s -> ${after.duration.toFixed(3)}s`,
     },
   ];
-  if (recipe.patch.enabled.includes("decoy-audio") && !before.hasAudio) {
+  if (recipe.method !== "silent-tail" && recipe.patch.enabled.includes("decoy-audio") && !before.hasAudio) {
     checks.push({ name: "Decoy audio track", ok: false, warn: true, detail: "skipped: the video has no audio" });
   }
   checks.push({ name: "Audio track preserved", ok: after.hasAudio === before.hasAudio, detail: before.hasAudio ? "audio present" : "source has no audio" });
@@ -264,11 +273,24 @@ export async function convert(
       height: after.height,
       fps: after.fps,
       codec: after.codec,
-      mbps: after.duration ? (result.blob.size * 8) / after.duration / 1e6 : 0,
+      mbps: after.mbps,
       duration: after.duration,
       reencoded: recipe.encode.reencode,
     },
   };
 }
 
+/** Prepare once, then use these identical encoded packets for all comparison arms. */
+export async function prepareComparison(file: File, encode: EncodeOptions, onStage: (s: Stage) => void, signal?: AbortSignal): Promise<File> {
+  const src = await probe(file);
+  if (src.hdr) throw new OqmError("Use an SDR master. HDR is a separate test.");
+  const base = encode.reencode ? await reencode(file, src, encode, onStage, signal) : await remux(file, onStage, signal);
+  if (signal?.aborted) throw new OqmError("Stopped.");
+  return new File([base], file.name.replace(/\.[^.]+$/, "") + "_shared.mp4", { type: "video/mp4" });
+}
+export const COMPARISON_PRESETS: Preset[] = [
+  { id: "clean", title: "A: Clean MP4", desc: "Shared encoded source, normal container.", recipe: withPatches(["faststart"], { reencode: false }) },
+  { id: "current", title: "B: Current OQM", desc: "Shared encoded source, current full patch set.", recipe: withPatches(REFERENCE, { reencode: false }) },
+  { id: "silent-tail", title: "C: Silent-tail", desc: "Shared encoded source, experimental silent-tail only.", recipe: { ...withPatches([], { reencode: false }), method: "silent-tail" } },
+];
 export { OqmError };

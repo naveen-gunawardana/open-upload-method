@@ -1,6 +1,6 @@
 # OQM: Open Quality Method
 
-A free tool that stops TikTok from crushing the quality of your video uploads. It runs in your browser: your video is processed on your own computer and never uploaded anywhere.
+A free tool for preparing and comparing TikTok uploads. Container patches preserve local video packets; they do not guarantee TikTok will retain resolution, frame rate or bitrate. It runs in your browser: your video is processed on your own computer and never uploaded anywhere.
 
 ## How to use it
 
@@ -8,7 +8,7 @@ A free tool that stops TikTok from crushing the quality of your video uploads. I
 2. Drag your video onto the page (or click and choose it). It starts converting straight away
 3. Click **Download** when it's done, and upload that file to TikTok the same as always
 
-The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make A/B test set** builds one file per preset so you can post them side by side and compare.
+The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make local comparison (3)** prepares one encoded source, then builds clean MP4, current OQM and experimental silent-tail from it without further video encoding. The current OQM recipe remains the default. Silent-tail requires AAC-LC stereo and intentionally adds a short silent tail and a second audio track.
 
 Free, open source, MIT license.
 
@@ -25,3 +25,7 @@ Your video never leaves your computer. When a conversion finishes, the site adds
 For development, run `npm install` in `website/`, then `npm run dev`. Set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` and `REVIEW_SALT` in `website/.env.local` to enable the public counter and reviews. The counter uses the existing `download_stats` and `download_events` tables, keeping the previous download total. Conversion itself works without these services.
 
 Checks: `cd website && npm test && npm run lint && npm run build`, and `cd program && python3 -m unittest discover -s tests -v`. The patch tests need FFmpeg and Python 3 on your path.
+
+## Local comparison before uploading
+
+From `program/`, run `python3 -m oqm compare /absolute/path/to/1080p60-SDR-master.mp4 --out /absolute/path/to/fresh-comparison-directory`. This performs no encoding or uploads. It writes three MP4s, a local integrity manifest and `retention.csv` with pending checkpoints after processing, at 24h, 72h and 7d for desktop and a second phone/account. Start with 1080p60 SDR, then 4K; test 120 fps and HDR separately. Local packet hashes, decoded video hashes and decode checks cannot establish a TikTok bypass. See [the test protocol](program/docs/SILENT_TAIL_TESTING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).

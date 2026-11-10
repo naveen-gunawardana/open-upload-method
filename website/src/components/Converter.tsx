@@ -5,6 +5,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { CATALOG, DEFAULT_PATCH, type Check, type PatchId } from "@/lib/oqm/patch";
 import {
   DEFAULT_RECIPE,
+  COMPARISON_PRESETS,
+  prepareComparison,
   OqmError,
   PRESETS,
   convert,
@@ -21,6 +23,7 @@ type Run = {
   slug: string;
   recipe: Recipe;
   group: number;
+  comparisonEncode?: EncodeOptions;
   status: "queued" | "running" | "done" | "error";
   stage?: Stage;
   result?: ConvertResult;
@@ -34,7 +37,7 @@ function loadRecipe(): Recipe {
   try {
     const saved = JSON.parse(localStorage.getItem(STORE) ?? "null");
     if (saved?.encode && saved?.patch) {
-      return { encode: { ...DEFAULT_RECIPE.encode, ...saved.encode }, patch: { ...DEFAULT_PATCH, ...saved.patch } };
+      return { encode: { ...DEFAULT_RECIPE.encode, ...saved.encode }, patch: { ...DEFAULT_PATCH, ...saved.patch }, ...(saved.method === "silent-tail" ? { method: "silent-tail" as const } : {}) };
     }
   } catch {}
   return DEFAULT_RECIPE;
@@ -78,6 +81,7 @@ export default function Converter({
   const [dropping, setDropping] = useState(false);
   const runsRef = useRef<Run[]>([]);
   const busy = useRef(false);
+  const sharedSources = useRef(new Map<number, Promise<File>>());
   const abort = useRef<AbortController | null>(null);
   const counted = useRef(new Set<number>());
   const started = useRef<File | null>(null);
@@ -119,7 +123,15 @@ export default function Converter({
         abort.current = controller;
         update(run.id, { status: "running", stage: { label: "Starting", progress: null } });
         try {
-          const result = await convert(run.file, run.recipe, (stage) => update(run.id, { stage }), controller.signal);
+          let source = run.file;
+          if (run.comparisonEncode) {
+            if (!sharedSources.current.has(run.group)) {
+              sharedSources.current.set(run.group, prepareComparison(run.file, run.comparisonEncode,
+                (stage) => update(run.id, { stage: { ...stage, label: `Shared source: ${stage.label}` } }), controller.signal));
+            }
+            source = await sharedSources.current.get(run.group)!;
+          }
+          const result = await convert(source, run.recipe, (stage) => update(run.id, { stage }), controller.signal);
           if (closed.current || controller.signal.aborted) throw new OqmError("Stopped.");
           update(run.id, { status: "done", result, url: URL.createObjectURL(result.blob) });
           const groupSize = runsRef.current.filter((r) => r.group === run.group).length;
@@ -133,6 +145,7 @@ export default function Converter({
           update(run.id, { status: "error", error: message });
           if (!(error instanceof OqmError) && !controller.signal.aborted) console.error(error);
         }
+        if (!runsRef.current.some(r => r.group === run.group && r.status === "queued")) sharedSources.current.delete(run.group);
       }
     } finally {
       busy.current = false;
@@ -141,10 +154,10 @@ export default function Converter({
   }, [count, update]);
 
   const queue = useCallback(
-    (f: File, items: { title: string; slug: string; recipe: Recipe }[]) => {
+    (f: File, items: { title: string; slug: string; recipe: Recipe }[], comparisonEncode?: EncodeOptions) => {
       if (closed.current) return;
       const group = nextGroup++;
-      const fresh = items.map((item) => ({ ...item, id: nextId++, file: f, group, status: "queued" as const }));
+      const fresh = items.map((item) => ({ ...item, id: nextId++, file: f, group, comparisonEncode, status: "queued" as const }));
       runsRef.current = [...fresh, ...runsRef.current];
       setRuns(runsRef.current);
       void pump();
@@ -283,10 +296,10 @@ export default function Converter({
               type="button"
               className="btn btn-ghost"
               disabled={!activeFile}
-              onClick={() => activeFile && queue(activeFile, PRESETS.map((p) => ({ title: p.title, slug: `lab-${p.id}`, recipe: p.recipe })))}
-              title="Builds one file per preset so you can post them side by side"
+              onClick={() => activeFile && queue(activeFile, COMPARISON_PRESETS.map((p) => ({ title: p.title, slug: `compare-${p.id}`, recipe: p.recipe })), { ...recipe.encode })}
+              title="Prepares one shared source, then builds clean MP4, current OQM and silent-tail without further encoding"
             >
-              Make A/B test set ({PRESETS.length})
+              Make local comparison (3)
             </button>
             {activeFile && (
               <button type="button" className="btn btn-ghost" onClick={() => pickRef.current?.click()}>
@@ -313,9 +326,10 @@ export default function Converter({
           <details className="tip">
             <summary>How to tell if it worked</summary>
             <p>
-              Post it, wait about an hour, then open the post in a browser and search the page source for <code>videoQuality</code>.{" "}
-              <b>original</b> means TikTok kept your file. <b>normal</b> means it was re-encoded. Accounts that upload a lot can get
-              capped at 540p no matter what you post, so test on an account that hasn&rsquo;t uploaded much lately, a few posts at a time.
+              Local checks cover file integrity only. Start with the same 1080p60 SDR source. Compare clean MP4, current OQM
+              and silent-tail after processing, then at 24 hours, 72 hours and seven days on desktop and a second phone/account.
+              Check every accessible rendition and its frame rate. A quality label alone does not prove unchanged video.
+              Test 4K next; keep 120 fps and HDR in separate rounds.
             </p>
           </details>
         </section>
@@ -446,7 +460,11 @@ export default function Converter({
                 </p>
               </fieldset>
 
-              <fieldset>
+              {recipe.method === "silent-tail" ? (
+                <p className="fine">Silent-tail runs independently of the current patches. It changes audio sample descriptions,
+                  appends about 0.35 seconds of AAC silence and adds an audio track. Video packets stay unchanged.
+                  TikTok quality and retention are unverified.</p>
+              ) : <fieldset>
                 <legend>Patches</legend>
                 <ul className="patch-list">
                   {CATALOG.map((p) => (
@@ -503,12 +521,13 @@ export default function Converter({
                 </div>
               </fieldset>
 
+              }
               <button type="button" className="again" onClick={() => setRecipe(DEFAULT_RECIPE)}>
-                Reset to recommended
+                Reset to current default
               </button>
             </div>
           )}
-          <p className="fine">Changes apply to the next conversion. Settings are remembered in this browser.</p>
+          <p className="fine">Changes apply to the next conversion. Settings are remembered in this browser. Local checks do not verify TikTok upload quality or retention.</p>
         </section>
       </div>
     </div>
@@ -542,13 +561,13 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
           <div className="run-meta">
             {run.result.info.width}x{run.result.info.height} · {Math.round(run.result.info.fps * 100) / 100} fps · {run.result.info.mbps.toFixed(1)} Mbps ·{" "}
             {formatSize(run.result.blob.size)}
-            {run.result.info.reencoded ? "" : " · not re-encoded"}
+            {run.comparisonEncode ? (run.comparisonEncode.reencode ? " · shared source encoded once" : " · shared source, no re-encode") : run.result.info.reencoded ? "" : " · not re-encoded"}
           </div>
           <div className="run-row">
             <a className="btn btn-patch btn-sm" href={run.url} download={outName}>
               Download
             </a>
-            <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : "All checks passed"}</span>
+            <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : "Local checks passed"}</span>
           </div>
           <details>
             <summary>Details</summary>
