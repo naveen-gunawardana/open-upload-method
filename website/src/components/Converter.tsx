@@ -284,7 +284,6 @@ export default function Converter({
           >
             {current ? "Patching…" : activeFile ? "Patch again" : "Patch video"}
           </button>
-          <p className="fine studio-privacy">Your video stays on your device. No account needed.</p>
           <input
             ref={pickRef}
             type="file"
@@ -330,24 +329,60 @@ export default function Converter({
             </label>
           </div>
 
+          <div className="basic-settings adv">
+            <fieldset>
+              <legend className="sr-only">Basic output settings</legend>
+              <div className="setting-check">
+                <label className="row">
+                  <input type="checkbox" checked={e.reencode} onChange={(ev) => setEncode({ reencode: ev.target.checked })} />
+                  Re-encode before patching
+                </label>
+                <SettingHelp label="Re-encode before patching">Rebuild video and audio using the settings below. Turn this off to keep the original streams and patch only the container.</SettingHelp>
+              </div>
+              <div className={`grid basic-grid${e.reencode ? "" : " off"}`}>
+                <div className="setting-field">
+                  <span className="setting-title"><label htmlFor="setting-size">Resolution</label><SettingHelp label="Resolution">Keep the original dimensions or limit the shorter edge to the selected resolution.</SettingHelp></span>
+                  <select id="setting-size" disabled={!e.reencode} value={e.size} onChange={(ev) => setEncode({ size: ev.target.value as EncodeOptions["size"] })}>
+                    <option value="original">Keep original</option>
+                    <option value="short-2160">Max 4K (2160p)</option>
+                    <option value="short-1440">Max 1440p</option>
+                    <option value="short-1080">Max 1080p</option>
+                    <option value="short-720">Max 720p</option>
+                  </select>
+                </div>
+                <div className="setting-field">
+                  <span className="setting-title"><label htmlFor="setting-fps">Frame rate</label><SettingHelp label="Frame rate">Keep the source frame rate or convert it to 24, 30, or 60 frames per second.</SettingHelp></span>
+                  <select id="setting-fps" disabled={!e.reencode} value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value ? Number(ev.target.value) : null })}>
+                    <option value="">Keep original</option>
+                    <option value="24">24 fps</option>
+                    <option value="30">30 fps</option>
+                    <option value="60">60 fps</option>
+                  </select>
+                </div>
+                <div className="setting-field basic-audio">
+                  <span className="setting-title"><label htmlFor="setting-audio">Audio</label><SettingHelp label="Audio">AAC audio bitrate. Higher values use more space to preserve more audio detail.</SettingHelp></span>
+                  <select id="setting-audio" disabled={!e.reencode} value={e.audioKbps} onChange={(ev) => setEncode({ audioKbps: Number(ev.target.value) })}>
+                    <option value={128}>AAC 128 kbps</option>
+                    <option value={192}>AAC 192 kbps</option>
+                    <option value={256}>AAC 256 kbps</option>
+                    <option value={320}>AAC 320 kbps</option>
+                  </select>
+                </div>
+              </div>
+            </fieldset>
+          </div>
+
           <details className="settings-more">
             <summary>Advanced settings</summary>
           <div className="settings-groups">
           <details className="settings-section settings-video">
             <summary>
-              <span>Video &amp; audio</span>
+              <span>Encoding</span>
               <span className="section-meta">{e.reencode ? `${e.codec === "avc" ? "H.264" : "HEVC"} · ${e.fps ? `${e.fps} fps` : "Original fps"}` : "No re-encode"}</span>
             </summary>
             <div className="settings-body adv">
               <fieldset>
-                <legend className="sr-only">Video and audio options</legend>
-                <div className="setting-check">
-                  <label className="row">
-                    <input type="checkbox" checked={e.reencode} onChange={(ev) => setEncode({ reencode: ev.target.checked })} />
-                    Re-encode before patching
-                  </label>
-                  <SettingHelp label="Re-encode before patching">Rebuild video and audio using the settings below. Turn this off to keep the original streams and patch only the container.</SettingHelp>
-                </div>
+                <legend className="sr-only">Advanced encoding options</legend>
                 <div className={`grid${e.reencode ? "" : " off"}`}>
                   <div className="setting-field">
                     <span className="setting-title"><label htmlFor="setting-codec">Codec</label><SettingHelp label="Codec">Choose H.264 for broad compatibility or HEVC when your browser supports it.</SettingHelp></span>
@@ -387,40 +422,12 @@ export default function Converter({
                     </div>
                   )}
                   <div className="setting-field">
-                    <span className="setting-title"><label htmlFor="setting-size">Size</label><SettingHelp label="Size">Keep the original dimensions or limit the shorter edge to the selected resolution.</SettingHelp></span>
-                    <select id="setting-size" value={e.size} onChange={(ev) => setEncode({ size: ev.target.value as EncodeOptions["size"] })}>
-                      <option value="original">Keep original</option>
-                      <option value="short-2160">Max 4K (2160p)</option>
-                      <option value="short-1440">Max 1440p</option>
-                      <option value="short-1080">Max 1080p</option>
-                      <option value="short-720">Max 720p</option>
-                    </select>
-                  </div>
-                  <div className="setting-field">
-                    <span className="setting-title"><label htmlFor="setting-fps">Frame rate</label><SettingHelp label="Frame rate">Keep the source frame rate or convert it to 24, 30, or 60 frames per second.</SettingHelp></span>
-                    <select id="setting-fps" value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value ? Number(ev.target.value) : null })}>
-                      <option value="">Keep original</option>
-                      <option value="24">24</option>
-                      <option value="30">30</option>
-                      <option value="60">60</option>
-                    </select>
-                  </div>
-                  <div className="setting-field">
                     <span className="setting-title"><label htmlFor="setting-keyframes">Keyframes</label><SettingHelp label="Keyframes">Choose how often a full video frame is stored. A long gap may reduce compatibility or make seeking slower.</SettingHelp></span>
                     <select id="setting-keyframes" value={e.keyframeSec} onChange={(ev) => setEncode({ keyframeSec: Number(ev.target.value) })}>
                       <option value={1}>Every 1 s</option>
                       <option value={2}>Every 2 s</option>
                       <option value={5}>Every 5 s</option>
                       <option value={0}>Only the first frame (long gap)</option>
-                    </select>
-                  </div>
-                  <div className="setting-field">
-                    <span className="setting-title"><label htmlFor="setting-audio">Audio</label><SettingHelp label="Audio">AAC audio bitrate. Higher values use more space to preserve more audio detail.</SettingHelp></span>
-                    <select id="setting-audio" value={e.audioKbps} onChange={(ev) => setEncode({ audioKbps: Number(ev.target.value) })}>
-                      <option value={128}>AAC 128 kbps</option>
-                      <option value={192}>AAC 192 kbps</option>
-                      <option value={256}>AAC 256 kbps</option>
-                      <option value={320}>AAC 320 kbps</option>
                     </select>
                   </div>
                   <div className="setting-field">
@@ -589,7 +596,7 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
       {run.status === "done" && run.result && run.url && (
         <>
           <div className="run-meta">
-            {run.result.info.width}x{run.result.info.height} · {Math.round(run.result.info.fps * 100) / 100} fps · {run.result.info.mbps.toFixed(1)} Mbps ·{" "}
+            {run.result.info.width} × {run.result.info.height} · {Math.round(run.result.info.fps * 100) / 100} fps · {run.result.info.mbps.toFixed(1)} Mbps ·{" "}
             {formatSize(run.result.blob.size)}
             {run.comparisonEncode ? (run.comparisonEncode.reencode ? " · shared source encoded once" : " · shared source, no re-encode") : run.result.info.reencoded ? "" : " · not re-encoded"}
           </div>
