@@ -83,7 +83,7 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .card-panel[aria-hidden="true"]{pointer-events:none}
 .landing-panel{display:flex; flex-direction:column; text-align:center}
 .landing-content{display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; flex:none}
-.landing-content h1{font-size:clamp(28px,4.9vh,38px)}
+.landing-content h1{font-family:var(--font-hero),sans-serif; font-size:clamp(28px,4.9vh,38px)}
 .converter-content{display:flow-root}
 .card-panel,.stage{scrollbar-width:thin; scrollbar-color:#9680b6 #eee8f5}
 .card-panel::-webkit-scrollbar,.stage::-webkit-scrollbar{width:8px}

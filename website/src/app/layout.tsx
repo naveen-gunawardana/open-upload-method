@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+
+const inter = Inter({
+  variable: "--font-hero",
+  subsets: ["latin"],
+  weight: "700",
+});
 
 const quicksand = Quicksand({
   variable: "--font-display",
@@ -31,7 +37,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${quicksand.variable} ${plexSans.variable} ${plexMono.variable}`}
+      className={`${inter.variable} ${quicksand.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
       <body>{children}</body>
     </html>
