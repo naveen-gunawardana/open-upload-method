@@ -1,14 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
 const ReviewForm = dynamic(() => import("@/components/ReviewForm"), { ssr: false });
 
+const Converter = dynamic(() => import("@/components/Converter"), { ssr: false });
+
 const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
-const DOWNLOAD = (platform: string) => `/api/download?platform=${platform}`;
 
 function GithubIcon() {
   return (
@@ -42,22 +43,6 @@ function Logo({ size = 28 }: { size?: number }) {
   );
 }
 
-function AppleIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
-    </svg>
-  );
-}
-
-function WindowsIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-      <path d="M2 4.2 10.4 3v8.1H2zM11.5 2.85 22 1.3v9.8H11.5zM2 12.1h8.4v8.1L2 19zM11.5 12.1H22v9.8l-10.5-1.5z" />
-    </svg>
-  );
-}
-
 function DownloadIcon() {
   return (
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
@@ -67,8 +52,26 @@ function DownloadIcon() {
   );
 }
 
-function DownloadCount() {
+function ConvertedCount({ count }: { count: number | null }) {
+  if (count === null) return null;
+  return (
+    <div className="eyebrow eyebrow-dl">
+      <DownloadIcon />
+      <span className="dl-num">{count.toLocaleString()}</span> videos converted and counting
+    </div>
+  );
+}
+
+const isVideo = (f: File | undefined): f is File => !!f && (f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm|mkv)$/i.test(f.name));
+
+export default function Home() {
+  const [reviewing, setReviewing] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
+  const [dragging, setDragging] = useState(false);
+  const [notVideo, setNotVideo] = useState(false);
   const [count, setCount] = useState<number | null>(null);
+  const pickRef = useRef<HTMLInputElement>(null);
+  const depth = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -83,18 +86,52 @@ function DownloadCount() {
     };
   }, []);
 
-  if (count === null) return null;
-  return (
-    <div className="eyebrow eyebrow-dl">
-      <DownloadIcon />
-      <span className="dl-num">{count.toLocaleString()}</span> downloads and counting
-    </div>
-  );
-}
+  const start = (f: File | undefined) => {
+    if (!f) return;
+    if (!isVideo(f)) {
+      setNotVideo(true);
+      return;
+    }
+    setNotVideo(false);
+    setFile(f);
+  };
 
-export default function Home() {
-  const [reviewing, setReviewing] = useState(false);
-  const [macNote, setMacNote] = useState(false);
+  // Drop a video anywhere on the page: it starts converting and the options panel opens.
+  // While the panel is open it takes drops itself; the page still blocks the browser from opening the file.
+  useEffect(() => {
+    const open = !!file;
+    const hasFiles = (e: DragEvent) => Array.from(e.dataTransfer?.types ?? []).includes("Files");
+    const enter = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth.current++;
+      if (!open) setDragging(true);
+    };
+    const over = (e: DragEvent) => hasFiles(e) && e.preventDefault();
+    const leave = () => {
+      depth.current = Math.max(0, depth.current - 1);
+      if (depth.current === 0) setDragging(false);
+    };
+    const drop = (e: DragEvent) => {
+      if (!hasFiles(e)) return;
+      e.preventDefault();
+      depth.current = 0;
+      setDragging(false);
+      if (!open) start(e.dataTransfer?.files[0]);
+    };
+    window.addEventListener("dragenter", enter);
+    window.addEventListener("dragover", over);
+    window.addEventListener("dragleave", leave);
+    window.addEventListener("drop", drop);
+    return () => {
+      window.removeEventListener("dragenter", enter);
+      window.removeEventListener("dragover", over);
+      window.removeEventListener("dragleave", leave);
+      window.removeEventListener("drop", drop);
+    };
+  }, [file]);
+
+  const onCounted = useCallback((n: number | null) => n !== null && setCount(n), []);
 
   return (
     <>
@@ -112,9 +149,9 @@ export default function Home() {
 
         <div className="hero">
           <div className="hero-card">
-            <DownloadCount />
+            <ConvertedCount count={count} />
             <h1>Stop TikTok from crushing your video.</h1>
-            <p className="sub">Upload in 1080p, no compression. It runs locally on your machine. Free, no account needed.</p>
+            <p className="sub">Upload in 1080p, no compression. It runs right here in your browser, so your video never leaves your computer. Free, no account, nothing to install.</p>
 
             <div className="compare">
               <span className="pill no">
@@ -125,16 +162,22 @@ export default function Home() {
               </span>
             </div>
 
-            <div className="cta-row">
-              <a className="btn btn-download" href={DOWNLOAD("mac")} onClick={() => setMacNote(true)}>
-                <AppleIcon />
-                Download for Mac
-              </a>
-              <a className="btn btn-download" href={DOWNLOAD("windows")}>
-                <WindowsIcon />
-                Download for Windows
-              </a>
-            </div>
+            <button type="button" className="drop hero-drop" onClick={() => pickRef.current?.click()}>
+              <b>Drop your video here</b>
+              <span>or click to choose a file. It starts converting right away.</span>
+            </button>
+            <input
+              ref={pickRef}
+              type="file"
+              accept="video/mp4,video/quicktime,video/*"
+              hidden
+              onChange={(e) => {
+                start(e.target.files?.[0]);
+                e.target.value = "";
+              }}
+            />
+            {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
+
             <div className="cta-row">
               <button type="button" className="btn btn-star" onClick={() => setReviewing(true)}>
                 <StarIcon />
@@ -146,21 +189,17 @@ export default function Home() {
               </a>
             </div>
 
-            {macNote && (
-              <div className="mac-note" role="status">
-                Open the downloaded file, drag <b>OQM</b> onto <b>Applications</b>, then open it from there. If Mac says it can&rsquo;t verify the
-                app, go to <b>System Settings → Privacy &amp; Security</b>, scroll down and click <b>Open Anyway</b>. You only do this once.
-              </div>
-            )}
-
-            <div className="credit">
-              <a href={DOWNLOAD("mac-intel")} onClick={() => setMacNote(true)}>Intel Mac</a> · <a href={DOWNLOAD("source")}>Source ZIP</a>
-            </div>
-
             <div className="credit">Zero compression · completely free forever</div>
           </div>
         </div>
       </div>
+
+      {dragging && !file && (
+        <div className="drop-overlay" aria-hidden="true">
+          <div>Drop to convert</div>
+        </div>
+      )}
+      {file && <Converter file={file} onClose={() => setFile(null)} onCounted={onCounted} />}
       {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}
     </>
   );

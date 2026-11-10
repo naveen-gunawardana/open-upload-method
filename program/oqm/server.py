@@ -24,7 +24,7 @@ CHUNK = 1 << 20
 
 
 class App:
-    ACTIONS = {"make", "export", "patch"}
+    ACTIONS = {"make", "export", "patch", "lab"}
 
     def __init__(self, workspace):
         self.ws = Path(workspace).expanduser().resolve()
@@ -98,7 +98,7 @@ class App:
         with self.run_lock:
             job["status"] = "running"
             try:
-                job["result"] = getattr(self, f"do_{job['action']}")(params, job) if job["action"] == "make" else getattr(self, f"do_{job['action']}")(params)
+                job["result"] = getattr(self, f"do_{job['action']}")(params, job) if job["action"] in ("make", "lab") else getattr(self, f"do_{job['action']}")(params)
                 job["status"] = "done"
             except Exception as e:  # surfaced to the UI verbatim
                 job["error"] = str(e)
@@ -126,6 +126,12 @@ class App:
             telemetry.report(ok, "h264", src.stat().st_size)
         return {"output": self.rel(out), "export": info, "applied": report.applied, "skipped": report.skipped,
                 "notes": report.notes, "checks": [asdict(c) for c in checks], "ok": ok}
+
+    def do_lab(self, p, job):
+        if os.environ.get("OQM_LAB") != "1":
+            raise ValueError("lab mode is off (start with OQM_LAB=1)")
+        from . import lab
+        return lab.run(self, p, job)
 
     def do_export(self, p):
         src = self.src(p["input"])
@@ -194,6 +200,11 @@ class Handler(BaseHTTPRequestHandler):
         try:
             if path in ("/", "/index.html"):
                 self._send(200, (UI_DIR / "index.html").read_bytes(), "text/html; charset=utf-8")
+            elif path == "/lab" and os.environ.get("OQM_LAB") == "1":
+                from . import lab
+                page = (UI_DIR / "lab.html").read_text().replace("__VARIANTS__", json.dumps(
+                    [{k: v[k] for k in ("id", "title", "desc")} for v in lab.VARIANTS]))
+                self._send(200, page.encode(), "text/html; charset=utf-8")
             elif path.startswith("/fonts/") and "/" not in path[7:] and ".." not in path:
                 self._send(200, (UI_DIR / "fonts" / path[7:]).read_bytes(), "font/woff2")
             elif path == "/api/state":
