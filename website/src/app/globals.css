@@ -259,36 +259,32 @@ button.btn{cursor:pointer}
 .preset-control label{display:flex; flex-direction:column; align-items:stretch; gap:7px; font-size:12px; font-weight:600; color:#2f6398}
 .preset-control select{width:100%; min-width:0; min-height:44px; padding:10px 12px; border:1px solid #bcd3e9; border-radius:10px;
   background:#f5faff; color:var(--fg); font:inherit; font-size:14px; font-weight:500; cursor:pointer}
-.preset-control .fine{margin-top:7px}
 .preset-control select:focus-visible,.settings-section>summary:focus-visible{outline:2px solid #1f7fe0; outline-offset:2px}
-.settings-section{border:0; border-left:3px solid var(--section-accent,var(--line)); border-bottom:1px solid var(--line); border-radius:3px; background:#fff}
-.settings-video{--section-accent:#71a5dc; --section-tint:#eff6ff; --section-ink:#355e8a}
-.settings-patches{--section-accent:#78ae7f; --section-tint:#edf7ed; --section-ink:#3d6e46}
-.settings-advanced{--section-accent:#a58ac6; --section-tint:#f4effb; --section-ink:#70508f}
-.settings-tools,.settings-experimental{--section-accent:#d5af60; --section-tint:#fff7e5; --section-ink:#806127}
+.settings-section{border:0; border-bottom:1px solid var(--line); background:transparent}
+.settings-section:last-child{border-bottom:0}
 .settings-section>summary{display:flex; align-items:center; gap:12px; min-height:44px; padding:11px 13px; list-style:none; cursor:pointer;
-  font-size:13px; font-weight:600; border-radius:2px; color:var(--section-ink,var(--fg)); background:var(--section-tint,#fff)}
+  font-size:13px; font-weight:600; color:var(--fg); background:transparent}
 .settings-section>summary::-webkit-details-marker{display:none}
 .settings-section>summary>span:first-child{flex:1; min-width:0}
 .settings-section>summary::after{content:""; width:6px; height:6px; flex:none; border-right:1.5px solid currentColor;
   border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-top:-3px}
 .settings-section[open]>summary::after{transform:rotate(225deg); margin-top:3px}
-.settings-section>summary:hover{filter:brightness(.98)}
+.settings-section>summary:hover{background:rgba(22,48,73,.035)}
 .settings-section .section-meta{font-size:11px; font-weight:400; color:var(--muted); max-width:45%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-.settings-body{padding:12px; border-top:1px solid var(--line)}
-.settings-groups{display:flex; flex-direction:column; gap:6px; min-width:0}
-.settings-more{border:1px solid #d7c8ed; border-radius:10px; background:#fff}
+.settings-body{padding:6px 13px 16px}
+.settings-groups{display:flex; flex-direction:column; min-width:0}
+.settings-more{border:1px solid #d7c8ed; border-radius:6px; background:rgba(255,255,255,.55)}
 .settings-more>summary{display:flex; align-items:center; gap:12px; min-height:44px; padding:11px 13px; list-style:none;
-  cursor:pointer; font-size:13px; font-weight:600; border-radius:9px; color:#70508f; background:#f3edfc}
+  cursor:pointer; font-size:13px; font-weight:600; border-radius:5px; color:#70508f; background:#f3edfc}
 .settings-more>summary::-webkit-details-marker{display:none}
 .settings-more>summary span{margin-left:auto; font-size:11px; font-weight:400; color:#816b9a; max-width:45%;
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .settings-more>summary::after{content:""; width:6px; height:6px; flex:none; border-right:1.5px solid currentColor;
-  border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-top:-3px}
+  border-bottom:1.5px solid currentColor; transform:rotate(45deg); margin-top:-3px; margin-left:auto}
 .settings-more[open]>summary::after{transform:rotate(225deg); margin-top:3px}
 .settings-more>summary:hover{background:#ebe1f8}
 .settings-more>summary:focus-visible{outline:2px solid var(--blue); outline-offset:2px}
-.settings-more>.settings-groups{padding:10px; border-top:1px solid var(--line)}
+.settings-more>.settings-groups{padding:0 4px; border-top:1px solid #dfd4ed}
 .settings-footer{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:6px 12px; padding-top:4px}
 .settings-footer .again{margin:0; font-size:11.5px}
 .studio-tools{display:flex; flex-direction:column; align-items:flex-start; gap:9px}
@@ -299,8 +295,18 @@ button.btn{cursor:pointer}
 .adv legend{font-family:var(--font-display); font-weight:700; font-size:14px; padding:0 6px}
 .adv .grid{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
 .adv .grid.off{opacity:.45; pointer-events:none}
-.adv .grid label{display:flex; flex-direction:column; gap:4px; font-size:12.5px; font-weight:600; color:var(--fg)}
-.adv .grid label i{font-style:normal; font-weight:400; color:var(--muted)}
+.adv .grid.off .setting-help{pointer-events:auto}
+.setting-field{display:flex; flex-direction:column; gap:5px; min-width:0}
+.setting-title{display:flex; align-items:center; gap:6px; min-height:20px; font-size:12.5px; font-weight:600; color:var(--fg)}
+.setting-check{display:flex; align-items:center; gap:7px}
+.setting-check .row{align-items:center}
+.setting-check .row input{margin-top:0}
+.setting-help{display:inline-flex; align-items:center; justify-content:center; flex:none; width:16px; height:16px; padding:0;
+  border:1px solid #a6b1bd; border-radius:50%; background:transparent; color:#6b7886; font:600 10px Georgia,serif; cursor:help}
+.setting-help:hover,.setting-help:focus-visible{border-color:#8a68ab; color:#70508f; background:#f3edfc}
+.setting-help:focus-visible{outline:2px solid #a58ac6; outline-offset:3px}
+.setting-tooltip{position:fixed; z-index:10000; padding:10px 12px; border:1px solid #d8cce7; border-radius:6px;
+  background:#fff; color:#344456; font:400 12px/1.5 var(--font-body); box-shadow:0 4px 16px rgba(22,48,73,.14); overflow-wrap:anywhere}
 .adv select,.adv input[type=number],.adv input[type=text]{font:inherit; font-size:13px; font-weight:400; color:var(--fg);
   background:#fff; border:1px solid #d6e0eb; border-radius:8px; padding:10px 11px; min-height:44px; min-width:0; width:100%}
 .adv input[type=range]{width:100%}

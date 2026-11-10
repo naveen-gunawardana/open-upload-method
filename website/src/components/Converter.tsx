@@ -2,6 +2,7 @@
 
 import { canEncodeVideo } from "mediabunny";
 import { useCallback, useEffect, useRef, useState } from "react";
+import SettingHelp from "@/components/SettingHelp";
 import { CATALOG, DEFAULT_PATCH, type Check, type PatchId } from "@/lib/oqm/patch";
 import {
   DEFAULT_RECIPE,
@@ -224,7 +225,6 @@ export default function Converter({
   const files = Array.from(new Set(runs.map((r) => r.file)));
   const activeFile = runs[0]?.file ?? file;
   const presetId = PRESETS.find((p) => same(p.recipe, recipe))?.id ?? "custom";
-  const selectedPreset = PRESETS.find((p) => p.id === presetId);
   const e = recipe.encode;
   const enabled = new Set(recipe.patch.enabled);
 
@@ -328,9 +328,10 @@ export default function Converter({
                 {presetId === "custom" && <option value="custom" disabled>Custom settings</option>}
               </select>
             </label>
-            <p className="fine">{selectedPreset?.desc ?? "Your own mix of video, audio and container settings."}</p>
           </div>
 
+          <details className="settings-more">
+            <summary>Advanced settings</summary>
           <div className="settings-groups">
           <details className="settings-section settings-video">
             <summary>
@@ -340,39 +341,42 @@ export default function Converter({
             <div className="settings-body adv">
               <fieldset>
                 <legend className="sr-only">Video and audio options</legend>
-                <label className="row">
-                  <input type="checkbox" checked={e.reencode} onChange={(ev) => setEncode({ reencode: ev.target.checked })} />
-                  Re-encode before patching
-                </label>
+                <div className="setting-check">
+                  <label className="row">
+                    <input type="checkbox" checked={e.reencode} onChange={(ev) => setEncode({ reencode: ev.target.checked })} />
+                    Re-encode before patching
+                  </label>
+                  <SettingHelp label="Re-encode before patching">Rebuild video and audio using the settings below. Turn this off to keep the original streams and patch only the container.</SettingHelp>
+                </div>
                 <div className={`grid${e.reencode ? "" : " off"}`}>
-                  <label>
-                    Codec
-                    <select value={e.codec} onChange={(ev) => setEncode({ codec: ev.target.value as EncodeOptions["codec"] })}>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-codec">Codec</label><SettingHelp label="Codec">Choose H.264 for broad compatibility or HEVC when your browser supports it.</SettingHelp></span>
+                    <select id="setting-codec" value={e.codec} onChange={(ev) => setEncode({ codec: ev.target.value as EncodeOptions["codec"] })}>
                       <option value="avc">H.264</option>
                       <option value="hevc" disabled={hevc === false}>
                         H.265 / HEVC{hevc === false ? " (not in this browser)" : ""}
                       </option>
                     </select>
-                  </label>
-                  <label>
-                    Rate control
-                    <select value={e.rate} onChange={(ev) => setEncode({ rate: ev.target.value as EncodeOptions["rate"] })}>
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-rate">Rate control</label><SettingHelp label="Rate control">Choose a quality target, fixed bitrate, or an automatic quality level.</SettingHelp></span>
+                    <select id="setting-rate" value={e.rate} onChange={(ev) => setEncode({ rate: ev.target.value as EncodeOptions["rate"] })}>
                       <option value="quantizer">Quality (like CRF)</option>
                       <option value="bitrate">Fixed bitrate</option>
                       <option value="very-high">Very high (auto)</option>
                       <option value="high">High (auto)</option>
                     </select>
-                  </label>
+                  </div>
                   {e.rate === "quantizer" && (
-                    <label>
-                      Quality {e.quantizer} <i>(lower = better)</i>
-                      <input type="range" min={10} max={30} value={e.quantizer} onChange={(ev) => setEncode({ quantizer: Number(ev.target.value) })} />
-                    </label>
+                    <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-quality">Quality {e.quantizer}</label><SettingHelp label="Quality">Lower values preserve more detail and usually produce larger files.</SettingHelp></span>
+                    <input id="setting-quality" type="range" min={10} max={30} value={e.quantizer} onChange={(ev) => setEncode({ quantizer: Number(ev.target.value) })} />
+                    </div>
                   )}
                   {e.rate === "bitrate" && (
-                    <label>
-                      Bitrate (Mbps)
-                      <input
+                    <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-bitrate">Bitrate (Mbps)</label><SettingHelp label="Bitrate (Mbps)">Target video bitrate in megabits per second. Higher values usually increase detail and file size.</SettingHelp></span>
+                    <input id="setting-bitrate"
                         type="number"
                         min={1}
                         max={80}
@@ -380,58 +384,54 @@ export default function Converter({
                         value={e.mbps}
                         onChange={(ev) => setEncode({ mbps: Math.max(1, Number(ev.target.value) || 1) })}
                       />
-                    </label>
+                    </div>
                   )}
-                  <label>
-                    Size
-                    <select value={e.size} onChange={(ev) => setEncode({ size: ev.target.value as EncodeOptions["size"] })}>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-size">Size</label><SettingHelp label="Size">Keep the original dimensions or limit the shorter edge to the selected resolution.</SettingHelp></span>
+                    <select id="setting-size" value={e.size} onChange={(ev) => setEncode({ size: ev.target.value as EncodeOptions["size"] })}>
                       <option value="original">Keep original</option>
                       <option value="short-2160">Max 4K (2160p)</option>
                       <option value="short-1440">Max 1440p</option>
                       <option value="short-1080">Max 1080p</option>
                       <option value="short-720">Max 720p</option>
                     </select>
-                  </label>
-                  <label>
-                    Frame rate
-                    <select value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value ? Number(ev.target.value) : null })}>
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-fps">Frame rate</label><SettingHelp label="Frame rate">Keep the source frame rate or convert it to 24, 30, or 60 frames per second.</SettingHelp></span>
+                    <select id="setting-fps" value={e.fps ?? ""} onChange={(ev) => setEncode({ fps: ev.target.value ? Number(ev.target.value) : null })}>
                       <option value="">Keep original</option>
                       <option value="24">24</option>
                       <option value="30">30</option>
                       <option value="60">60</option>
                     </select>
-                  </label>
-                  <label>
-                    Keyframes
-                    <select value={e.keyframeSec} onChange={(ev) => setEncode({ keyframeSec: Number(ev.target.value) })}>
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-keyframes">Keyframes</label><SettingHelp label="Keyframes">Choose how often a full video frame is stored. A long gap may reduce compatibility or make seeking slower.</SettingHelp></span>
+                    <select id="setting-keyframes" value={e.keyframeSec} onChange={(ev) => setEncode({ keyframeSec: Number(ev.target.value) })}>
                       <option value={1}>Every 1 s</option>
                       <option value={2}>Every 2 s</option>
                       <option value={5}>Every 5 s</option>
                       <option value={0}>Only the first frame (long gap)</option>
                     </select>
-                  </label>
-                  <label>
-                    Audio
-                    <select value={e.audioKbps} onChange={(ev) => setEncode({ audioKbps: Number(ev.target.value) })}>
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-audio">Audio</label><SettingHelp label="Audio">AAC audio bitrate. Higher values use more space to preserve more audio detail.</SettingHelp></span>
+                    <select id="setting-audio" value={e.audioKbps} onChange={(ev) => setEncode({ audioKbps: Number(ev.target.value) })}>
                       <option value={128}>AAC 128 kbps</option>
                       <option value={192}>AAC 192 kbps</option>
                       <option value={256}>AAC 256 kbps</option>
                       <option value={320}>AAC 320 kbps</option>
                     </select>
-                  </label>
-                  <label>
-                    Encoder
-                    <select value={e.hardware} onChange={(ev) => setEncode({ hardware: ev.target.value as EncodeOptions["hardware"] })}>
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-encoder">Encoder</label><SettingHelp label="Encoder">Let the browser choose, or prefer hardware or software encoding. The browser cannot select an H.264 profile, so Constrained Baseline is unavailable.</SettingHelp></span>
+                    <select id="setting-encoder" value={e.hardware} onChange={(ev) => setEncode({ hardware: ev.target.value as EncodeOptions["hardware"] })}>
                       <option value="no-preference">Browser decides</option>
                       <option value="prefer-hardware">Prefer hardware (faster)</option>
                       <option value="prefer-software">Prefer software</option>
                     </select>
-                  </label>
+                  </div>
                 </div>
-                <p className="fine">
-                  The browser encoder can&rsquo;t set the H.264 profile, so the desktop lab&rsquo;s Constrained Baseline variant isn&rsquo;t
-                  available here.
-                </p>
               </fieldset>
             </div>
           </details>
@@ -457,15 +457,13 @@ export default function Converter({
                 <ul className="patch-list">
                   {CATALOG.map((p) => (
                     <li key={p.id}>
-                      <label className="row">
-                        <input type="checkbox" checked={enabled.has(p.id)} disabled={p.id === "faststart"} onChange={() => togglePatch(p.id)} />
-                        <span>
-                          <em>
-                            <b>{p.title}</b> <code>{p.id}</code>
-                          </em>
-                          <i>{p.summary}</i>
-                        </span>
-                      </label>
+                      <div className="setting-check">
+                        <label className="row">
+                          <input type="checkbox" checked={enabled.has(p.id)} disabled={p.id === "faststart"} onChange={() => togglePatch(p.id)} />
+                          {p.title}
+                        </label>
+                        <SettingHelp label={p.title}>{p.summary}</SettingHelp>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -475,26 +473,26 @@ export default function Converter({
 
           <details className="settings-section settings-advanced">
             <summary>
-              <span>Advanced patch options</span>
+              <span>Decoy &amp; metadata</span>
               <span className="section-meta">Decoy, tags &amp; padding</span>
             </summary>
             <div className="settings-body adv">
               <fieldset>
                 <legend className="sr-only">Advanced patch options</legend>
                 <div className="grid">
-                  <label>
-                    Decoy inflate (x samples)
-                    <input
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-inflate">Decoy inflate (x samples)</label><SettingHelp label="Decoy inflate (x samples)">Multiplier for dummy samples in the hidden decoy track.</SettingHelp></span>
+                    <input id="setting-inflate"
                       type="number"
                       min={1}
                       max={100}
                       value={recipe.patch.inflate}
                       onChange={(ev) => setPatch({ inflate: Math.min(100, Math.max(1, Math.round(Number(ev.target.value)) || 1)) })}
                     />
-                  </label>
-                  <label>
-                    Dummy sample bytes
-                    <input
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-dummy">Dummy sample bytes</label><SettingHelp label="Dummy sample bytes">Bytes per dummy sample. Leave blank to choose automatically.</SettingHelp></span>
+                    <input id="setting-dummy"
                       type="number"
                       min={0}
                       max={64}
@@ -502,14 +500,14 @@ export default function Converter({
                       value={recipe.patch.dummySize ?? ""}
                       onChange={(ev) => setPatch({ dummySize: ev.target.value ? Math.min(64, Math.max(1, Math.round(Number(ev.target.value)))) : null })}
                     />
-                  </label>
-                  <label>
-                    Encoder tag
-                    <input type="text" maxLength={64} value={recipe.patch.encoderTag} onChange={(ev) => setPatch({ encoderTag: ev.target.value })} />
-                  </label>
-                  <label>
-                    Trailing pad bytes
-                    <input
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-tag">Encoder tag</label><SettingHelp label="Encoder tag">Encoder metadata written when the Clean metadata patch is enabled.</SettingHelp></span>
+                    <input id="setting-tag" type="text" maxLength={64} value={recipe.patch.encoderTag} onChange={(ev) => setPatch({ encoderTag: ev.target.value })} />
+                  </div>
+                  <div className="setting-field">
+                    <span className="setting-title"><label htmlFor="setting-padding">Trailing pad bytes</label><SettingHelp label="Trailing pad bytes">Padding appended after media data when the Trailing padding patch is enabled.</SettingHelp></span>
+                    <input id="setting-padding"
                       type="number"
                       min={8}
                       max={10_000_000}
@@ -517,7 +515,7 @@ export default function Converter({
                       value={recipe.patch.trailingBytes}
                       onChange={(ev) => setPatch({ trailingBytes: Math.min(10_000_000, Math.max(8, Math.round(Number(ev.target.value)) || 8)) })}
                     />
-                  </label>
+                  </div>
                 </div>
               </fieldset>
             </div>
@@ -551,6 +549,8 @@ export default function Converter({
           </details>
 
           </div>
+
+          </details>
 
           <div className="settings-footer">
             <p className="fine">Settings saved for your next patch.</p>
