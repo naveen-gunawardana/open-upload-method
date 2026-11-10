@@ -150,15 +150,15 @@ export default function Home() {
         <div className="hero">
           <div className="hero-card">
             <ConvertedCount count={count} />
-            <h1>Stop TikTok from crushing your video.</h1>
-            <p className="sub">Upload in 1080p, no compression. It runs right here in your browser, so your video never leaves your computer. Free, no account, nothing to install.</p>
+            <h1>Upload in HD. No compression.</h1>
+            <p className="sub">1080p at 60fps, with no compression. It runs right here in your browser, so your video never leaves your computer. Free, no account, nothing to install.</p>
 
             <div className="compare">
               <span className="pill no">
                 without OQM → <span className="pill-res">576p</span> · 30fps · 1.5 Mbps
               </span>
               <span className="pill yes">
-                with OQM → <span className="pill-res">4K</span> · 60fps · 11.5 Mbps
+                with OQM → <span className="pill-res">1080p</span> · 60fps · no compression
               </span>
             </div>
 

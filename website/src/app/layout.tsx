@@ -24,7 +24,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "OQM: Open Quality Method",
   description:
-    "A free, open-source container patcher that stops TikTok from re-encoding your uncompressed edit on upload.",
+    "Upload to TikTok in HD: 1080p at 60fps, with no compression. Free, open source, and processed in your browser. No account or installation needed.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
