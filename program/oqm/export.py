@@ -17,7 +17,8 @@ _VARGS = {
 _NULL = "NUL" if sys.platform == "win32" else "/dev/null"
 
 
-def export(src, dst, codec="h264", crf=17, kbps=None, fps=None, fit=None, audio_bitrate="320k"):
+def export(src, dst, codec="h264", crf=17, kbps=None, fps=None, fit=None, audio_bitrate="320k",
+           no_bframes=False, long_gop=False, baseline=False):
     """kbps set: two-pass, target that exact average video bitrate. kbps unset: single-pass CRF."""
     if codec not in _VARGS:
         raise ValueError("codec must be h264 or h265")
@@ -35,10 +36,17 @@ def export(src, dst, codec="h264", crf=17, kbps=None, fps=None, fit=None, audio_
         filters.append(f"fps={fps}")  # constant frame rate; duplicates/drops frames, does NOT interpolate
 
     vargs = list(_VARGS[codec])
+    if long_gop:
+        gop = 9999
     if codec == "h265":
-        vargs += ["-x265-params", f"log-level=error:keyint={gop}:min-keyint={gop}"]
+        vargs += ["-x265-params", f"log-level=error:keyint={gop}:min-keyint={gop}" + (":bframes=0" if no_bframes else "")]
     else:
-        vargs += ["-g", str(gop), "-keyint_min", str(gop)]
+        if baseline:  # Constrained Baseline: no B-frames, no CABAC; level left to the encoder
+            i = vargs.index("-profile:v"); vargs[i + 1] = "baseline"
+            j = vargs.index("-level:v"); del vargs[j:j + 2]
+        vargs += ["-g", str(gop), "-keyint_min", str(min(gop, round(out_fps * 2)))]
+        if no_bframes:
+            vargs += ["-bf", "0"]
 
     args = ["-v", "error", "-i", str(src), "-map", "0:v:0", "-map", "0:a:0?"]
     if filters:

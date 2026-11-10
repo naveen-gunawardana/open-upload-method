@@ -38,6 +38,9 @@ CATALOG = [
               "looping/playback-stutter reports; fixed here, verified duration-identical in tests).",
               "buwryme, CompressBase-style implementations, NoBlur (video-track variant).",
               "The core claimed trigger. Mechanism inspectable; TikTok-side effect unverified."),
+    PatchInfo("decoy-video", "EXPERIMENTAL (lab only). Clone the video track the same way as the decoy audio: a second, hidden video "
+              "track whose sample tables are inflated with tiny dummy samples. The real video track is untouched.",
+              "NoBlur family (inflates the video sample table).", "Untested here. Not part of any profile."),
     PatchInfo("clean-metadata", "Replace moov/udta with a single minimal tag set (encoder string only, no branding).",
               "Most patchers rewrite metadata (often adding their own branding).", "Unverified effect."),
     PatchInfo("trailing-pad", "Append padding after mdat that starts with a malformed 'VOID' box.",
@@ -51,9 +54,9 @@ PROFILES = {
     # Only the decoy track. Arm C: full passthrough in the first A/B round, so it's the default.
     "minimal": {"faststart", "decoy-audio"},
     # Full replication of the public reference method (copy mode), minus its bugs and branding.
-    "reference": set(PATCH_IDS),
+    "reference": set(PATCH_IDS) - {"decoy-video"},
     # Arm D: everything except the decoy. Isolates whether the decoy itself is doing the work.
-    "structure": set(PATCH_IDS) - {"decoy-audio"},
+    "structure": set(PATCH_IDS) - {"decoy-audio", "decoy-video"},
 }
 
 DUMMY_SIZE_BY_CODEC = {b"avc1": 8, b"avc3": 8, b"hvc1": 16, b"hev1": 16, b"vp09": 4, b"av01": 4, b"mp4v": 8}
@@ -154,6 +157,17 @@ def patch_boxes(top, opts):
             report.notes.append(note)
             mark("decoy-audio")
 
+    if "decoy-video" in on:
+        dummy = opts.dummy_size or DUMMY_SIZE_BY_CODEC.get(mp4.sample_entry_type(video), 8)
+        clone, note = _build_decoy(video, opts.inflate, dummy, len(mdat.payload), old_payload_offset, handler=b"VideoHandler")
+        new_id = max(mp4.track_id(t) for t in moov.find_all(b"trak")) + 1
+        mp4.set_track_id(clone, new_id)
+        last = moov.find_all(b"trak")[-1]
+        moov.children.insert(moov.children.index(last) + 1, clone)
+        _set_next_track_id(moov.find(b"mvhd"), new_id + 1)
+        report.notes.append(note.replace("decoy-audio", "decoy-video"))
+        mark("decoy-video")
+
     if "mvhd-unknown-duration" in on:
         mvhd = moov.find(b"mvhd")
         mvhd.payload = _mvhd_v1_unknown_duration(bytes(mvhd.payload))
@@ -166,13 +180,15 @@ def patch_boxes(top, opts):
 
     # Layout: ftyp, moov, mdat. Shift chunk offsets so they point at the same bytes.
     head = (ftyp.serialize() if ftyp else b"")
+    padding = b"".join(b.serialize() for b in top if b.type in (b"free", b"skip"))
     moov_len = len(moov.serialize())
     mdat_header = 16 if len(mdat.payload) + 8 > 0xFFFFFFFF else 8
-    delta = len(head) + moov_len + mdat_header - old_payload_offset
+    delta = len(head) + moov_len + len(padding) + mdat_header - old_payload_offset
     if delta:
         mp4.shift_chunk_offsets(moov, delta)
     out = bytearray(head)
     out += moov.serialize()
+    out += padding
     out += Box(b"mdat", payload=mdat.payload).serialize()
     report.applied.append("faststart")
 
@@ -220,7 +236,7 @@ def _mvhd_v1_unknown_duration(p):
     return head + rest
 
 
-def _build_decoy(audio, inflate, dummy_size, mdat_len, mdat_payload_offset):
+def _build_decoy(audio, inflate, dummy_size, mdat_len, mdat_payload_offset, handler=b"SoundHandler"):
     """Clone the audio trak and append (inflate-1) x N dummy samples to its tables.
 
     Dummy samples live in one extra chunk that points at the first real audio
@@ -267,7 +283,7 @@ def _build_decoy(audio, inflate, dummy_size, mdat_len, mdat_payload_offset):
     co.payload = struct.pack(">II", 0, n_chunks + 1) + bytes(co.payload[8:]) + struct.pack(fmt, first)
 
     hdlr = clone.find(b"mdia", b"hdlr")
-    hdlr.payload = bytes(hdlr.payload[:24]) + b"SoundHandler\x00"
+    hdlr.payload = bytes(hdlr.payload[:24]) + handler + b"\x00"
     return clone, f"decoy-audio: clone declares {count + extra} samples ({count} real + {extra} x {dummy_size} B dummy)"
 
 

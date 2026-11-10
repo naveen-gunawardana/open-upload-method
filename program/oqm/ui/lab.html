@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>OQM Lab</title>
+<style>
+body{font:15px/1.45 system-ui,sans-serif;max-width:860px;margin:24px auto;padding:0 16px;color:#16314d;background:#eef6ff}
+h1{margin:0 0 4px} .sub{color:#55708c;margin-bottom:18px}
+.card{background:#fff;border:1px solid #cfe0f2;border-radius:14px;padding:14px 16px;margin:12px 0}
+label.v{display:block;padding:6px 0;cursor:pointer} label.v b{display:block} label.v span{color:#55708c;font-size:13px}
+select,button{font:inherit;padding:8px 12px;border-radius:10px;border:1px solid #9bb8d6;background:#fff}
+button.go{background:#1a73e8;color:#fff;border:0;font-weight:600;cursor:pointer;padding:10px 18px}
+button:disabled{opacity:.5}
+.ok{color:#17803d;font-weight:600}.bad{color:#b3261e;font-weight:600}.warn{color:#a15c00}
+.row a{font-weight:600} small{color:#55708c} pre{white-space:pre-wrap;font-size:12px;margin:6px 0 0}
+</style></head><body>
+<h1>OQM Lab</h1>
+<div class="sub">Build one clip several different ways, upload each to a test account, and see which one TikTok leaves alone.</div>
+<div class="card"><b>1. Pick a video</b><br><br>
+  <input type="file" id="pick" accept="video/*,.mov,.mp4,.mkv"> <span id="up"></span><br><br>
+  <select id="file"></select></div>
+<div class="card"><b>2. Variants</b><div id="variants"></div></div>
+<div class="card"><button class="go" id="run">Build selected variants</button> <small id="status"></small></div>
+<div id="out"></div>
+<script>
+const VARIANTS = __VARIANTS__;
+const $ = s => document.querySelector(s), esc = s => String(s).replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+const H = { "X-OQM": "1", "Content-Type": "application/json" };
+const api = async (u, o = {}) => { const r = await fetch(u, { ...o, headers: { ...H, ...(o.headers || {}) } }); const j = await r.json(); if (!r.ok) throw new Error(j.error || r.status); return j; };
+$("#variants").innerHTML = VARIANTS.map(v => `<label class="v"><input type="checkbox" value="${v.id}" checked> <b>${esc(v.title)}</b><span>${esc(v.desc)}</span></label>`).join("");
+async function refresh(sel) {
+  const st = await api("/api/state");
+  const vids = st.files.filter(f => /\.(mp4|mov|mkv|m4v|webm)$/i.test(f.name) && !/_lab-|_oqm/.test(f.name));
+  $("#file").innerHTML = vids.map(f => `<option>${esc(f.name)}</option>`).join("") || "<option value=''>(no videos yet)</option>";
+  if (sel) $("#file").value = sel;
+}
+$("#pick").onchange = e => {
+  const f = e.target.files[0]; if (!f) return;
+  $("#up").textContent = "Adding…";
+  const x = new XMLHttpRequest(); x.open("POST", "/api/upload?name=" + encodeURIComponent(f.name)); x.setRequestHeader("X-OQM", "1");
+  x.onload = async () => { $("#up").textContent = ""; try { await refresh(JSON.parse(x.responseText).name); } catch { await refresh(); } };
+  x.send(f);
+};
+async function job(params) {
+  const { job } = await api("/api/run", { method: "POST", body: JSON.stringify({ action: "lab", params }) });
+  for (;;) {
+    await new Promise(r => setTimeout(r, 700));
+    const j = await api("/api/jobs/" + job);
+    if (j.stage) $("#status").textContent = j.stage;
+    if (j.status === "done") return j.result;
+    if (j.status === "error") throw new Error(j.error);
+  }
+}
+$("#run").onclick = async () => {
+  const input = $("#file").value; if (!input) return alert("Pick a video first.");
+  const ids = [...document.querySelectorAll("#variants input:checked")].map(i => i.value);
+  $("#run").disabled = true; $("#out").innerHTML = "";
+  for (const id of ids) {
+    try {
+      const r = await job({ input, variant: id });
+      const fails = r.checks.filter(c => !c.ok && !c.warn), warns = r.checks.filter(c => !c.ok && c.warn);
+      $("#out").insertAdjacentHTML("beforeend", `<div class="card row"><b>${esc(r.title)}</b> &nbsp;
+        <span class="${r.ok ? "ok" : "bad"}">${r.ok ? "checks passed" : "CHECK FAILED"}</span><br>
+        <a href="/files/${encodeURIComponent(r.output)}">${esc(r.output)}</a> <small>${(r.size/1e6).toFixed(1)} MB</small>
+        ${warns.length ? `<br><span class="warn">warnings: ${warns.map(c => esc(c.name)).join(", ")}</span>` : ""}
+        ${fails.length ? `<br><span class="bad">${fails.map(c => esc(c.name)).join(", ")}</span>` : ""}
+        <pre>${esc(r.applied.join(", "))}${r.skipped.length ? "\nskipped: " + esc(r.skipped.join(", ")) : ""}</pre></div>`);
+    } catch (e) {
+      $("#out").insertAdjacentHTML("beforeend", `<div class="card"><b>${esc(id)}</b> <span class="bad">failed: ${esc(e.message)}</span></div>`);
+    }
+  }
+  $("#status").textContent = "Done. Files are in your OQM-workspace folder too."; $("#run").disabled = false;
+};
+refresh();
+</script></body></html>

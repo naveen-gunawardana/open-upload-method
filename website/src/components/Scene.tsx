@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Cloud, Clouds, calcPosFromAngles } from "@react-three/drei";
 import { Bloom, EffectComposer } from "@react-three/postprocessing";
@@ -15,16 +15,16 @@ function terrainHeight(x: number, z: number) {
   return terrainNoise(x * 0.012, z * 0.012) * 3.4 + terrainNoise(x * 0.05, z * 0.05) * 0.7;
 }
 
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+const subscribeReducedMotion = (onChange: () => void) => {
+  const mq = window.matchMedia(reducedMotionQuery);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+};
+const getReducedMotion = () => window.matchMedia(reducedMotionQuery).matches;
+
 function useReducedMotion() {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
-    setReduced(mq.matches);
-    const onChange = () => setReduced(mq.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
-  }, []);
-  return reduced;
+  return useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
 }
 
 function CameraRig() {
