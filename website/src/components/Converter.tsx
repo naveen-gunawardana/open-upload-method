@@ -78,6 +78,7 @@ export default function Converter({
   embedded?: boolean;
 }) {
   const [recipe, setRecipeState] = useState<Recipe>(DEFAULT_RECIPE);
+  const [selectedFile, setSelectedFile] = useState<File | null>(file);
   const [runs, setRuns] = useState<Run[]>([]);
   const [hevc, setHevc] = useState<boolean | null>(null);
   const [dropping, setDropping] = useState(false);
@@ -86,7 +87,6 @@ export default function Converter({
   const sharedSources = useRef(new Map<number, Promise<File>>());
   const abort = useRef<AbortController | null>(null);
   const counted = useRef(new Set<number>());
-  const started = useRef<File | null>(null);
   const closed = useRef(false);
   const pickRef = useRef<HTMLInputElement>(null);
 
@@ -173,20 +173,17 @@ export default function Converter({
     return preset ? (preset.id === "current" ? "oqm" : `oqm-${preset.id}`) : "oqm-custom";
   };
 
-  // Load saved settings even before a video is chosen. An initial file still starts immediately.
+  // Selecting a file only stages it. Patching starts from an explicit action.
   useEffect(() => {
     let active = true;
     queueMicrotask(() => {
-      if (!active || (file && started.current === file)) return;
+      if (!active) return;
       const saved = loadRecipe();
       setRecipeState(saved);
-      if (file) {
-        started.current = file;
-        queue(file, [{ title: titleFor(saved), slug: slugFor(saved), recipe: saved }]);
-      }
+      setSelectedFile(file);
     });
     return () => { active = false; };
-  }, [file, queue]);
+  }, [file]);
 
   useEffect(() => {
     canEncodeVideo("hevc", { width: 1920, height: 1080 }).then(setHevc).catch(() => setHevc(false));
@@ -223,7 +220,8 @@ export default function Converter({
 
   const current = runs.find((r) => r.status === "running");
   const files = Array.from(new Set(runs.map((r) => r.file)));
-  const activeFile = runs[0]?.file ?? file;
+  const activeFile = selectedFile;
+  const selectionWasPatched = runs.some(r => r.file === activeFile && r.status === "done");
   const selectedPreset = PRESETS.find((p) => same(p.recipe, recipe));
   const presetId = selectedPreset?.id ?? "custom";
   const e = recipe.encode;
@@ -238,7 +236,7 @@ export default function Converter({
   };
 
   const onPick = (f: File | undefined) => {
-    if (f) queue(f, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]);
+    if (f) setSelectedFile(f);
   };
 
   return (
@@ -273,17 +271,17 @@ export default function Converter({
               <path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
             </svg>
             <span className="upload-copy">
-              <b>{activeFile ? "Add another video" : "Choose your video"}</b>
-              <span>Drag &amp; drop, or click to browse</span>
+              <b>{activeFile ? activeFile.name : "Choose your video"}</b>
+              <span>{activeFile ? `${formatSize(activeFile.size)} · Click to change video` : "Drag & drop, or click to browse"}</span>
             </span>
           </button>
           <button
             type="button"
             className="btn btn-convert"
-            disabled={!!current}
-            onClick={() => activeFile ? queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]) : pickRef.current?.click()}
+            disabled={!activeFile || !!current}
+            onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
           >
-            {current ? "Patching…" : activeFile ? "Patch again" : "Patch video"}
+            {current ? "Patching…" : selectionWasPatched ? "Patch again" : "Patch video"}
           </button>
           <input
             ref={pickRef}

@@ -5,7 +5,7 @@ A free tool for preparing and comparing TikTok uploads. Container patches preser
 ## How to use it
 
 1. Open the OQM website
-2. Drag your video onto the page (or click and choose it). It starts converting straight away
+2. Drag your video onto the page (or click and choose it), choose your settings, then click **Patch video** to start
 3. Click **Download** when it's done, and upload that file to TikTok the same as always
 
 The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make local comparison (3)** prepares one encoded source, then builds clean MP4, current OQM and experimental silent-tail from it without further video encoding. The current OQM recipe remains the default. Silent-tail requires AAC-LC stereo and intentionally adds a short silent tail and a second audio track.

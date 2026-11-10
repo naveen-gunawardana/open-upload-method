@@ -198,7 +198,7 @@ button.btn{cursor:pointer}
 .studio-side{border-top:1px solid var(--line); padding-top:16px; gap:8px}
 .studio-upload{padding:12px 16px; font:inherit; flex-direction:row; gap:12px; text-align:left}
 .studio-upload .upload-icon{width:32px; height:32px; flex:none; padding:5px; color:var(--blue); background:#edf5ff; border:1px solid #deebf9; border-radius:9px}
-.studio-upload .upload-copy{display:flex; flex-direction:column; gap:3px}
+.studio-upload .upload-copy{display:flex; flex-direction:column; gap:3px; min-width:0; overflow-wrap:anywhere}
 .studio-upload b{font-family:var(--font-body); font-size:14px; color:var(--fg); font-weight:600}
 .studio-upload .upload-copy>span{font-size:12px}
 .converter-page{position:fixed; inset:0; z-index:2; overflow:auto; padding:24px 16px;
