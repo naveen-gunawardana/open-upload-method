@@ -29,10 +29,11 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   const { default: Converter } = await import(pathToFileURL(path.join(dir, "Converter.mjs")));
   const html = renderToStaticMarkup(createElement(Converter, { standalone: true }));
   assert.match(html, /role="region"/);
-  assert.match(html, /Choose your settings, then add a video/);
-  assert.match(html, /Current OQM \(default\)/);
-  assert.match(html, /Silent-tail \(experimental\)/);
-  assert.equal((html.match(/aria-checked="true"/g) ?? []).length, 1);
+  const presetSelect = html.match(/<label>Preset(<select>.*?<\/select>)<\/label>/)?.[1];
+  assert.ok(presetSelect, "Preset settings are available before choosing a video");
+  assert.match(presetSelect, /<option value="current" selected="">Current OQM \(default\)<\/option>/);
+  assert.match(presetSelect, /<option value="silent-tail">Silent-tail \(experimental\)<\/option>/);
+  assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Make local comparison \(3\)<\/button>/);
 });
 test("comparison prepares one shared MP4 and reads back all three methods", async () => {

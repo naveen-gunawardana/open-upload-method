@@ -77,7 +77,6 @@ export default function Converter({
   const [recipe, setRecipeState] = useState<Recipe>(DEFAULT_RECIPE);
   const [runs, setRuns] = useState<Run[]>([]);
   const [hevc, setHevc] = useState<boolean | null>(null);
-  const [advanced, setAdvanced] = useState(false);
   const [dropping, setDropping] = useState(false);
   const runsRef = useRef<Run[]>([]);
   const busy = useRef(false);
@@ -223,6 +222,7 @@ export default function Converter({
   const files = Array.from(new Set(runs.map((r) => r.file)));
   const activeFile = runs[0]?.file ?? file;
   const presetId = PRESETS.find((p) => same(p.recipe, recipe))?.id ?? "custom";
+  const selectedPreset = PRESETS.find((p) => p.id === presetId);
   const e = recipe.encode;
   const enabled = new Set(recipe.patch.enabled);
 
@@ -265,107 +265,81 @@ export default function Converter({
         )}
 
         <section className="studio-main">
-          <h2>Your videos</h2>
-          <p className="modal-note">
-            Everything runs in this tab. Your video never leaves your computer. {activeFile ? "Drop another file here any time." : "Choose your settings, then add a video when you're ready."}
-          </p>
+          <h2>{activeFile ? "Your videos" : "Start with a video"}</h2>
+          <button type="button" className="drop studio-upload" onClick={() => pickRef.current?.click()}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+            </svg>
+            <b>{activeFile ? "Add another video" : "Drop your video here"}</b>
+            <span>or click to choose a file</span>
+          </button>
+          <p className="fine studio-privacy">Processed on your device. Your video stays with you.</p>
+          <input
+            ref={pickRef}
+            type="file"
+            accept="video/mp4,video/quicktime,video/*"
+            hidden
+            onChange={(ev) => {
+              onPick(ev.target.files?.[0]);
+              ev.target.value = "";
+            }}
+          />
 
-          {!activeFile && (
-            <button type="button" className="drop" onClick={() => pickRef.current?.click()}>
-              <b>Choose a video</b>
-              <span>or drop it here when you&rsquo;re ready.</span>
-            </button>
+          {runs.length > 0 && (
+            <ul className="runs">
+              {runs.map((run) => (
+                <RunCard key={run.id} run={run} showFile={files.length > 1} />
+              ))}
+            </ul>
           )}
 
-          <ul className="runs">
-            {runs.map((run) => (
-              <RunCard key={run.id} run={run} showFile={files.length > 1} />
-            ))}
-          </ul>
-
-          <div className="studio-actions">
-            <button
-              type="button"
-              className="btn btn-patch"
-              disabled={!activeFile}
-              onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
-            >
-              {activeFile ? "Convert again with these settings" : "Convert with these settings"}
-            </button>
-            <button
-              type="button"
-              className="btn btn-ghost"
-              disabled={!activeFile}
-              onClick={() => activeFile && queue(activeFile, COMPARISON_PRESETS.map((p) => ({ title: p.title, slug: `compare-${p.id}`, recipe: p.recipe })), { ...recipe.encode })}
-              title="Prepares one shared source, then builds clean MP4, current OQM and silent-tail without further encoding"
-            >
-              Make local comparison (3)
-            </button>
-            {activeFile && (
+          {activeFile && (
+            <div className="studio-actions">
+              <button
+                type="button"
+                className="btn btn-patch"
+                onClick={() => queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
+              >
+                Convert again
+              </button>
               <button type="button" className="btn btn-ghost" onClick={() => pickRef.current?.click()}>
-                Choose another video
+                Choose another
               </button>
-            )}
-            {current && (
-              <button type="button" className="again" onClick={() => abort.current?.abort()}>
-                Stop current
-              </button>
-            )}
-            <input
-              ref={pickRef}
-              type="file"
-              accept="video/mp4,video/quicktime,video/*"
-              hidden
-              onChange={(ev) => {
-                onPick(ev.target.files?.[0]);
-                ev.target.value = "";
-              }}
-            />
-          </div>
-
-          <details className="tip">
-            <summary>How to tell if it worked</summary>
-            <p>
-              Local checks cover file integrity only. Start with the same 1080p60 SDR source. Compare clean MP4, current OQM
-              and silent-tail after processing, then at 24 hours, 72 hours and seven days on desktop and a second phone/account.
-              Check every accessible rendition and its frame rate. A quality label alone does not prove unchanged video.
-              Test 4K next; keep 120 fps and HDR in separate rounds.
-            </p>
-          </details>
+              {current && (
+                <button type="button" className="again" onClick={() => abort.current?.abort()}>
+                  Stop current
+                </button>
+              )}
+            </div>
+          )}
         </section>
 
         <section className="studio-side">
-          <h2>Options</h2>
-          <div className="presets" role="radiogroup" aria-label="Preset">
-            {PRESETS.map((p) => (
-              <button
-                key={p.id}
-                type="button"
-                role="radio"
-                aria-checked={presetId === p.id}
-                className={`preset${presetId === p.id ? " on" : ""}`}
-                onClick={() => setRecipe(p.recipe)}
+          <div className="preset-control">
+            <label>
+              Preset
+              <select
+                value={presetId}
+                onChange={(ev) => {
+                  const preset = PRESETS.find((p) => p.id === ev.target.value);
+                  if (preset) setRecipe(preset.recipe);
+                }}
               >
-                <b>{p.title}</b>
-                <span>{p.desc}</span>
-              </button>
-            ))}
-            {presetId === "custom" && (
-              <div className="preset on" aria-checked="true" role="radio">
-                <b>Custom settings</b>
-                <span>Your own mix from Advanced below.</span>
-              </div>
-            )}
+                {PRESETS.map((p) => <option key={p.id} value={p.id}>{p.title}</option>)}
+                {presetId === "custom" && <option value="custom" disabled>Custom settings</option>}
+              </select>
+            </label>
+            <p className="fine">{selectedPreset?.desc ?? "Your own mix of video, audio and container settings."}</p>
           </div>
 
-          <button type="button" className="adv-toggle" aria-expanded={advanced} onClick={() => setAdvanced(!advanced)}>
-            {advanced ? "▾" : "▸"} Advanced
-          </button>
-
-          {advanced && (
-            <div className="adv">
+          <details className="settings-section">
+            <summary>
+              <span>Video &amp; audio</span>
+              <span className="section-meta">{e.reencode ? `${e.codec === "avc" ? "H.264" : "HEVC"} · ${e.fps ? `${e.fps} fps` : "Original fps"}` : "No re-encode"}</span>
+            </summary>
+            <div className="settings-body adv">
               <fieldset>
-                <legend>Re-encode</legend>
+                <legend className="sr-only">Video and audio options</legend>
                 <label className="row">
                   <input type="checkbox" checked={e.reencode} onChange={(ev) => setEncode({ reencode: ev.target.checked })} />
                   Re-encode before patching
@@ -459,13 +433,27 @@ export default function Converter({
                   available here.
                 </p>
               </fieldset>
+            </div>
+          </details>
 
-              {recipe.method === "silent-tail" ? (
+          {recipe.method === "silent-tail" ? (
+            <details className="settings-section">
+              <summary><span>Silent-tail method</span><span className="section-meta">Experimental</span></summary>
+              <div className="settings-body">
                 <p className="fine">Silent-tail runs independently of the current patches. It changes audio sample descriptions,
                   appends about 0.35 seconds of AAC silence and adds an audio track. Video packets stay unchanged.
                   TikTok quality and retention are unverified.</p>
-              ) : <fieldset>
-                <legend>Patches</legend>
+              </div>
+            </details>
+          ) : <>
+          <details className="settings-section">
+            <summary>
+              <span>Container patches</span>
+              <span className="section-meta">{enabled.size} active</span>
+            </summary>
+            <div className="settings-body adv">
+              <fieldset>
+                <legend className="sr-only">Container patches</legend>
                 <ul className="patch-list">
                   {CATALOG.map((p) => (
                     <li key={p.id}>
@@ -481,6 +469,18 @@ export default function Converter({
                     </li>
                   ))}
                 </ul>
+              </fieldset>
+            </div>
+          </details>
+
+          <details className="settings-section">
+            <summary>
+              <span>Advanced patch options</span>
+              <span className="section-meta">Decoy, tags &amp; padding</span>
+            </summary>
+            <div className="settings-body adv">
+              <fieldset>
+                <legend className="sr-only">Advanced patch options</legend>
                 <div className="grid">
                   <label>
                     Decoy inflate (x samples)
@@ -520,14 +520,42 @@ export default function Converter({
                   </label>
                 </div>
               </fieldset>
-
-              }
-              <button type="button" className="again" onClick={() => setRecipe(DEFAULT_RECIPE)}>
-                Reset to current default
-              </button>
             </div>
-          )}
-          <p className="fine">Changes apply to the next conversion. Settings are remembered in this browser. Local checks do not verify TikTok upload quality or retention.</p>
+          </details>
+          </>}
+
+          <details className="settings-section">
+            <summary><span>Tools &amp; help</span><span className="section-meta">Comparisons &amp; tips</span></summary>
+            <div className="settings-body studio-tools">
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={!activeFile}
+                onClick={() => activeFile && queue(activeFile, COMPARISON_PRESETS.map((p) => ({ title: p.title, slug: `compare-${p.id}`, recipe: p.recipe })), { ...recipe.encode })}
+                title="Prepares one shared source, then builds clean MP4, current OQM and silent-tail without further encoding"
+              >
+                Make local comparison ({COMPARISON_PRESETS.length})
+              </button>
+              {!activeFile && <p className="fine">Choose a video to compare clean MP4, current OQM and silent-tail.</p>}
+              <details className="tip">
+                <summary>How to tell if it worked</summary>
+                <p>
+                  Local checks cover file integrity only. Start with the same 1080p60 SDR source. Compare clean MP4, current OQM
+                  and silent-tail after processing, then at 24 hours, 72 hours and seven days on desktop and a second phone/account.
+                  Check every accessible rendition and its frame rate. A quality label alone does not prove unchanged video.
+                  Test 4K next; keep 120 fps and HDR in separate rounds.
+                </p>
+              </details>
+              <p className="fine">Local checks do not verify TikTok upload quality or retention.</p>
+            </div>
+          </details>
+
+          <div className="settings-footer">
+            <p className="fine">Settings saved for your next conversion.</p>
+            <button type="button" className="again" onClick={() => setRecipe(DEFAULT_RECIPE)}>
+              Reset to current default
+            </button>
+          </div>
         </section>
       </div>
     </div>
