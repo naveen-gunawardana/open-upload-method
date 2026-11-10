@@ -9,7 +9,7 @@ export default function ReviewForm({ onClose }: { onClose: () => void }) {
   const [rating, setRating] = useState(0);
   const [hover, setHover] = useState(0);
   const [text, setText] = useState("");
-  const [name, setName] = useState("");
+  const [handle, setHandle] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export default function ReviewForm({ onClose }: { onClose: () => void }) {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating, text, name, website }),
+        body: JSON.stringify({ rating, text, name: handle, website }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return setState({ kind: "error", message: data.error ?? "Something went wrong. Please try again." });
@@ -88,10 +88,14 @@ export default function ReviewForm({ onClose }: { onClose: () => void }) {
               className="field"
               type="text"
               maxLength={60}
-              placeholder="Your name (optional)"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              aria-label="Your name (optional)"
+              placeholder="Your TikTok @username (optional)"
+              value={handle}
+              onChange={(event) => setHandle(event.target.value)}
+              aria-label="Your TikTok @username (optional)"
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              autoComplete="off"
             />
             <input
               className="hp"

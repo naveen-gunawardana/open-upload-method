@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: `Write a review up to ${MAX_TEXT} characters.` }, { status: 400 });
   }
   if (name.length > MAX_NAME) {
-    return NextResponse.json({ error: `Keep your name under ${MAX_NAME} characters.` }, { status: 400 });
+    return NextResponse.json({ error: `Keep your @username under ${MAX_NAME} characters.` }, { status: 400 });
   }
 
   // Only a salted hash of the IP is kept, just enough to limit how fast one person can post.
