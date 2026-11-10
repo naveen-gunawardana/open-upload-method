@@ -68,11 +68,13 @@ export default function Converter({
   onClose,
   onCounted,
   standalone = false,
+  embedded = false,
 }: {
   file?: File | null;
   onClose?: () => void;
   onCounted?: (count: number | null) => void;
   standalone?: boolean;
+  embedded?: boolean;
 }) {
   const [recipe, setRecipeState] = useState<Recipe>(DEFAULT_RECIPE);
   const [runs, setRuns] = useState<Run[]>([]);
@@ -237,11 +239,12 @@ export default function Converter({
   const onPick = (f: File | undefined) => {
     if (f) queue(f, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]);
   };
+  const SettingsGroup = embedded ? "details" : "div";
 
   return (
     <div className={standalone ? "converter-workspace" : "modal-back"} onMouseDown={(ev) => ev.target === ev.currentTarget && close()}>
       <div
-        className={`studio${standalone ? " studio-page" : ""}${dropping ? " studio-drop" : ""}`}
+        className={`studio${standalone ? " studio-page" : ""}${embedded ? " studio-embedded" : ""}${dropping ? " studio-drop" : ""}`}
         role={standalone ? "region" : "dialog"}
         aria-modal={standalone ? undefined : true}
         aria-label="Convert your video"
@@ -334,6 +337,9 @@ export default function Converter({
             <p className="fine">{selectedPreset?.desc ?? "Your own mix of video, audio and container settings."}</p>
           </div>
 
+          <SettingsGroup className={embedded ? "settings-more" : "settings-groups"}>
+            {embedded && <summary>Advanced settings <span>Video, audio, patches &amp; tools</span></summary>}
+            <div className="settings-groups">
           <details className="settings-section">
             <summary>
               <span>Video &amp; audio</span>
@@ -551,6 +557,9 @@ export default function Converter({
               <p className="fine">Local checks do not verify TikTok upload quality or retention.</p>
             </div>
           </details>
+
+            </div>
+          </SettingsGroup>
 
           <div className="settings-footer">
             <p className="fine">Settings saved for your next conversion.</p>
