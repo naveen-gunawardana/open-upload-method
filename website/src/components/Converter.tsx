@@ -61,13 +61,15 @@ let nextId = 1;
 let nextGroup = 1;
 
 export default function Converter({
-  file,
+  file = null,
   onClose,
   onCounted,
+  standalone = false,
 }: {
-  file: File;
-  onClose: () => void;
-  onCounted: (count: number | null) => void;
+  file?: File | null;
+  onClose?: () => void;
+  onCounted?: (count: number | null) => void;
+  standalone?: boolean;
 }) {
   const [recipe, setRecipeState] = useState<Recipe>(DEFAULT_RECIPE);
   const [runs, setRuns] = useState<Run[]>([]);
@@ -100,7 +102,7 @@ export default function Converter({
       counted.current.add(run.id);
       fetch("/api/conversion", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ mode }) })
         .then((r) => r.json())
-        .then((d) => typeof d.count === "number" && onCounted(d.count))
+        .then((d) => typeof d.count === "number" && onCounted?.(d.count))
         .catch(() => {});
     },
     [onCounted],
@@ -156,15 +158,17 @@ export default function Converter({
     return preset ? (preset.id === "current" ? "oqm" : `oqm-${preset.id}`) : "oqm-custom";
   };
 
-  // Dropping a video starts converting straight away with the saved settings.
+  // Load saved settings even before a video is chosen. An initial file still starts immediately.
   useEffect(() => {
     let active = true;
     queueMicrotask(() => {
-      if (!active || started.current === file) return;
-      started.current = file;
+      if (!active || (file && started.current === file)) return;
       const saved = loadRecipe();
       setRecipeState(saved);
-      queue(file, [{ title: titleFor(saved), slug: slugFor(saved), recipe: saved }]);
+      if (file) {
+        started.current = file;
+        queue(file, [{ title: titleFor(saved), slug: slugFor(saved), recipe: saved }]);
+      }
     });
     return () => { active = false; };
   }, [file, queue]);
@@ -175,6 +179,7 @@ export default function Converter({
 
   // Closing stops any work in progress and drops what's still waiting.
   const close = useCallback(() => {
+    if (!onClose) return;
     closed.current = true;
     runsRef.current = runsRef.current.map((r) => (r.status === "queued" ? { ...r, status: "error", error: "Stopped." } : r));
     abort.current?.abort();
@@ -182,10 +187,11 @@ export default function Converter({
   }, [onClose]);
 
   useEffect(() => {
+    if (!onClose) return;
     const onKey = (event: KeyboardEvent) => event.key === "Escape" && close();
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [close]);
+  }, [close, onClose]);
 
   // Free converted files and cancel work on every unmount, including navigation.
   useEffect(
@@ -220,11 +226,11 @@ export default function Converter({
   };
 
   return (
-    <div className="modal-back" onMouseDown={(ev) => ev.target === ev.currentTarget && close()}>
+    <div className={standalone ? "converter-workspace" : "modal-back"} onMouseDown={(ev) => ev.target === ev.currentTarget && close()}>
       <div
-        className={`studio${dropping ? " studio-drop" : ""}`}
-        role="dialog"
-        aria-modal="true"
+        className={`studio${standalone ? " studio-page" : ""}${dropping ? " studio-drop" : ""}`}
+        role={standalone ? "region" : "dialog"}
+        aria-modal={standalone ? undefined : true}
         aria-label="Convert your video"
         onDragOver={(ev) => {
           ev.preventDefault();
@@ -239,15 +245,24 @@ export default function Converter({
           onPick(ev.dataTransfer.files[0]);
         }}
       >
-        <button type="button" className="modal-x" onClick={close} aria-label="Close">
-          ×
-        </button>
+        {onClose && (
+          <button type="button" className="modal-x" onClick={close} aria-label="Close">
+            ×
+          </button>
+        )}
 
         <section className="studio-main">
           <h2>Your videos</h2>
           <p className="modal-note">
-            Everything runs in this tab. Your video never leaves your computer. Drop another file here any time.
+            Everything runs in this tab. Your video never leaves your computer. {activeFile ? "Drop another file here any time." : "Choose your settings, then add a video when you're ready."}
           </p>
+
+          {!activeFile && (
+            <button type="button" className="drop" onClick={() => pickRef.current?.click()}>
+              <b>Choose a video</b>
+              <span>or drop it here when you&rsquo;re ready.</span>
+            </button>
+          )}
 
           <ul className="runs">
             {runs.map((run) => (
@@ -259,21 +274,25 @@ export default function Converter({
             <button
               type="button"
               className="btn btn-patch"
-              onClick={() => queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
+              disabled={!activeFile}
+              onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
             >
-              Convert again with these settings
+              {activeFile ? "Convert again with these settings" : "Convert with these settings"}
             </button>
             <button
               type="button"
               className="btn btn-ghost"
-              onClick={() => queue(activeFile, PRESETS.map((p) => ({ title: p.title, slug: `lab-${p.id}`, recipe: p.recipe })))}
+              disabled={!activeFile}
+              onClick={() => activeFile && queue(activeFile, PRESETS.map((p) => ({ title: p.title, slug: `lab-${p.id}`, recipe: p.recipe })))}
               title="Builds one file per preset so you can post them side by side"
             >
               Make A/B test set ({PRESETS.length})
             </button>
-            <button type="button" className="btn btn-ghost" onClick={() => pickRef.current?.click()}>
-              Choose another video
-            </button>
+            {activeFile && (
+              <button type="button" className="btn btn-ghost" onClick={() => pickRef.current?.click()}>
+                Choose another video
+              </button>
+            )}
             {current && (
               <button type="button" className="again" onClick={() => abort.current?.abort()}>
                 Stop current

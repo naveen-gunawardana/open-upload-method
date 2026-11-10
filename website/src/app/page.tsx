@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
@@ -179,6 +180,9 @@ export default function Home() {
             {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
 
             <div className="cta-row">
+              <Link className="btn btn-ghost" href="/convert">
+                Open converter
+              </Link>
               <button type="button" className="btn btn-star" onClick={() => setReviewing(true)}>
                 <StarIcon />
                 Leave a review
