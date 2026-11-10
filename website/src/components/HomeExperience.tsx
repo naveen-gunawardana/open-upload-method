@@ -76,7 +76,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
   const [notVideo, setNotVideo] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [cardHeight, setCardHeight] = useState(560);
-  const pickRef = useRef<HTMLInputElement>(null);
   const depth = useRef(0);
   const homeTitle = useRef<HTMLHeadingElement>(null);
   const converterTitle = useRef<HTMLHeadingElement>(null);
@@ -254,24 +253,10 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                   </div>
 
                   <div className="hero-actions">
-                    <button type="button" className="drop hero-drop" onClick={() => pickRef.current?.click()}>
-                      <b>Drop your video here</b>
-                      <span>or click to browse · MP4, MOV &amp; more</span>
-                    </button>
                     <button type="button" className="btn btn-convert" onClick={openConverter}>
-                      Patch video
+                      Patch video <ArrowIcon />
                     </button>
                   </div>
-                  <input
-                    ref={pickRef}
-                    type="file"
-                    accept="video/mp4,video/quicktime,video/*"
-                    hidden
-                    onChange={(e) => {
-                      start(e.target.files?.[0]);
-                      e.target.value = "";
-                    }}
-                  />
                   {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
 
                   <div className="credit">
@@ -297,7 +282,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     </button>
                     <div>
                       <h1 id="converter-title" ref={converterTitle} tabIndex={-1}>Patcher</h1>
-                      <p className="fine">Choose your settings, then add a video.</p>
                     </div>
                   </header>
                   {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
@@ -311,7 +295,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
 
       {dragging && view === "home" && (
         <div className="drop-overlay" aria-hidden="true">
-          <div>Drop to patch</div>
+          <div>Drop to open in patcher</div>
         </div>
       )}
       {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}

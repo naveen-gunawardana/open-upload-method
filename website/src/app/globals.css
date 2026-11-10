@@ -196,11 +196,16 @@ button.btn{cursor:pointer}
 .studio h2{margin:0; font-family:var(--font-display); font-size:18px; color:var(--fg); text-align:center}
 .studio-main,.studio-side{display:flex; flex-direction:column; gap:10px; min-width:0}
 .studio-side{border-top:1px solid var(--line); padding-top:16px; gap:8px}
-.studio-upload{padding:12px 16px; font:inherit; flex-direction:row; gap:12px; text-align:left}
-.studio-upload .upload-icon{width:32px; height:32px; flex:none; padding:5px; color:var(--blue); background:#edf5ff; border:1px solid #deebf9; border-radius:9px}
-.studio-upload .upload-copy{display:flex; flex-direction:column; gap:3px; min-width:0; overflow-wrap:anywhere}
-.studio-upload b{font-family:var(--font-body); font-size:14px; color:var(--fg); font-weight:600}
-.studio-upload .upload-copy>span{font-size:12px}
+.patch-start-row{display:flex; align-items:center; gap:10px; width:100%}
+.file-select{display:flex; align-items:center; gap:10px; flex:1; min-width:0; padding:10px 12px; min-height:48px;
+  border:1px solid var(--line); border-radius:8px; background:#fff; color:var(--fg); text-align:left; font:inherit; cursor:pointer}
+.file-select:hover{border-color:#a8c7e8; background:#f8fbff}
+.file-select:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
+.file-select .file-icon{flex:none; color:var(--blue)}
+.file-copy{display:flex; flex-direction:column; gap:3px; min-width:0}
+.file-copy b{font-size:13px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.file-copy>span{font-size:11px; color:var(--muted)}
+.patch-start-row .btn-start{width:auto; min-width:90px; max-width:none; align-self:center; min-height:44px; padding:10px 14px; flex:none; white-space:nowrap}
 .converter-page{position:fixed; inset:0; z-index:2; overflow:auto; padding:24px 16px;
   display:flex; flex-direction:column; align-items:center}
 .converter-shell{width:min(620px,100%); margin-block:auto; display:flex; flex-direction:column; gap:16px; flex:none}

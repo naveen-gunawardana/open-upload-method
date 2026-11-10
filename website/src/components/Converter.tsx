@@ -266,23 +266,26 @@ export default function Converter({
         )}
 
         <section className="studio-main">
-          <button type="button" className="drop studio-upload" onClick={() => pickRef.current?.click()}>
-            <svg className="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <div className="patch-start-row">
+          <button type="button" className="file-select" title={activeFile?.name} onClick={() => pickRef.current?.click()}>
+            <svg className="file-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
             </svg>
-            <span className="upload-copy">
-              <b>{activeFile ? activeFile.name : "Choose your video"}</b>
-              <span>{activeFile ? `${formatSize(activeFile.size)} · Click to change video` : "Drag & drop, or click to browse"}</span>
+            <span className="file-copy">
+              <b>{activeFile ? activeFile.name : "Choose video"}</b>
+              <span>{activeFile ? `${formatSize(activeFile.size)} · Change video` : "MP4, MOV & more"}</span>
             </span>
           </button>
           <button
             type="button"
-            className="btn btn-convert"
+            className="btn btn-convert btn-start"
             disabled={!activeFile || !!current}
             onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
           >
-            {current ? "Patching…" : selectionWasPatched ? "Patch again" : "Patch video"}
+            {current ? "Working…" : selectionWasPatched ? "Start again" : "Start"}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
           </button>
+          </div>
           <input
             ref={pickRef}
             type="file"

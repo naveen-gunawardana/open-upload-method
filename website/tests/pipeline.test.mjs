@@ -43,15 +43,15 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   assert.match(presetSelect, /<option value="4k">4K — experimental<\/option>/);
   assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Make local comparison \(3\)<\/button>/);
-  assert.match(html, /<button[^>]*class="btn btn-convert"[^>]*disabled=""[^>]*>Patch video<\/button>/);
+  assert.match(html, /<button[^>]*class="btn btn-convert btn-start"[^>]*disabled=""[^>]*>Start<svg/);
   const selected = renderToStaticMarkup(createElement(Converter, {
     standalone: true, file: new File(["test"], "selected-test.mp4", { type: "video/mp4" }),
   }));
   assert.match(selected, /selected-test\.mp4/);
-  assert.match(selected, /Click to change video/);
-  assert.match(selected, /<button[^>]*class="btn btn-convert"[^>]*>Patch video<\/button>/);
-  assert.doesNotMatch(selected.match(/<button[^>]*class="btn btn-convert"[^>]*>/)?.[0] ?? "", /disabled/);
-  assert.doesNotMatch(selected, /Patch again|run-running|Patching…/);
+  assert.match(selected, /Change video/);
+  assert.match(selected, /<button[^>]*class="btn btn-convert btn-start"[^>]*>Start<svg/);
+  assert.doesNotMatch(selected.match(/<button[^>]*class="btn btn-convert btn-start"[^>]*>/)?.[0] ?? "", /disabled/);
+  assert.doesNotMatch(selected, /Start again|run-running|Working…|studio-upload/);
 });
 test("resolution presets downscale in both orientations without upscaling or changing the default", () => {
   const hd = PRESETS.find(p => p.id === "1080p").recipe;
