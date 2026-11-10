@@ -22,14 +22,6 @@ function GithubIcon() {
   );
 }
 
-function StarIcon() {
-  return (
-    <svg viewBox="0 0 16 16" fill="currentColor">
-      <path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.75.75 0 0 1-1.088.79L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.191L.818 6.375a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z" />
-    </svg>
-  );
-}
-
 function Logo({ size = 28 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
@@ -230,12 +222,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     <button type="button" className="btn btn-convert" onClick={openConverter}>
                       Patch video
                     </button>
-                    <div className="hero-secondary">
-                      <button type="button" className="btn btn-review" onClick={() => setReviewing(true)}>
-                        <StarIcon />
-                        Leave a review
-                      </button>
-                    </div>
                   </div>
                   <input
                     ref={pickRef}
@@ -253,6 +239,8 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     <span>Free &amp; open source</span>
                     <span aria-hidden="true">·</span>
                     <a href={GITHUB_URL} target="_blank" rel="noopener"><GithubIcon /> View code</a>
+                    <span aria-hidden="true">·</span>
+                    <button type="button" className="linklike" onClick={() => setReviewing(true)}>Leave a review</button>
                   </div>
                 </div>
               </section>
