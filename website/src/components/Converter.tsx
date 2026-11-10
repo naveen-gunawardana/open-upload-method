@@ -247,7 +247,7 @@ export default function Converter({
         className={`studio${standalone ? " studio-page" : ""}${embedded ? " studio-embedded" : ""}${dropping ? " studio-drop" : ""}`}
         role={standalone ? "region" : "dialog"}
         aria-modal={standalone ? undefined : true}
-        aria-label="Convert your video"
+        aria-label="Patch your video"
         onDragOver={(ev) => {
           ev.preventDefault();
           ev.stopPropagation();
@@ -283,7 +283,7 @@ export default function Converter({
             disabled={!!current}
             onClick={() => activeFile ? queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]) : pickRef.current?.click()}
           >
-            {current ? "Converting…" : activeFile ? "Convert again" : "Convert video"}
+            {current ? "Patching…" : activeFile ? "Patch again" : "Patch video"}
             {!current && (
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                 <path d="M5 12h14m-6-6 6 6-6 6" />
@@ -313,7 +313,7 @@ export default function Converter({
           {current && (
             <div className="studio-actions">
               <button type="button" className="btn btn-secondary" onClick={() => abort.current?.abort()}>
-                Stop conversion
+                Stop patching
               </button>
             </div>
           )}
@@ -562,7 +562,7 @@ export default function Converter({
           </SettingsGroup>
 
           <div className="settings-footer">
-            <p className="fine">Settings saved for your next conversion.</p>
+            <p className="fine">Settings saved for your next patch.</p>
             <button type="button" className="again" onClick={() => setRecipe(DEFAULT_RECIPE)}>
               Reset to current default
             </button>

@@ -9,7 +9,7 @@ const ReviewForm = dynamic(() => import("@/components/ReviewForm"), { ssr: false
 
 const Converter = dynamic(() => import("@/components/Converter"), {
   ssr: false,
-  loading: () => <p className="fine" role="status">Loading converter…</p>,
+  loading: () => <p className="fine" role="status">Loading patcher…</p>,
 });
 
 const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
@@ -68,7 +68,7 @@ function ConvertedCount({ count }: { count: number | null }) {
   return (
     <div className="eyebrow eyebrow-dl">
       <DownloadIcon />
-      <span className="dl-num">{count.toLocaleString()}</span> videos converted and counting
+      <span className="dl-num">{count.toLocaleString()}</span> videos patched and counting
     </div>
   );
 }
@@ -222,11 +222,11 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                       <span>or click to browse · MP4, MOV &amp; more</span>
                     </button>
                     <button type="button" className="btn btn-convert" onClick={openConverter}>
-                      Convert video <ArrowIcon />
+                      Patch video <ArrowIcon />
                     </button>
                     <div className="hero-secondary">
                       <button type="button" className="btn btn-secondary" onClick={openConverter}>
-                        Converter settings
+                        Patcher settings
                       </button>
                       <button type="button" className="btn btn-secondary" onClick={() => setReviewing(true)}>
                         <StarIcon />
@@ -267,7 +267,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     </svg>
                   </button>
                   <div>
-                    <h1 id="converter-title" ref={converterTitle} tabIndex={-1}>Video converter</h1>
+                    <h1 id="converter-title" ref={converterTitle} tabIndex={-1}>Video patcher</h1>
                     <p className="fine">Choose your settings, then add a video.</p>
                   </div>
                 </header>
@@ -281,7 +281,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
 
       {dragging && view === "home" && (
         <div className="drop-overlay" aria-hidden="true">
-          <div>Drop to convert</div>
+          <div>Drop to patch</div>
         </div>
       )}
       {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}
