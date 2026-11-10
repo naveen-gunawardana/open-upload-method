@@ -37,7 +37,7 @@ function Logo({ size = 28 }: { size?: number }) {
       <defs>
         <linearGradient id="oqm-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
           <stop stopColor="#1f7fe0" />
-          <stop offset="1" stopColor="#ffce5c" />
+          <stop offset="1" stopColor="#65b3ff" />
         </linearGradient>
       </defs>
     </svg>
@@ -49,6 +49,14 @@ function DownloadIcon() {
     <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
       <path d="M8 1.5v8m0 0L4.5 6M8 9.5 11.5 6" />
       <path d="M2 11.5v1.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-1.5" />
+    </svg>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M5 12h14m-6-6 6 6-6 6" />
     </svg>
   );
 }
@@ -152,21 +160,32 @@ export default function Home() {
           <div className="hero-card">
             <ConvertedCount count={count} />
             <h1>Upload in HD. No compression.</h1>
-            <p className="sub">1080p at 60fps, with no compression. It runs right here in your browser, so your video never leaves your computer. Free, no account, nothing to install.</p>
+            <p className="sub">1080p at 60fps, with no compression. Your video stays on your device. Free, with no account or installation.</p>
 
-            <div className="compare">
-              <span className="pill no">
-                without OQM → <span className="pill-res">576p</span> · 30fps · 1.5 Mbps
-              </span>
-              <span className="pill yes">
-                with OQM → <span className="pill-res">1080p</span> · 60fps · no compression
-              </span>
+            <div className="quality-summary" aria-label="Video quality">
+              <span>1080p HD</span>
+              <span>60 fps</span>
+              <span>No compression</span>
             </div>
 
-            <button type="button" className="drop hero-drop" onClick={() => pickRef.current?.click()}>
-              <b>Drop your video here</b>
-              <span>or click to choose a file. It starts converting right away.</span>
-            </button>
+            <div className="hero-actions">
+              <button type="button" className="drop hero-drop" onClick={() => pickRef.current?.click()}>
+                <b>Drop your video here</b>
+                <span>or click to browse · MP4, MOV &amp; more</span>
+              </button>
+              <button type="button" className="btn btn-convert" onClick={() => pickRef.current?.click()}>
+                Convert video <ArrowIcon />
+              </button>
+              <div className="hero-secondary">
+                <Link className="btn btn-secondary" href="/convert">
+                  Converter settings
+                </Link>
+                <button type="button" className="btn btn-secondary" onClick={() => setReviewing(true)}>
+                  <StarIcon />
+                  Leave a review
+                </button>
+              </div>
+            </div>
             <input
               ref={pickRef}
               type="file"
@@ -179,21 +198,11 @@ export default function Home() {
             />
             {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
 
-            <div className="cta-row">
-              <Link className="btn btn-ghost" href="/convert">
-                Open converter
-              </Link>
-              <button type="button" className="btn btn-star" onClick={() => setReviewing(true)}>
-                <StarIcon />
-                Leave a review
-              </button>
-              <a className="btn btn-ghost" href={GITHUB_URL} target="_blank" rel="noopener">
-                <GithubIcon />
-                View code
-              </a>
+            <div className="credit">
+              <span>Free &amp; open source</span>
+              <span aria-hidden="true">·</span>
+              <a href={GITHUB_URL} target="_blank" rel="noopener"><GithubIcon /> View code</a>
             </div>
-
-            <div className="credit">Zero compression · completely free forever</div>
           </div>
         </div>
       </div>

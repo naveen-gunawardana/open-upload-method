@@ -265,15 +265,29 @@ export default function Converter({
         )}
 
         <section className="studio-main">
-          <h2>{activeFile ? "Your videos" : "Start with a video"}</h2>
           <button type="button" className="drop studio-upload" onClick={() => pickRef.current?.click()}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <svg className="upload-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
             </svg>
-            <b>{activeFile ? "Add another video" : "Drop your video here"}</b>
-            <span>or click to choose a file</span>
+            <span className="upload-copy">
+              <b>{activeFile ? "Add another video" : "Choose your video"}</b>
+              <span>Drag &amp; drop, or click to browse</span>
+            </span>
           </button>
-          <p className="fine studio-privacy">Processed on your device. Your video stays with you.</p>
+          <button
+            type="button"
+            className="btn btn-convert"
+            disabled={!!current}
+            onClick={() => activeFile ? queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]) : pickRef.current?.click()}
+          >
+            {current ? "Converting…" : activeFile ? "Convert again" : "Convert video"}
+            {!current && (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M5 12h14m-6-6 6 6-6 6" />
+              </svg>
+            )}
+          </button>
+          <p className="fine studio-privacy">Your video stays on your device. No account needed.</p>
           <input
             ref={pickRef}
             type="file"
@@ -293,23 +307,11 @@ export default function Converter({
             </ul>
           )}
 
-          {activeFile && (
+          {current && (
             <div className="studio-actions">
-              <button
-                type="button"
-                className="btn btn-patch"
-                onClick={() => queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
-              >
-                Convert again
+              <button type="button" className="btn btn-secondary" onClick={() => abort.current?.abort()}>
+                Stop conversion
               </button>
-              <button type="button" className="btn btn-ghost" onClick={() => pickRef.current?.click()}>
-                Choose another
-              </button>
-              {current && (
-                <button type="button" className="again" onClick={() => abort.current?.abort()}>
-                  Stop current
-                </button>
-              )}
             </div>
           )}
         </section>
