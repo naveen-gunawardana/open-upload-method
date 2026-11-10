@@ -225,9 +225,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                       Patch video <ArrowIcon />
                     </button>
                     <div className="hero-secondary">
-                      <button type="button" className="btn btn-secondary" onClick={openConverter}>
-                        Patcher settings
-                      </button>
                       <button type="button" className="btn btn-secondary" onClick={() => setReviewing(true)}>
                         <StarIcon />
                         Leave a review

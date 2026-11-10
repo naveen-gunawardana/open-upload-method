@@ -65,7 +65,7 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .quality-summary{display:flex; flex-wrap:wrap; justify-content:center; gap:7px}
 .quality-summary span{font-size:12px; font-weight:600; color:#365575; background:#f1f6fc; border:1px solid #e1eaf5; border-radius:6px; padding:6px 10px}
 .hero-actions{display:flex; flex-direction:column; gap:10px; width:100%; max-width:440px}
-.hero-secondary{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px}
+.hero-secondary{display:grid; grid-template-columns:1fr; gap:10px}
 
 .hero-card.card-frame{display:block; padding:0; height:min(620px,calc(100dvh - 132px)); overflow:hidden; isolation:isolate}
 .card-slider{display:flex; width:200%; height:100%; transform:translateX(0); transition:transform .46s cubic-bezier(.22,1,.36,1)}
