@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
@@ -75,12 +75,51 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
   const [dragging, setDragging] = useState(false);
   const [notVideo, setNotVideo] = useState(false);
   const [count, setCount] = useState<number | null>(null);
+  const [cardHeight, setCardHeight] = useState(560);
   const pickRef = useRef<HTMLInputElement>(null);
   const depth = useRef(0);
   const homeTitle = useRef<HTMLHeadingElement>(null);
   const converterTitle = useRef<HTMLHeadingElement>(null);
   const homePanel = useRef<HTMLElement>(null);
   const converterPanel = useRef<HTMLElement>(null);
+  const landingContent = useRef<HTMLDivElement>(null);
+  const converterContent = useRef<HTMLDivElement>(null);
+
+  const measureCard = useCallback(() => {
+    const panel = view === "converter" ? converterPanel.current : homePanel.current;
+    const content = view === "converter" ? converterContent.current : landingContent.current;
+    if (!panel || !content || (view === "converter" && !panel.querySelector(".studio"))) return;
+    const style = getComputedStyle(panel);
+    setCardHeight(Math.ceil(content.getBoundingClientRect().height + parseFloat(style.paddingTop) + parseFloat(style.paddingBottom) + 2));
+  }, [view]);
+
+  useEffect(() => {
+    const observer = new ResizeObserver(measureCard);
+    if (landingContent.current) observer.observe(landingContent.current);
+    if (converterContent.current) observer.observe(converterContent.current);
+    measureCard();
+    return () => observer.disconnect();
+  }, [measureCard]);
+
+  const revealSettings = useCallback((event: Event) => {
+    const section = event.target;
+    if (!(section instanceof HTMLDetailsElement) || !section.open) return;
+    requestAnimationFrame(() => {
+      const panel = converterPanel.current;
+      if (!panel || !section.isConnected) return;
+      measureCard();
+      panel.scrollTo({
+        top: panel.scrollTop + section.getBoundingClientRect().top - panel.getBoundingClientRect().top - 12,
+        behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
+      });
+    });
+  }, [measureCard]);
+
+  useEffect(() => {
+    const panel = converterPanel.current;
+    panel?.addEventListener("toggle", revealSettings, true);
+    return () => panel?.removeEventListener("toggle", revealSettings, true);
+  }, [revealSettings]);
 
   const openConverter = useCallback(() => {
     depth.current = 0;
@@ -188,7 +227,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
         </div>
 
         <div className="hero">
-          <div className={`hero-card card-frame${view === "converter" ? " showing-converter" : ""}`}>
+          <div className={`hero-card card-frame${view === "converter" ? " showing-converter" : ""}`} style={{ "--card-height": `${cardHeight}px` } as CSSProperties}>
             <div className="card-slider">
               <section
                 ref={homePanel}
@@ -197,9 +236,9 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                 aria-hidden={view !== "home"}
                 inert={view !== "home"}
               >
-                <div className="landing-content">
+                <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
-                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Upload in HD. No compression.</h1>
+                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Stop TikTok from compressing your video.</h1>
                   <p className="sub">1080p at 60fps, with no compression. Your video stays on your device. Free, with no account or installation.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
@@ -249,19 +288,21 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                 aria-hidden={view !== "converter"}
                 inert={view !== "converter"}
               >
-                <header className="panel-heading">
-                  <button type="button" className="panel-back" onClick={goHome} aria-label="Back to overview">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                      <path d="M19 12H5m6-6-6 6 6 6" />
-                    </svg>
-                  </button>
-                  <div>
-                    <h1 id="converter-title" ref={converterTitle} tabIndex={-1}>Video patcher</h1>
-                    <p className="fine">Choose your settings, then add a video.</p>
-                  </div>
-                </header>
-                {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
-                {converterOpened && <Converter file={file} standalone embedded onCounted={onCounted} />}
+                <div className="converter-content" ref={converterContent}>
+                  <header className="panel-heading">
+                    <button type="button" className="panel-back" onClick={goHome} aria-label="Back to overview">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        <path d="M19 12H5m6-6-6 6 6 6" />
+                      </svg>
+                    </button>
+                    <div>
+                      <h1 id="converter-title" ref={converterTitle} tabIndex={-1}>Patcher</h1>
+                      <p className="fine">Choose your settings, then add a video.</p>
+                    </div>
+                  </header>
+                  {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
+                  {converterOpened && <Converter file={file} standalone embedded onCounted={onCounted} />}
+                </div>
               </section>
             </div>
           </div>

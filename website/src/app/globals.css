@@ -72,17 +72,24 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .quality-arrow svg{width:20px; height:20px}
 .hero-actions{display:flex; flex-direction:column; gap:10px; width:100%; max-width:440px}
 
-.hero-card.card-frame{display:block; padding:0; height:min(620px,calc(100dvh - 132px)); overflow:clip; isolation:isolate}
+.hero-card.card-frame{display:block; padding:0; height:min(var(--card-height,560px),calc(100dvh - 132px)); overflow:clip; isolation:isolate; transition:height .28s ease}
 .card-slider{position:relative; width:100%; height:100%}
 .card-panel{position:absolute; inset:0; width:100%; min-width:0; height:100%; padding:24px 32px; overflow-y:auto; overflow-x:hidden;
-  overscroll-behavior:contain; scrollbar-width:thin; text-align:left; transition:transform .4s cubic-bezier(.22,1,.36,1)}
+  overscroll-behavior:contain; scrollbar-width:thin; scrollbar-gutter:stable both-edges; text-align:left; transition:transform .4s cubic-bezier(.22,1,.36,1)}
 .landing-panel{transform:translateX(0)}
 .showing-converter .landing-panel{transform:translateX(-100%)}
 .converter-panel{transform:translateX(100%)}
 .showing-converter .converter-panel{transform:translateX(0)}
 .card-panel[aria-hidden="true"]{pointer-events:none}
 .landing-panel{display:flex; flex-direction:column; text-align:center}
-.landing-content{display:flex; flex-direction:column; align-items:center; gap:18px; width:100%; margin-block:auto; flex:none}
+.landing-content{display:flex; flex-direction:column; align-items:center; gap:16px; width:100%; flex:none}
+.landing-content h1{font-size:clamp(28px,4.9vh,38px)}
+.converter-content{display:flow-root}
+.card-panel,.stage{scrollbar-width:thin; scrollbar-color:#9680b6 #eee8f5}
+.card-panel::-webkit-scrollbar,.stage::-webkit-scrollbar{width:8px}
+.card-panel::-webkit-scrollbar-track,.stage::-webkit-scrollbar-track{background:#eee8f5; border-radius:8px}
+.card-panel::-webkit-scrollbar-thumb,.stage::-webkit-scrollbar-thumb{background:#9680b6; border:2px solid #eee8f5; border-radius:8px}
+.card-panel::-webkit-scrollbar-thumb:hover,.stage::-webkit-scrollbar-thumb:hover{background:#785c9d}
 .card-panel h1:focus{outline:none}
 .converter-panel{padding:22px 24px}
 .panel-heading{display:flex; align-items:center; gap:12px; margin-bottom:16px}
@@ -93,7 +100,7 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .panel-back svg{width:20px; height:20px}
 .panel-back:hover{background:#dcecff}
 .panel-back:focus-visible{outline:3px solid #83bbf4; outline-offset:3px}
-@media (prefers-reduced-motion:reduce){.card-panel{transition:none}}
+@media (prefers-reduced-motion:reduce){.card-panel,.hero-card.card-frame{transition:none}}
 
 .cta-row{display:flex; gap:12px; flex-wrap:wrap; justify-content:center}
 .btn{font-family:var(--font-body); font-size:14px; font-weight:600; line-height:1.25; min-height:44px; padding:10px 18px;
