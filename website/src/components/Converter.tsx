@@ -283,11 +283,6 @@ export default function Converter({
             onClick={() => activeFile ? queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]) : pickRef.current?.click()}
           >
             {current ? "Patching…" : activeFile ? "Patch again" : "Patch video"}
-            {!current && (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <path d="M5 12h14m-6-6 6 6-6 6" />
-              </svg>
-            )}
           </button>
           <p className="fine studio-privacy">Your video stays on your device. No account needed.</p>
           <input

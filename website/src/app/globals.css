@@ -71,7 +71,8 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .quality-arrow{color:#7890a7; display:grid; place-items:center}
 .quality-arrow svg{width:20px; height:20px}
 .hero-actions{display:flex; flex-direction:column; gap:10px; width:100%; max-width:440px}
-.hero-secondary{display:grid; grid-template-columns:1fr; gap:10px}
+.hero-secondary{display:flex; justify-content:center; gap:10px}
+.hero-secondary .btn{min-width:180px}
 
 .hero-card.card-frame{display:block; padding:0; height:min(620px,calc(100dvh - 132px)); overflow:clip; isolation:isolate}
 .card-slider{position:relative; width:100%; height:100%}
@@ -108,10 +109,9 @@ h1{font-size:clamp(30px,5.6vh,44px); line-height:1.1; color:var(--fg); font-weig
 .btn-review svg{color:#a17422}
 .btn-download,.btn-patch{background:var(--blue-dark); color:#fff; border-color:var(--blue-dark)}
 .btn-download:hover,.btn-patch:hover{background:#1461af; border-color:#1461af}
-.btn-convert{width:100%; min-height:64px; padding:18px 22px; font-size:19px; font-weight:700; color:#fff;
-  background:var(--blue); border-color:#1b73cc; box-shadow:0 3px 0 #145a9f}
-.btn-convert svg{width:21px; height:21px; margin-left:4px}
-.btn-convert:hover{background:#1975d2; border-color:#176cc2; box-shadow:0 3px 0 #145a9f}
+.btn-convert{width:auto; min-width:210px; max-width:100%; min-height:48px; align-self:center; padding:12px 28px;
+  border-radius:4px; font-size:15px; font-weight:600; color:#fff; background:var(--blue); border-color:#176cc2; box-shadow:none}
+.btn-convert:hover{background:#1975d2; border-color:#176cc2; box-shadow:none}
 .btn:focus-visible,.again:focus-visible,.converter-back:focus-visible{outline:3px solid #83bbf4; outline-offset:3px}
 .btn:disabled{cursor:not-allowed; opacity:.55; box-shadow:none}
 

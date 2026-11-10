@@ -228,7 +228,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                       <span>or click to browse · MP4, MOV &amp; more</span>
                     </button>
                     <button type="button" className="btn btn-convert" onClick={openConverter}>
-                      Patch video <ArrowIcon />
+                      Patch video
                     </button>
                     <div className="hero-secondary">
                       <button type="button" className="btn btn-review" onClick={() => setReviewing(true)}>
