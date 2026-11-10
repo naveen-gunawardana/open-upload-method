@@ -210,10 +210,10 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                   <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Upload in HD. No compression.</h1>
                   <p className="sub">1080p at 60fps, with no compression. Your video stays on your device. Free, with no account or installation.</p>
 
-                  <div className="quality-compare" aria-label="Upload quality comparison">
+                  <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">
                       <span>Without OQM</span>
-                      <strong>Standard upload</strong>
+                      <strong>540p · 30fps</strong>
                     </div>
                     <span className="quality-arrow" aria-hidden="true"><ArrowIcon /></span>
                     <div className="quality-after">

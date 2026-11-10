@@ -239,7 +239,6 @@ export default function Converter({
   const onPick = (f: File | undefined) => {
     if (f) queue(f, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }]);
   };
-  const SettingsGroup = embedded ? "details" : "div";
 
   return (
     <div className={standalone ? "converter-workspace" : "modal-back"} onMouseDown={(ev) => ev.target === ev.currentTarget && close()}>
@@ -337,9 +336,7 @@ export default function Converter({
             <p className="fine">{selectedPreset?.desc ?? "Your own mix of video, audio and container settings."}</p>
           </div>
 
-          <SettingsGroup className={embedded ? "settings-more" : "settings-groups"}>
-            {embedded && <summary>Advanced settings <span>Video, audio, patches &amp; tools</span></summary>}
-            <div className="settings-groups">
+          <div className="settings-groups">
           <details className="settings-section settings-video">
             <summary>
               <span>Video &amp; audio</span>
@@ -558,8 +555,7 @@ export default function Converter({
             </div>
           </details>
 
-            </div>
-          </SettingsGroup>
+          </div>
 
           <div className="settings-footer">
             <p className="fine">Settings saved for your next patch.</p>
