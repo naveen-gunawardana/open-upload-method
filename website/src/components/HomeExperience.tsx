@@ -236,8 +236,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                   {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
 
                   <div className="credit">
-                    <span>Free &amp; open source</span>
-                    <span aria-hidden="true">·</span>
                     <a href={GITHUB_URL} target="_blank" rel="noopener"><GithubIcon /> View code</a>
                     <span aria-hidden="true">·</span>
                     <button type="button" className="linklike" onClick={() => setReviewing(true)}>Leave a review</button>
