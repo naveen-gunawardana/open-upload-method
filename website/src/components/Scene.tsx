@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Cloud, Clouds, calcPosFromAngles } from "@react-three/drei";
-import { Bloom, EffectComposer } from "@react-three/postprocessing";
+import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { createNoise2D } from "simplex-noise";
 
@@ -12,7 +12,12 @@ const SUN_AZIMUTH = 0.2;
 
 const terrainNoise = createNoise2D();
 function terrainHeight(x: number, z: number) {
-  return terrainNoise(x * 0.012, z * 0.012) * 3.4 + terrainNoise(x * 0.05, z * 0.05) * 0.7;
+  return (
+    terrainNoise(x * 0.012, z * 0.012) * 4.2 +
+    terrainNoise(x * 0.05, z * 0.05) * 1.1 +
+    terrainNoise(x * 0.16, z * 0.16) * 0.28 +
+    terrainNoise(x * 0.45, z * 0.45) * 0.07
+  );
 }
 
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
@@ -27,18 +32,36 @@ function useReducedMotion() {
   return useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
 }
 
-function CameraRig() {
-  const { camera } = useThree();
+function CameraRig({ reduced }: { reduced: boolean }) {
+  const camera = useThree((state) => state.camera);
+  const look = useRef(new THREE.Vector3(0, 0.6, -60));
   useEffect(() => {
-    camera.lookAt(0, 0.6, -60);
+    camera.lookAt(look.current);
   }, [camera]);
+  useFrame((state, delta) => {
+    if (reduced) return;
+    const cam = state.camera;
+    const target = look.current;
+    const t = state.clock.elapsedTime;
+    const k = 1 - Math.exp(-delta * 2.2);
+    const tx = Math.sin(t * 0.12) * 2.4 + state.pointer.x * 2.6;
+    const ty = 2.3 + Math.sin(t * 0.21) * 0.35 + state.pointer.y * 0.9;
+    const tz = 11 + Math.sin(t * 0.09) * 1.6;
+    cam.position.x += (tx - cam.position.x) * k;
+    cam.position.y += (ty - cam.position.y) * k;
+    cam.position.z += (tz - cam.position.z) * k;
+    target.x += (state.pointer.x * 5 - target.x) * k;
+    target.y += (0.6 + state.pointer.y * 2 - target.y) * k;
+    cam.lookAt(target);
+    cam.rotation.z = Math.sin(t * 0.17) * 0.018;
+  });
   return null;
 }
 
 function Terrain() {
   const geometry = useMemo(() => {
-    const size = 240;
-    const seg = 110;
+    const size = 340;
+    const seg = 320;
     const geo = new THREE.PlaneGeometry(size, size, seg, seg);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
@@ -77,11 +100,12 @@ function Mountains() {
       seed = (seed * 9301 + 49297) % 233280;
       return seed / 233280;
     };
-    for (let i = 0; i < 16; i++) {
-      const x = (rand() - 0.5) * 320;
-      const z = -95 - rand() * 55;
-      const radius = 18 + rand() * 20;
-      const height = 22 + rand() * 30;
+    for (let i = 0; i < 64; i++) {
+      const layer = i % 4;
+      const x = (rand() - 0.5) * (360 + layer * 80);
+      const z = -90 - layer * 32 - rand() * 50;
+      const radius = 16 + rand() * 24 + layer * 3;
+      const height = 24 + rand() * 38 + layer * 10;
       arr.push({ position: [x, -3, z], radius, height, rot: rand() * Math.PI, idx: i });
     }
     return arr;
@@ -131,17 +155,19 @@ function Mountains() {
   );
 }
 
-const CLOUD_CONFIG = [
-  { start: -40, speed: 1.1, y: 27, z: -130, scale: 1.4 },
-  { start: 10, speed: 0.7, y: 34, z: -155, scale: 1.8 },
-  { start: -5, speed: 1.6, y: 23, z: -115, scale: 1.0 },
-  { start: 35, speed: 0.9, y: 31, z: -165, scale: 1.5 },
-  { start: 55, speed: 1.3, y: 29, z: -140, scale: 1.2 },
-  { start: -70, speed: 0.8, y: 20, z: -120, scale: 0.9 },
-  { start: 80, speed: 1.0, y: 37, z: -175, scale: 1.6 },
-  { start: -20, speed: 1.4, y: 32, z: -150, scale: 1.1 },
-  { start: 100, speed: 0.6, y: 25, z: -135, scale: 1.3 },
-];
+const CLOUD_CONFIG = Array.from({ length: 34 }, (_, i) => {
+  const r = (n: number) => {
+    const s = Math.sin((i + 1) * 127.1 + n * 311.7) * 43758.5453;
+    return s - Math.floor(s);
+  };
+  return {
+    start: (r(1) - 0.5) * 180,
+    speed: 0.5 + r(2) * 1.4,
+    y: 16 + r(3) * 30,
+    z: -90 - r(4) * 110,
+    scale: 0.8 + r(5) * 1.4,
+  };
+});
 
 function CloudBank({ reduced }: { reduced: boolean }) {
   const refs = useRef<(THREE.Group | null)[]>([]);
@@ -157,7 +183,7 @@ function CloudBank({ reduced }: { reduced: boolean }) {
   });
 
   return (
-    <Clouds limit={150} range={100}>
+    <Clouds limit={500} range={100}>
       {CLOUD_CONFIG.map((c, i) => (
         <Cloud
           key={i}
@@ -179,77 +205,119 @@ function CloudBank({ reduced }: { reduced: boolean }) {
   );
 }
 
-const BIRD_CONFIG = [
-  { startX: -50, y: 9, z: -25, speed: 2.2 },
-  { startX: -70, y: 10.5, z: -32, speed: 1.6 },
-  { startX: -40, y: 8.2, z: -20, speed: 2.8 },
-  { startX: -95, y: 12, z: -40, speed: 1.9 },
-  { startX: -20, y: 7.3, z: -16, speed: 3.1 },
-  { startX: -115, y: 13.2, z: -46, speed: 1.3 },
-  { startX: -35, y: 10.8, z: -30, speed: 2.4 },
-  { startX: -80, y: 8.8, z: -22, speed: 2.0 },
-];
+const BIRD_COUNT = 260;
+const BIRDS = Array.from({ length: BIRD_COUNT }, (_, i) => {
+  const r = (n: number) => {
+    const s = Math.sin((i + 1) * 91.7 + n * 173.3) * 43758.5453;
+    return s - Math.floor(s);
+  };
+  const flock = i % 6;
+  return {
+    startX: (r(1) - 0.5) * 220,
+    y: 5 + flock * 2.2 + r(2) * 4,
+    z: -12 - flock * 9 - r(3) * 18,
+    speed: 1.2 + r(4) * 2.4 + flock * 0.15,
+    phase: r(5) * Math.PI * 2,
+    size: 0.7 + r(6) * 0.9,
+  };
+});
 
 function Birds({ reduced }: { reduced: boolean }) {
-  const groups = useRef<(THREE.Group | null)[]>([]);
-  const wingsL = useRef<(THREE.Mesh | null)[]>([]);
-  const wingsR = useRef<(THREE.Mesh | null)[]>([]);
+  const left = useRef<THREE.InstancedMesh>(null);
+  const right = useRef<THREE.InstancedMesh>(null);
+  const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame((state) => {
-    const t = state.clock.elapsedTime;
-    BIRD_CONFIG.forEach((c, i) => {
-      const g = groups.current[i];
-      if (!g) return;
-      if (!reduced) {
-        const x = c.startX + t * c.speed;
-        g.position.x = ((x + 70) % 140) - 70;
-        g.position.y = c.y + Math.sin(t * 0.6 + i) * 0.4;
-      } else {
-        g.position.set(c.startX, c.y, c.z);
-      }
-    });
-    if (!reduced) {
-      const flap = Math.sin(t * 10) * 0.5;
-      wingsL.current.forEach((w) => {
-        if (w) w.rotation.z = 0.5 + flap;
-      });
-      wingsR.current.forEach((w) => {
-        if (w) w.rotation.z = -0.5 - flap;
-      });
+    const l = left.current;
+    const rt = right.current;
+    if (!l || !rt) return;
+    const t = reduced ? 0 : state.clock.elapsedTime;
+    for (let i = 0; i < BIRD_COUNT; i++) {
+      const b = BIRDS[i];
+      const x = ((b.startX + t * b.speed + 110) % 220) - 110;
+      const y = b.y + Math.sin(t * 0.6 + b.phase) * 0.6;
+      const flap = reduced ? 0 : Math.sin(t * (8 + b.speed * 1.5) + b.phase) * 0.55;
+      const bank = reduced ? 0 : Math.sin(t * 0.4 + b.phase) * 0.15;
+      dummy.scale.setScalar(b.size);
+      dummy.position.set(x - 0.15 * b.size, y, b.z);
+      dummy.rotation.set(0, 0, 0.5 + flap + bank);
+      dummy.updateMatrix();
+      l.setMatrixAt(i, dummy.matrix);
+      dummy.position.set(x + 0.15 * b.size, y, b.z);
+      dummy.rotation.set(0, 0, -0.5 - flap + bank);
+      dummy.updateMatrix();
+      rt.setMatrixAt(i, dummy.matrix);
     }
+    l.instanceMatrix.needsUpdate = true;
+    rt.instanceMatrix.needsUpdate = true;
   });
 
   return (
     <>
-      {BIRD_CONFIG.map((c, i) => (
-        <group
-          key={i}
-          ref={(el) => {
-            groups.current[i] = el;
-          }}
-          position={[c.startX, c.y, c.z]}
-        >
-          <mesh
-            ref={(el) => {
-              wingsL.current[i] = el;
-            }}
-            position={[-0.15, 0, 0]}
-          >
-            <boxGeometry args={[0.5, 0.03, 0.08]} />
-            <meshBasicMaterial color="#232a33" />
-          </mesh>
-          <mesh
-            ref={(el) => {
-              wingsR.current[i] = el;
-            }}
-            position={[0.15, 0, 0]}
-          >
-            <boxGeometry args={[0.5, 0.03, 0.08]} />
-            <meshBasicMaterial color="#232a33" />
-          </mesh>
-        </group>
-      ))}
+      <instancedMesh ref={left} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
+        <boxGeometry args={[0.5, 0.03, 0.08]} />
+        <meshBasicMaterial color="#232a33" />
+      </instancedMesh>
+      <instancedMesh ref={right} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
+        <boxGeometry args={[0.5, 0.03, 0.08]} />
+        <meshBasicMaterial color="#232a33" />
+      </instancedMesh>
     </>
+  );
+}
+
+const PARTICLE_COUNT = 2600;
+
+function Particles({ reduced }: { reduced: boolean }) {
+  const ref = useRef<THREE.Points>(null);
+  const geometry = useMemo(() => {
+    const pos = new Float32Array(PARTICLE_COUNT * 3);
+    const col = new Float32Array(PARTICLE_COUNT * 3);
+    const warm = new THREE.Color("#ffe9a8");
+    const cool = new THREE.Color("#bfe6ff");
+    const c = new THREE.Color();
+    let seed = 42;
+    const rand = () => {
+      seed = (seed * 9301 + 49297) % 233280;
+      return seed / 233280;
+    };
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      pos[i * 3] = (rand() - 0.5) * 120;
+      pos[i * 3 + 1] = rand() * 30 - 2;
+      pos[i * 3 + 2] = 14 - rand() * 110;
+      c.copy(warm).lerp(cool, rand());
+      col[i * 3] = c.r;
+      col[i * 3 + 1] = c.g;
+      col[i * 3 + 2] = c.b;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    return geo;
+  }, []);
+
+  useFrame((state) => {
+    const p = ref.current;
+    if (!p || reduced) return;
+    const t = state.clock.elapsedTime;
+    p.position.y = Math.sin(t * 0.25) * 0.8;
+    p.position.x = Math.sin(t * 0.07) * 3;
+    p.rotation.y = Math.sin(t * 0.05) * 0.12;
+  });
+
+  return (
+    <points ref={ref} geometry={geometry} frustumCulled={false}>
+      <pointsMaterial
+        size={0.22}
+        sizeAttenuation
+        vertexColors
+        transparent
+        opacity={0.85}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+        toneMapped={false}
+      />
+    </points>
   );
 }
 
@@ -257,7 +325,7 @@ function SunGlow({ position }: { position: [number, number, number] }) {
   const glowColor = useMemo(() => new THREE.Color(4.5, 3.4, 1.3), []);
   return (
     <mesh position={position}>
-      <sphereGeometry args={[7, 24, 24]} />
+      <sphereGeometry args={[11, 32, 32]} />
       <meshBasicMaterial color={glowColor} toneMapped={false} />
     </mesh>
   );
@@ -276,16 +344,18 @@ export default function Scene() {
   );
   return (
     <Canvas
-      dpr={[1, 1.6]}
+      eventSource={typeof document === "undefined" ? undefined : document.body}
+      eventPrefix="client"
+      dpr={[1, 1.75]}
       gl={{ antialias: true, alpha: true }}
       onCreated={({ gl }) => {
         gl.setClearColor(0x000000, 0);
       }}
-      camera={{ position: [0, 2.3, 11], fov: 55, near: 0.5, far: 500 }}
+      camera={{ position: [0, 2.3, 11], fov: 55, near: 0.5, far: 700 }}
       style={{ position: "fixed", inset: 0, zIndex: 0 }}
     >
-      <CameraRig />
-      <fog attach="fog" args={["#4fb0f5", 35, 250]} />
+      <CameraRig reduced={reduced} />
+      <fog attach="fog" args={["#4fb0f5", 40, 330]} />
       <ambientLight intensity={0.9} />
       <hemisphereLight args={["#5fc0ff", "#3fb050", 1.0]} />
       <directionalLight position={lightPosition} intensity={2.0} color="#ffe2a0" />
@@ -296,8 +366,10 @@ export default function Scene() {
       <Mountains />
       <Terrain />
       <Birds reduced={reduced} />
+      <Particles reduced={reduced} />
       <EffectComposer>
-        <Bloom intensity={0.7} luminanceThreshold={0.3} luminanceSmoothing={0.3} mipmapBlur />
+        <Bloom intensity={1.4} luminanceThreshold={0.22} luminanceSmoothing={0.4} mipmapBlur />
+        <Vignette eskil={false} offset={0.2} darkness={0.55} />
       </EffectComposer>
     </Canvas>
   );
