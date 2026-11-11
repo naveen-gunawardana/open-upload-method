@@ -260,9 +260,10 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                   </div>
 
                   <div className="hero-actions">
-                    <button type="button" className="btn btn-convert" onClick={openConverter}>
+                    <button type="button" className="btn btn-convert" onClick={openConverter} aria-describedby="hero-free-note">
                       Patch video <ArrowIcon />
                     </button>
+                    <p id="hero-free-note" className="hero-free-note">(Free forever)</p>
                   </div>
                   {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
 
