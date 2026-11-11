@@ -11,6 +11,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 // Use the real Mediabunny MP4 reader and stream-copy path, with no browser encoder.
 const dir = await mkdtemp(fileURLToPath(new URL("../.oqm-pipeline-test-", import.meta.url)));
 after(() => rm(dir, { recursive: true, force: true }));
+const analytics = await readFile(new URL("../src/lib/conversion-analytics.ts", import.meta.url), "utf8");
+await writeFile(path.join(dir, "conversion-analytics.mjs"), ts.transpileModule(analytics, {
+  compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
+}).outputText);
 for (const name of ["patch", "silentTail", "pipeline"]) {
   const source = (await readFile(new URL(`../src/lib/oqm/${name}.ts`, import.meta.url), "utf8"))
     .replaceAll('"./patch"', '"./patch.mjs"').replaceAll('"./silentTail"', '"./silentTail.mjs"');
@@ -27,7 +31,7 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   }).outputText);
   const source = (await readFile(new URL("../src/components/Converter.tsx", import.meta.url), "utf8"))
     .replaceAll('"@/lib/oqm/patch"', '"./patch.mjs"').replaceAll('"@/lib/oqm/pipeline"', '"./pipeline.mjs"')
-    .replaceAll('"@/components/SettingHelp"', '"./SettingHelp.mjs"');
+    .replaceAll('"@/components/SettingHelp"', '"./SettingHelp.mjs"').replaceAll('"@/lib/conversion-analytics"', '"./conversion-analytics.mjs"');
   await writeFile(path.join(dir, "Converter.mjs"), ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
     fileName: "Converter.tsx",

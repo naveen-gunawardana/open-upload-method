@@ -1,5 +1,6 @@
 "use client";
 
+import { analyticsRunId, trackConversion } from "@/lib/conversion-analytics";
 import { canEncodeVideo } from "mediabunny";
 import { useCallback, useEffect, useRef, useState } from "react";
 import SettingHelp from "@/components/SettingHelp";
@@ -18,6 +19,7 @@ import {
 } from "@/lib/oqm/pipeline";
 
 type Run = {
+  analyticsId: string;
   id: number;
   file: File;
   title: string;
@@ -127,6 +129,9 @@ export default function Converter({
         const controller = new AbortController();
         abort.current = controller;
         update(run.id, { status: "running", stage: { label: "Starting", progress: null } });
+        const startedAt = performance.now();
+        const analyticsPreset = (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => same(p.recipe, run.recipe))?.id ?? "custom";
+        trackConversion(run, "started", analyticsPreset);
         try {
           let source = run.file;
           if (run.comparisonEncode) {
@@ -138,10 +143,12 @@ export default function Converter({
           }
           const result = await convert(source, run.recipe, (stage) => update(run.id, { stage }), controller.signal);
           if (closed.current || controller.signal.aborted) throw new OqmError("Stopped.");
+          trackConversion({ ...run, result }, result.checks.every(c => c.ok || c.warn) ? "succeeded" : "check_failed", analyticsPreset, performance.now() - startedAt);
           update(run.id, { status: "done", result, url: URL.createObjectURL(result.blob) });
           const groupSize = runsRef.current.filter((r) => r.group === run.group).length;
           if (result.checks.every((check) => check.ok || check.warn)) count(run, groupSize > 1 ? "ab" : "single");
         } catch (error) {
+          trackConversion(run, controller.signal.aborted ? "cancelled" : "failed", analyticsPreset, performance.now() - startedAt, error);
           const message = controller.signal.aborted
             ? "Stopped."
             : error instanceof OqmError
@@ -163,7 +170,7 @@ export default function Converter({
     (f: File, items: { title: string; slug: string; recipe: Recipe }[], comparisonEncode?: EncodeOptions) => {
       if (closed.current) return;
       const group = nextGroup++;
-      const fresh = items.map((item) => ({ ...item, id: nextId++, file: f, group, comparisonEncode, status: "queued" as const }));
+      const fresh = items.map((item) => ({ ...item, analyticsId: analyticsRunId(), id: nextId++, file: f, group, comparisonEncode, status: "queued" as const }));
       runsRef.current = [...fresh, ...runsRef.current];
       setRuns(runsRef.current);
       void pump();
@@ -609,7 +616,7 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
             {run.comparisonEncode ? (run.comparisonEncode.reencode ? " · shared source encoded once" : " · shared source, no re-encode") : run.result.info.reencoded ? "" : " · not re-encoded"}
           </div>
           <div className="run-row">
-            <a className="btn btn-patch btn-sm" href={run.url} download={outName}>
+            <a className="btn btn-patch btn-sm" href={run.url} download={outName} onClick={() => trackConversion(run, "downloaded", (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => same(p.recipe, run.recipe))?.id ?? "custom")}>
               Download
             </a>
             <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : "Local checks passed"}</span>
