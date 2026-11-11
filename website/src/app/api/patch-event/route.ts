@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
 
 // The desktop app reports each finished patch here. Only these few anonymous fields are accepted.
+// Successful rows are included by usageCount(); don't also increment download_stats here.
 const OSES = new Set(["darwin", "win32", "linux"]);
 const CODECS = new Set(["h264", "h265"]);
 const PER_DAY = 500;

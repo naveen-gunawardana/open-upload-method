@@ -153,14 +153,20 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
 
   useEffect(() => {
     let cancelled = false;
-    fetch("/api/download-count")
+    const refresh = () => { void fetch("/api/download-count", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
-        if (!cancelled && typeof d.count === "number") setCount(d.count);
+        if (!cancelled && typeof d.count === "number") setCount(previous => previous === null ? d.count : Math.max(previous, d.count));
       })
-      .catch(() => {});
+      .catch(() => {}); };
+    const onVisible = () => { if (document.visibilityState === "visible") refresh(); };
+    refresh();
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, []);
 
@@ -209,7 +215,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
     };
   }, [view, start]);
 
-  const onCounted = useCallback((n: number | null) => n !== null && setCount(n), []);
+  const onCounted = useCallback((n: number | null) => n !== null && setCount(previous => previous === null ? n : Math.max(previous, n)), []);
 
   return (
     <>

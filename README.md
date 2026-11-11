@@ -18,6 +18,8 @@ The preset dropdown includes **1080p — high quality** (H.264, target 20 Mbps) 
 
 Your video never leaves your computer. When a conversion finishes, the site adds one to the public "videos converted" counter. Only that tick, a salted hash of your IP (for rate limiting) and your country are stored, never anything about the video.
 
+Successful desktop patch reports also contribute to the shared counter, including past reports. Failed desktop patches are excluded. The desktop app's existing anonymous usage setting is respected; disabled or undelivered reports cannot be counted. The public total preserves the existing download/web counter and adds successful desktop reports, so it includes historical downloads. Patch success means local file verification passed, not that TikTok retained quality.
+
 ## Code
 
 - `website/src/lib/oqm/patch.ts`: the container patches (a port of `program/oqm/patches.py`; tested for byte-identical output on FFmpeg exports)

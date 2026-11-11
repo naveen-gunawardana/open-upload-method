@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { usageCount } from "@/lib/usage-count";
 
 // The web converter reports each finished video here. It bumps the same counter the old app downloads used, so the
 // number on the site carries on from where downloads left off. Nothing about the video itself is sent.
@@ -36,9 +37,7 @@ export async function POST(request: Request) {
     if (incrementError) throw incrementError;
     const { error: insertError } = await db.from("download_events").insert({ platform, ip_hash: ipHash, country: request.headers.get("x-vercel-ip-country") });
     if (insertError) throw insertError;
-    const { data, error: statsError } = await db.from("download_stats").select("count").eq("id", 1).single();
-    if (statsError) throw statsError;
-    return NextResponse.json({ ok: true, counted: true, count: data?.count ?? null });
+    return NextResponse.json({ ok: true, counted: true, count: await usageCount(db) });
   } catch {
     return NextResponse.json({ error: "could not save" }, { status: 500 });
   }

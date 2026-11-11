@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
+import { connection, NextResponse } from "next/server";
 import { supabaseServer } from "@/lib/supabase";
+import { usageCount } from "@/lib/usage-count";
+
+const headers = { "Cache-Control": "no-store" };
 
 export async function GET() {
+  await connection();
   try {
-    const supabase = supabaseServer();
-    const { data, error } = await supabase.from("download_stats").select("count").eq("id", 1).single();
-    if (error) throw error;
-    return NextResponse.json({ count: data?.count ?? null });
+    return NextResponse.json({ count: await usageCount(supabaseServer()) }, { headers });
   } catch {
-    return NextResponse.json({ count: null });
+    return NextResponse.json({ count: null }, { headers });
   }
 }
