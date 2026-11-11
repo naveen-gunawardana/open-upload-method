@@ -81,9 +81,9 @@ function Terrain({ dark }: { dark: boolean }) {
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
     const colors = new Float32Array(pos.count * 3);
-    const low = new THREE.Color(dark ? "#071724" : "#20533c");
-    const mid = new THREE.Color(dark ? "#102d3c" : "#4a9161");
-    const light = new THREE.Color(dark ? "#315461" : "#b8d58b");
+    const low = new THREE.Color(dark ? "#05231c" : "#12632b");
+    const mid = new THREE.Color(dark ? "#0b4030" : "#299f43");
+    const light = new THREE.Color(dark ? "#2e7053" : "#9cdb56");
     const c = new THREE.Color();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
@@ -478,7 +478,7 @@ export default function Scene({ paused = false }: { paused?: boolean }) {
       <CameraRig reduced={reduced} />
       <fog attach="fog" args={[dark ? "#10172e" : "#88cefa", 42, 390]} />
       <ambientLight intensity={dark ? 0.35 : 0.8} />
-      <hemisphereLight args={[dark ? "#7c91c9" : "#c7e6ff", dark ? "#07101f" : "#8ca77c", dark ? 0.6 : 0.85]} />
+      <hemisphereLight args={[dark ? "#7c91c9" : "#c7e6ff", dark ? "#07101f" : "#79aa54", dark ? 0.6 : 0.85]} />
       <directionalLight position={[-80, 100, 30]} intensity={dark ? 1.2 : 1.5} color={dark ? "#bbd3ff" : "#fff0d3"} />
       {dark && <NightStars reduced={reduced} />}
       <CelestialBody dark={dark} />
