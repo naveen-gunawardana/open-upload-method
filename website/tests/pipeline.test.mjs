@@ -18,7 +18,7 @@ for (const name of ["patch", "silentTail", "pipeline"]) {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   }).outputText);
 }
-const { convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
+const { prepareInputDecoders, convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
 test("latest standalone UI exposes the experimental option before selecting a video", async () => {
   const help = await readFile(new URL("../src/components/SettingHelp.tsx", import.meta.url), "utf8");
   await writeFile(path.join(dir, "SettingHelp.mjs"), ts.transpileModule(help, {
@@ -96,4 +96,38 @@ test("comparison prepares one shared MP4 and reads back all three methods", asyn
   }
   assert.equal(PRESETS[0].recipe, DEFAULT_RECIPE);
   assert.notEqual(DEFAULT_RECIPE.method, "silent-tail");
+});
+
+// Decode real ProRes + PCM data with the production registration path, not a mocked browser codec.
+test("ProRes MOV loads its decoder on demand and preserves decodable PCM audio", async () => {
+  const { Input, BlobSource, ALL_FORMATS, VideoSampleSink, AudioSampleSink } = await import("mediabunny");
+  const source = path.join(dir, "prores.mov");
+  const made = spawnSync("ffmpeg", ["-v", "error", "-f", "lavfi", "-i", "testsrc2=s=128x72:r=30:d=0.1",
+    "-f", "lavfi", "-i", "sine=sample_rate=48000:d=0.1", "-ac", "2", "-c:v", "prores_ks", "-profile:v", "1",
+    "-pix_fmt", "yuv422p10le", "-c:a", "pcm_s16le", "-shortest", source]);
+  assert.equal(made.status, 0, made.stderr?.toString());
+  const input = new Input({ source: new BlobSource(new Blob([await readFile(source)])), formats: ALL_FORMATS });
+  try {
+    const stages = [];
+    await prepareInputDecoders(input, stage => stages.push(stage.label));
+    assert.ok(stages.includes("Loading ProRes support"));
+    const video = await input.getPrimaryVideoTrack();
+    assert.equal(video.codec, "prores");
+    assert.equal(await video.canDecode(), true);
+    let frames = 0;
+    for await (const sample of new VideoSampleSink(video).samples()) {
+      assert.equal(sample.displayWidth, 128);
+      assert.equal(sample.displayHeight, 72);
+      sample.close();
+      frames++;
+    }
+    assert.equal(frames, 3);
+    const audio = await input.getPrimaryAudioTrack();
+    assert.equal(await audio.canDecode(), true);
+    const sample = await new AudioSampleSink(audio).getSample(0);
+    assert.ok(sample);
+    assert.equal(sample.numberOfChannels, 2);
+    sample.close();
+    await assert.rejects(prepareInputDecoders(input, () => {}, AbortSignal.abort()), /Stopped/);
+  } finally { input.dispose(); }
 });

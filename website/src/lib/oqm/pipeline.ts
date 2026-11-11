@@ -140,6 +140,33 @@ function quality(e: EncodeOptions, width: number, height: number, fps: number): 
   return new Quality(e.rate);
 }
 
+let proresDecoderReady: Promise<void> | undefined;
+
+/** Load the local software decoder only for ProRes inputs, before capability checks cache their result. */
+export async function prepareInputDecoders(input: Input, onStage: (s: Stage) => void = () => {}, signal?: AbortSignal) {
+  const video = await input.getPrimaryVideoTrack();
+  if (video?.codec === "prores") {
+    onStage({ label: "Loading ProRes support", progress: null });
+    proresDecoderReady ??= import("@mediabunny/prores")
+      .then(({ registerProresDecoder }) => { registerProresDecoder(); })
+      .catch((error) => { proresDecoderReady = undefined; throw error; });
+    try {
+      await proresDecoderReady;
+    } catch {
+      throw new OqmError("ProRes support couldn't load. Check your connection and retry, or export an H.264 MP4 with AAC audio.");
+    }
+  }
+  if (signal?.aborted) throw new OqmError("Stopped.");
+  if (video && !(await video.canDecode())) {
+    const codec = (await video.getCodecParameterString()) ?? video.codec ?? "unknown";
+    throw new OqmError(`This browser can't decode the video's ${codec} codec. MOV is a container; support depends on the codec inside it. Export an SDR H.264 MP4 with AAC audio, or use the desktop app.`);
+  }
+  const audio = await input.getPrimaryAudioTrack();
+  if (audio && !(await audio.canDecode())) {
+    throw new OqmError(`This browser can't decode the ${audio.codec ?? "unknown"} audio. Export with AAC audio, or use the desktop app. Your audio hasn't been removed.`);
+  }
+}
+
 async function runConversion(conversion: Conversion, onStage: (s: Stage) => void, label: string, signal?: AbortSignal) {
   if (signal?.aborted) {
     await conversion.cancel();
@@ -148,7 +175,7 @@ async function runConversion(conversion: Conversion, onStage: (s: Stage) => void
   const discarded = conversion.discardedTracks.filter((d) => d.track.type === "video" || d.track.type === "audio");
   if (!conversion.isValid || discarded.length) {
     const why = discarded.map((d) => `${d.track.type}: ${d.reason.replace(/_/g, " ")}`).join(", ");
-    throw new OqmError(`This browser can't convert that file (${why}). Try Chrome, or a different export.`);
+    throw new OqmError(`This browser can't convert that file (${why}). Export an SDR H.264 MP4 with AAC audio, or use the desktop app.`);
   }
   const abort = () => void conversion.cancel().catch(() => {});
   signal?.addEventListener("abort", abort);
@@ -191,6 +218,7 @@ async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: 
   const input = new Input({ source: new BlobSource(file), formats: ALL_FORMATS });
   const output = new Output({ format: new Mp4OutputFormat({ fastStart: "in-memory" }), target: new BufferTarget() });
   try {
+    await prepareInputDecoders(input, onStage, signal);
     const conversion = await Conversion.init({
       input,
       output,

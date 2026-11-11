@@ -1,0 +1,7 @@
+OQM uses unmodified @mediabunny/prores 1.65.2 and TurboRes 1.2.4 for local ProRes decoding.
+These components are licensed under the Mozilla Public License 2.0 (see prores-MPL-2.0.txt).
+Source and license notices are included in their npm distributions:
+https://registry.npmjs.org/@mediabunny/prores/-/prores-1.65.2.tgz
+https://github.com/Vanilagy/mediabunny/tree/main/packages/prores
+https://registry.npmjs.org/turbores/-/turbores-1.2.4.tgz
+https://github.com/Vanilagy/turbores

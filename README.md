@@ -10,7 +10,7 @@ A free tool for preparing and comparing TikTok uploads. Container patches preser
 
 The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make local comparison (3)** prepares one encoded source, then builds clean MP4, current OQM and experimental silent-tail from it without further video encoding. The current OQM recipe remains the default. Silent-tail requires AAC-LC stereo and intentionally adds a short silent tail and a second audio track.
 
-Free, open source, MIT license.
+Free and open source. OQM is MIT licensed; the optional ProRes decoder is MPL-2.0 (see `website/public/licenses/prores-notices.txt`).
 
 Light mode is the default. The corner sun/moon button switches to the night theme and remembers your choice on this device. Cards, forms and converter controls follow the selected theme. Background animation is capped at 30 fps and pauses during video conversions, in hidden tabs and for reduced-motion preferences. The lighter scene uses fewer terrain vertices, clouds and particles, with no full-screen postprocessing or card backdrop blur.
 
@@ -35,3 +35,5 @@ Checks: `cd website && npm test && npm run lint && npm run build`, and `cd progr
 ## Local comparison before uploading
 
 From `program/`, run `python3 -m oqm compare /absolute/path/to/1080p60-SDR-master.mp4 --out /absolute/path/to/fresh-comparison-directory`. This performs no encoding or uploads. It writes three MP4s, a local integrity manifest and `retention.csv` with pending checkpoints after processing, at 24h, 72h and 7d for desktop and a second phone/account. Start with 1080p60 SDR, then 4K; test 120 fps and HDR separately. Local packet hashes, decoded video hashes and decode checks cannot establish a TikTok bypass. See [the test protocol](program/docs/SILENT_TAIL_TESTING.md) and [third-party notices](THIRD_PARTY_NOTICES.md).
+
+ProRes MOV inputs load the official Mediabunny/TurboRes software decoder on demand and are processed locally. Use re-encode (Current OQM or a resolution preset) to produce H.264/AAC MP4; silent-tail and no-re-encode modes still require compatible encoded input. Other MOV codecs depend on browser support. HDR/wide-gamut re-encoding remains blocked pending explicit colour conversion.

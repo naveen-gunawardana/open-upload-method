@@ -10,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mediabunny/prores": "^1.65.2",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.2",
