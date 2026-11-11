@@ -2,13 +2,10 @@
 
 import { Suspense, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Cloud, Clouds, calcPosFromAngles } from "@react-three/drei";
+import { Cloud, Clouds } from "@react-three/drei";
 import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { createNoise2D } from "simplex-noise";
-
-const SUN_INCLINATION = 0.515;
-const SUN_AZIMUTH = 0.2;
 
 const terrainNoise = createNoise2D();
 function terrainHeight(x: number, z: number) {
@@ -66,9 +63,9 @@ function Terrain() {
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
     const colors = new Float32Array(pos.count * 3);
-    const dark = new THREE.Color("#0e5e24");
-    const mid = new THREE.Color("#1fa33a");
-    const light = new THREE.Color("#b9e848");
+    const dark = new THREE.Color("#071724");
+    const mid = new THREE.Color("#102d3c");
+    const light = new THREE.Color("#315461");
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const z = pos.getZ(i);
@@ -113,9 +110,9 @@ function Mountains() {
 
   const geometries = useMemo(() => {
     const noise2D = createNoise2D();
-    const rock = new THREE.Color("#3f5a85");
-    const mid = new THREE.Color("#6f89c2");
-    const ridge = new THREE.Color("#e8f1fb");
+    const rock = new THREE.Color("#111d35");
+    const mid = new THREE.Color("#253c60");
+    const ridge = new THREE.Color("#879cc0");
     return peaks.map((m) => {
       const geo = new THREE.ConeGeometry(m.radius, m.height, 9, 5);
       const pos = geo.attributes.position;
@@ -177,7 +174,7 @@ function CloudBank({ reduced }: { reduced: boolean }) {
     CLOUD_CONFIG.forEach((c, i) => {
       const r = refs.current[i];
       if (!r) return;
-      const x = c.start + state.clock.elapsedTime * c.speed;
+      const x = c.start + state.clock.elapsedTime * c.speed * 0.3;
       r.position.x = ((x + 90) % 180) - 90;
     });
   });
@@ -193,10 +190,10 @@ function CloudBank({ reduced }: { reduced: boolean }) {
           seed={i + 1}
           segments={30}
           bounds={[14, 2.6, 4]}
-          volume={12}
-          color="#ffffff"
-          fade={100}
-          opacity={0.9}
+          volume={8}
+          color="#6a7ba3"
+          fade={160}
+          opacity={0.16}
           position={[c.start, c.y, c.z]}
           scale={c.scale}
         />
@@ -205,7 +202,7 @@ function CloudBank({ reduced }: { reduced: boolean }) {
   );
 }
 
-const BIRD_COUNT = 260;
+const BIRD_COUNT = 48;
 const BIRDS = Array.from({ length: BIRD_COUNT }, (_, i) => {
   const r = (n: number) => {
     const s = Math.sin((i + 1) * 91.7 + n * 173.3) * 43758.5453;
@@ -256,11 +253,11 @@ function Birds({ reduced }: { reduced: boolean }) {
     <>
       <instancedMesh ref={left} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
         <boxGeometry args={[0.5, 0.03, 0.08]} />
-        <meshBasicMaterial color="#232a33" />
+        <meshBasicMaterial color="#101a2e" />
       </instancedMesh>
       <instancedMesh ref={right} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
         <boxGeometry args={[0.5, 0.03, 0.08]} />
-        <meshBasicMaterial color="#232a33" />
+        <meshBasicMaterial color="#101a2e" />
       </instancedMesh>
     </>
   );
@@ -268,13 +265,100 @@ function Birds({ reduced }: { reduced: boolean }) {
 
 const PARTICLE_COUNT = 2600;
 
+const STAR_VERTEX = `
+  attribute vec3 aStarColor;
+  attribute float aSeed;
+  uniform float uTime;
+  uniform float uPixelRatio;
+  uniform float uSize;
+  uniform float uAttenuation;
+  uniform float uMaxSize;
+  varying vec3 vStarColor;
+  varying float vTwinkle;
+  void main() {
+    vec4 viewPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * viewPosition;
+    float perspective = mix(1.0, 42.0 / max(1.0, -viewPosition.z), uAttenuation);
+    float variation = mix(0.45, 1.65, pow(fract(aSeed * 3.17), 4.0));
+    gl_PointSize = clamp(uSize * uPixelRatio * perspective * variation, 1.5, uMaxSize);
+    vStarColor = aStarColor;
+    vTwinkle = 0.74 + 0.26 * sin(uTime * (0.25 + fract(aSeed) * 0.6) + aSeed * 6.28318);
+  }
+`;
+
+// A luminous core with four tapered rays, rather than square point sprites.
+const STAR_FRAGMENT = `
+  uniform float uOpacity;
+  varying vec3 vStarColor;
+  varying float vTwinkle;
+  void main() {
+    vec2 p = (gl_PointCoord - 0.5) * 2.0;
+    float radius = length(p);
+    float core = exp(-18.0 * radius * radius);
+    float horizontal = exp(-150.0 * p.y * p.y) * pow(max(0.0, 1.0 - abs(p.x)), 2.8);
+    float vertical = exp(-150.0 * p.x * p.x) * pow(max(0.0, 1.0 - abs(p.y)), 2.8);
+    float halo = exp(-5.0 * radius * radius) * 0.1;
+    float alpha = clamp(core * 0.85 + max(horizontal, vertical) * 0.8 + halo, 0.0, 1.0);
+    alpha *= uOpacity * vTwinkle;
+    if (alpha < 0.012) discard;
+    gl_FragColor = vec4(vStarColor * 1.8, alpha);
+  }
+`;
+
+function StarMaterial({ reduced, size, attenuation, opacity, maxSize }: {
+  reduced: boolean; size: number; attenuation: number; opacity: number; maxSize: number;
+}) {
+  const material = useRef<THREE.ShaderMaterial>(null);
+  const uniforms = useMemo(() => ({
+    uTime: { value: 0 }, uPixelRatio: { value: 1 }, uSize: { value: size },
+    uAttenuation: { value: attenuation }, uOpacity: { value: opacity }, uMaxSize: { value: maxSize },
+  }), [size, attenuation, opacity, maxSize]);
+  useFrame(state => {
+    if (!material.current) return;
+    material.current.uniforms.uTime.value = reduced ? 0 : state.clock.elapsedTime;
+    material.current.uniforms.uPixelRatio.value = state.gl.getPixelRatio();
+  });
+  return <shaderMaterial ref={material} uniforms={uniforms} vertexShader={STAR_VERTEX} fragmentShader={STAR_FRAGMENT}
+    transparent depthWrite={false} blending={THREE.AdditiveBlending} toneMapped={false} />;
+}
+
+function NightStars({ reduced }: { reduced: boolean }) {
+  const geometry = useMemo(() => {
+    const count = 1800;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const seeds = new Float32Array(count);
+    const color = new THREE.Color();
+    const silver = new THREE.Color("#e6eeff"), lavender = new THREE.Color("#b8b7fa");
+    let seed = 197;
+    const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (random() - 0.5) * 1100;
+      positions[i * 3 + 1] = 20 + random() * 420;
+      positions[i * 3 + 2] = -180 - random() * 360;
+      color.copy(silver).lerp(lavender, random());
+      colors.set([color.r, color.g, color.b], i * 3);
+      seeds[i] = random() * 100;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("aStarColor", new THREE.BufferAttribute(colors, 3));
+    geo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
+    return geo;
+  }, []);
+  return <points geometry={geometry} frustumCulled={false}>
+    <StarMaterial reduced={reduced} size={2.7} attenuation={0} opacity={0.85} maxSize={7} />
+  </points>;
+}
+
 function Particles({ reduced }: { reduced: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const geometry = useMemo(() => {
     const pos = new Float32Array(PARTICLE_COUNT * 3);
     const col = new Float32Array(PARTICLE_COUNT * 3);
-    const warm = new THREE.Color("#ffe9a8");
-    const cool = new THREE.Color("#bfe6ff");
+    const seeds = new Float32Array(PARTICLE_COUNT);
+    const warm = new THREE.Color("#d2c4ff");
+    const cool = new THREE.Color("#c1eaff");
     const c = new THREE.Color();
     let seed = 42;
     const rand = () => {
@@ -289,10 +373,12 @@ function Particles({ reduced }: { reduced: boolean }) {
       col[i * 3] = c.r;
       col[i * 3 + 1] = c.g;
       col[i * 3 + 2] = c.b;
+      seeds[i] = rand() * 100;
     }
     const geo = new THREE.BufferGeometry();
     geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    geo.setAttribute("aStarColor", new THREE.BufferAttribute(col, 3));
+    geo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
     return geo;
   }, []);
 
@@ -307,41 +393,41 @@ function Particles({ reduced }: { reduced: boolean }) {
 
   return (
     <points ref={ref} geometry={geometry} frustumCulled={false}>
-      <pointsMaterial
-        size={0.22}
-        sizeAttenuation
-        vertexColors
-        transparent
-        opacity={0.85}
-        depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        toneMapped={false}
-      />
+      <StarMaterial reduced={reduced} size={3.4} attenuation={1} opacity={0.55} maxSize={16} />
     </points>
   );
 }
 
-function SunGlow({ position }: { position: [number, number, number] }) {
-  const glowColor = useMemo(() => new THREE.Color(4.5, 3.4, 1.3), []);
+function Moon() {
+  const x = useThree(state => -Math.min(105, 75 * state.size.width / Math.max(1, state.size.height)));
   return (
-    <mesh position={position}>
-      <sphereGeometry args={[11, 32, 32]} />
-      <meshBasicMaterial color={glowColor} toneMapped={false} />
+    <mesh position={[x, 63, -210]}>
+      <planeGeometry args={[23, 23]} />
+      <shaderMaterial transparent depthWrite toneMapped={false}
+        vertexShader={`varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`}
+        fragmentShader={`
+          varying vec2 vUv;
+          void main() {
+            vec2 p = (vUv - 0.5) * 2.0;
+            float radius = length(p);
+            if (radius > 1.0) discard;
+            vec3 normal = vec3(p, sqrt(max(0.0, 1.0 - radius * radius)));
+            float phase = smoothstep(-0.06, 0.12, dot(normal, normalize(vec3(-0.95, 0.15, -0.25))));
+            float grain = fract(sin(dot(floor(vUv * 150.0), vec2(12.9898, 78.233))) * 43758.5453);
+            float craters = 0.12 * (1.0 - smoothstep(0.12, 0.22, length(p - vec2(-0.3, 0.25))))
+              + 0.09 * (1.0 - smoothstep(0.08, 0.16, length(p - vec2(-0.5, -0.3))));
+            vec3 earthshine = vec3(0.035, 0.055, 0.105);
+            vec3 moonlight = vec3(1.35, 1.5, 1.8) * (0.91 + grain * 0.09 - craters);
+            float edge = 1.0 - smoothstep(0.985, 1.0, radius);
+            gl_FragColor = vec4(mix(earthshine, moonlight, phase), edge);
+          }
+        `} />
     </mesh>
   );
 }
 
 export default function Scene() {
   const reduced = useReducedMotion();
-  const sunPosition = useMemo(() => calcPosFromAngles(SUN_INCLINATION, SUN_AZIMUTH), []);
-  const lightPosition = useMemo(
-    () => sunPosition.clone().multiplyScalar(80).toArray() as [number, number, number],
-    [sunPosition]
-  );
-  const sunGlowPosition = useMemo(
-    () => sunPosition.clone().multiplyScalar(160).toArray() as [number, number, number],
-    [sunPosition]
-  );
   return (
     <Canvas
       eventSource={typeof document === "undefined" ? undefined : document.body}
@@ -355,11 +441,12 @@ export default function Scene() {
       style={{ position: "fixed", inset: 0, zIndex: 0 }}
     >
       <CameraRig reduced={reduced} />
-      <fog attach="fog" args={["#4fb0f5", 40, 330]} />
-      <ambientLight intensity={0.9} />
-      <hemisphereLight args={["#5fc0ff", "#3fb050", 1.0]} />
-      <directionalLight position={lightPosition} intensity={2.0} color="#ffe2a0" />
-      <SunGlow position={sunGlowPosition} />
+      <fog attach="fog" args={["#10172e", 42, 390]} />
+      <ambientLight intensity={0.35} />
+      <hemisphereLight args={["#7c91c9", "#07101f", 0.6]} />
+      <directionalLight position={[-80, 100, 30]} intensity={1.2} color="#bbd3ff" />
+      <NightStars reduced={reduced} />
+      <Moon />
       <Suspense fallback={null}>
         <CloudBank reduced={reduced} />
       </Suspense>
@@ -368,8 +455,8 @@ export default function Scene() {
       <Birds reduced={reduced} />
       <Particles reduced={reduced} />
       <EffectComposer>
-        <Bloom intensity={1.4} luminanceThreshold={0.22} luminanceSmoothing={0.4} mipmapBlur />
-        <Vignette eskil={false} offset={0.2} darkness={0.55} />
+        <Bloom intensity={0.75} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur />
+        <Vignette eskil={false} offset={0.2} darkness={0.35} />
       </EffectComposer>
     </Canvas>
   );
