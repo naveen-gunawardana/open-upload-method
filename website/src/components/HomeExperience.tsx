@@ -237,8 +237,8 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
               >
                 <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
-                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Stop TikTok from compressing your video.</h1>
-                  <p className="sub">1080p at 60fps, with no compression. Your video stays on your device. Free, with no account or installation.</p>
+                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Better TikTok quality should be free.</h1>
+                  <p className="sub">Fight TikTok compression. Free, with no account or installation.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">

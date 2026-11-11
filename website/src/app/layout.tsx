@@ -30,7 +30,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "OQM: Open Quality Method",
   description:
-    "Upload to TikTok in HD: 1080p at 60fps, with no compression. Free, open source, and processed in your browser. No account or installation needed.",
+    "Fight TikTok compression. Free, with no account or installation.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
