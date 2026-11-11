@@ -6,7 +6,7 @@ import "./globals.css";
 const inter = Inter({
   variable: "--font-hero",
   subsets: ["latin"],
-  weight: "700",
+  weight: ["700", "800"],
 });
 
 const quicksand = Quicksand({
