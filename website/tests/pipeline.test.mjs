@@ -44,7 +44,7 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   assert.match(presetSelect, /<option value="silent-tail" selected="">Silent-tail \(default\)<\/option>/);
   assert.match(presetSelect, /<option value="current">Original OQM<\/option>/);
   assert.match(presetSelect, /<option value="1080p">1080p — high quality<\/option>/);
-  assert.match(presetSelect, /<option value="4k">4K — experimental<\/option>/);
+  assert.match(presetSelect, /<option value="4k">4K — high quality<\/option>/);
   assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Make local comparison \(3\)<\/button>/);
   assert.match(html, /<button[^>]*class="btn btn-convert btn-start"[^>]*disabled=""[^>]*>Start<svg/);
@@ -72,7 +72,8 @@ test("resolution presets downscale in both orientations without upscaling or cha
     assert.equal(recipe.encode.rate, "bitrate");
     assert.equal(recipe.encode.keyframeSec, 2);
     assert.equal(recipe.encode.audioKbps, 320);
-    assert.notEqual(recipe.method, "silent-tail");
+    assert.equal(recipe.method, "silent-tail");
+    assert.deepEqual(recipe.patch.enabled, [], "resolution presets must not stack the original patches on silent-tail");
     for (const fps of [24, 29.97, 30, 59.94, 60]) assert.equal(targetFrameRate(fps, recipe.encode.fps), undefined);
     for (const fps of [90, 120]) assert.equal(targetFrameRate(fps, recipe.encode.fps), 60);
   }

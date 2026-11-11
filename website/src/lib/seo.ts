@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 export const SITE_URL = "https://www.openqualitymethod.com";
 export const SITE_TITLE = "Free TikTok Video Quality Tool | OQM";
-export const SITE_DESCRIPTION = "Prepare and patch TikTok videos for free with Open Quality Method. Process MP4 and MOV files locally in your browser. No account or installation needed.";
+export const SITE_DESCRIPTION = "Prepare and patch 1080p and 4K TikTok videos for free with OQM. Process MP4 and supported MOV files locally. No account or installation needed.";
 
 export const siteMetadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -24,7 +24,7 @@ export const siteStructuredData = {
     { "@type": "WebApplication", "@id": `${SITE_URL}/#app`, name: "Open Quality Method", alternateName: "OQM", url: `${SITE_URL}/`,
       description: SITE_DESCRIPTION, applicationCategory: "MultimediaApplication", operatingSystem: "Web browser",
       isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD", url: `${SITE_URL}/convert` },
-      featureList: ["Local video processing", "Video container patching", "H.264/AAC conversion", "MP4 and supported MOV input"],
+      featureList: ["Local video processing", "Video container patching", "H.264/AAC conversion", "MP4 and supported MOV input", "1080p and 4K output presets"],
       sameAs: ["https://github.com/naveen-gunawardana/open-upload-method"],
     },
   ],

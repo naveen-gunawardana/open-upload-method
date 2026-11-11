@@ -15,7 +15,7 @@ Users select a video, choose settings and press Start. Selecting a file does not
 
 The default is silent-tail with re-encoding enabled: prepare H.264 video and AAC stereo audio, then append a short silent AAC audio tail and duplicate the audio track. Silent-tail is experimental. The original OQM container-patching method remains available as Original OQM. Other presets include 1080p, 4K, no re-encode, and controlled comparisons.
 
-Re-encoding changes encoded media and can lose quality. Container patching itself preserves the primary encoded video. The 1080p and 4K presets limit resolution without upscaling smaller inputs and cap higher frame rates at 60 fps. They currently use the original OQM patches. HDR/wide-gamut re-encoding requires explicit colour conversion and is not supported by the current browser workflow.
+Re-encoding changes encoded media and can lose quality. Container patching itself preserves the primary encoded video. The 1080p and 4K presets limit resolution without upscaling smaller inputs and cap higher frame rates at 60 fps. Both use the default silent-tail method with re-encoding to H.264 and AAC stereo. Original OQM remains a separate choice. HDR/wide-gamut re-encoding requires explicit colour conversion and is not supported by the current browser workflow.
 
 Make local comparison (3) prepares one shared encoded source and produces clean MP4, original OQM and silent-tail variants. Local checks validate file properties and structure; they do not measure TikTok's delivered quality.
 

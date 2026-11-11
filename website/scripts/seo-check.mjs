@@ -14,7 +14,7 @@ for (const path of ['/', '/convert']) {
   assert.equal((text.match(/rel="canonical"/g) ?? []).length, 1, `${path}: one canonical`);
   assert.equal(new URL(text.match(/rel="canonical" href="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, canonical, `${path}: canonical hostname and path`);
   assert.match(text, /<title>Free TikTok Video Quality Tool \| OQM<\/title>/);
-  assert.match(text, /<meta name="description" content="Prepare and patch TikTok videos/);
+  assert.match(text, /<meta name="description" content="Prepare and patch 1080p and 4K TikTok videos/);
   assert.match(text, /<meta name="robots" content="index, follow/);
   assert.ok(!/<meta name="robots" content="[^"]*noindex/.test(text), `${path}: not noindexed`);
   assert.equal(new URL(text.match(/property="og:url" content="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, canonical);

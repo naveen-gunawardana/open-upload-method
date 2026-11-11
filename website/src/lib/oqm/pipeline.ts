@@ -62,12 +62,16 @@ const withPatches = (enabled: PatchOptions["enabled"], encode: Partial<EncodeOpt
   patch: { ...DEFAULT_PATCH, enabled },
 });
 
+const withSilentTail = (encode: Partial<EncodeOptions>): Recipe => ({
+  ...withPatches([], encode), method: "silent-tail",
+});
+
 /** Independent options. The controlled comparison below uses only three shared-source arms. */
 export const PRESETS: Preset[] = [
   { id: "silent-tail", title: "Silent-tail (default)", desc: "Re-encodes to H.264/AAC stereo, then adds a short silent audio tail and a second audio track. Experimental; TikTok quality and retention can vary.", recipe: DEFAULT_RECIPE },
   { id: "current", title: "Original OQM", desc: "Clean H.264 re-encode (quality 17) + the original full patch set. The previous website default and desktop method.", recipe: withPatches(REFERENCE) },
-  { id: "1080p", title: "1080p — high quality", desc: "H.264 at a target 20 Mbps, up to 1080p and 60 fps, AAC audio. Keeps lower source frame rates and dimensions. Current OQM patches; TikTok retention still needs testing.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 20, size: "short-1080", fps: "source-max-60" }) },
-  { id: "4k", title: "4K — experimental", desc: "H.264 at a target 60 Mbps, up to 2160p and 60 fps, AAC audio. Use a 4K SDR source; smaller videos stay smaller. Requires a capable browser/device. TikTok may downscale it.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 60, size: "short-2160", fps: "source-max-60" }) },
+  { id: "1080p", title: "1080p — high quality", desc: "H.264 at a target 20 Mbps, up to 1080p and 60 fps, AAC audio. Keeps lower source frame rates and dimensions. Uses the default silent-tail method with AAC stereo. TikTok results can vary.", recipe: withSilentTail({ reencode: true, rate: "bitrate", mbps: 20, size: "short-1080", fps: "source-max-60" }) },
+  { id: "4k", title: "4K — high quality", desc: "Uses the default silent-tail method. H.264 at a target 60 Mbps, up to 4K (2160p) and 60 fps, AAC stereo. Use a 4K SDR source and a capable browser/device; smaller inputs stay smaller. TikTok results can vary.", recipe: withSilentTail({ reencode: true, rate: "bitrate", mbps: 60, size: "short-2160", fps: "source-max-60" }) },
   { id: "noreencode", title: "No re-encode", desc: "Your video and audio are kept exactly as they are; only the container is patched.", recipe: withPatches(REFERENCE, { reencode: false }) },
   { id: "longgop", title: "Long keyframe gap", desc: "Re-encode with one keyframe at the start, like the public reference tool, + full patch set.", recipe: withPatches(REFERENCE, { keyframeSec: 0 }) },
   { id: "videodecoy", title: "Full patch + video decoy", desc: "Current patches plus a hidden duplicate video track. Experimental; differs from NoBlur's primary-track inflation.", recipe: withPatches(ALL_PATCHES) },
