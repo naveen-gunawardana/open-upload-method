@@ -476,7 +476,7 @@ export default function Scene({ paused = false }: { paused?: boolean }) {
     >
       <RenderCadence active={!paused && visible && !reduced} />
       <CameraRig reduced={reduced} />
-      <fog attach="fog" args={[dark ? "#10172e" : "#c6e1ef", 42, 390]} />
+      <fog attach="fog" args={[dark ? "#10172e" : "#88cefa", 42, 390]} />
       <ambientLight intensity={dark ? 0.35 : 0.8} />
       <hemisphereLight args={[dark ? "#7c91c9" : "#c7e6ff", dark ? "#07101f" : "#8ca77c", dark ? 0.6 : 0.85]} />
       <directionalLight position={[-80, 100, 30]} intensity={dark ? 1.2 : 1.5} color={dark ? "#bbd3ff" : "#fff0d3"} />

@@ -244,8 +244,8 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
               >
                 <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
-                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}><span className="hero-paid">Paid</span> upload methods are <span className="hero-dead">dead.</span></h1>
-                  <p className="sub">Bypass TikTok compression <strong className="hero-free">for free.</strong> No account or installation needed.</p>
+                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Stop TikTok from compressing your video.</h1>
+                  <p className="sub">Prepare sharper TikTok uploads <strong className="hero-free">for free.</strong> Your video stays on your device. No account or installation needed.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">
