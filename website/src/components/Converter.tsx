@@ -70,12 +70,14 @@ export default function Converter({
   onCounted,
   standalone = false,
   embedded = false,
+  onBusyChange,
 }: {
   file?: File | null;
   onClose?: () => void;
   onCounted?: (count: number | null) => void;
   standalone?: boolean;
   embedded?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [recipe, setRecipeState] = useState<Recipe>(DEFAULT_RECIPE);
   const [selectedFile, setSelectedFile] = useState<File | null>(file);
@@ -118,6 +120,7 @@ export default function Converter({
     if (busy.current) return;
     busy.current = true;
     try {
+      onBusyChange?.(true);
       for (;;) {
         const run = runsRef.current.find((r) => r.status === "queued");
         if (!run || closed.current) break;
@@ -152,8 +155,9 @@ export default function Converter({
     } finally {
       busy.current = false;
       abort.current = null;
+      onBusyChange?.(false);
     }
-  }, [count, update]);
+  }, [count, update, onBusyChange]);
 
   const queue = useCallback(
     (f: File, items: { title: string; slug: string; recipe: Recipe }[], comparisonEncode?: EncodeOptions) => {

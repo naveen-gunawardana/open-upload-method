@@ -3,11 +3,12 @@
 import { Suspense, useEffect, useMemo, useRef, useSyncExternalStore } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Cloud, Clouds } from "@react-three/drei";
-import { Bloom, EffectComposer, Vignette } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { createNoise2D } from "simplex-noise";
+import { useTheme } from "@/components/ThemeProvider";
 
 const terrainNoise = createNoise2D();
+const mountainNoise = createNoise2D();
 function terrainHeight(x: number, z: number) {
   return (
     terrainNoise(x * 0.012, z * 0.012) * 4.2 +
@@ -29,6 +30,23 @@ function useReducedMotion() {
   return useSyncExternalStore(subscribeReducedMotion, getReducedMotion, () => false);
 }
 
+const subscribeVisibility = (onChange: () => void) => {
+  document.addEventListener("visibilitychange", onChange);
+  return () => document.removeEventListener("visibilitychange", onChange);
+};
+const getVisible = () => document.visibilityState !== "hidden";
+
+function RenderCadence({ active }: { active: boolean }) {
+  const invalidate = useThree(state => state.invalidate);
+  useEffect(() => {
+    invalidate();
+    if (!active) return;
+    const timer = window.setInterval(() => invalidate(), 1000 / 30);
+    return () => window.clearInterval(timer);
+  }, [active, invalidate]);
+  return null;
+}
+
 function CameraRig({ reduced }: { reduced: boolean }) {
   const camera = useThree((state) => state.camera);
   const look = useRef(new THREE.Vector3(0, 0.6, -60));
@@ -40,7 +58,7 @@ function CameraRig({ reduced }: { reduced: boolean }) {
     const cam = state.camera;
     const target = look.current;
     const t = state.clock.elapsedTime;
-    const k = 1 - Math.exp(-delta * 2.2);
+    const k = 1 - Math.exp(-Math.min(delta, 0.05) * 2.2);
     const tx = Math.sin(t * 0.12) * 2.4 + state.pointer.x * 2.6;
     const ty = 2.3 + Math.sin(t * 0.21) * 0.35 + state.pointer.y * 0.9;
     const tz = 11 + Math.sin(t * 0.09) * 1.6;
@@ -55,24 +73,25 @@ function CameraRig({ reduced }: { reduced: boolean }) {
   return null;
 }
 
-function Terrain() {
+function Terrain({ dark }: { dark: boolean }) {
   const geometry = useMemo(() => {
     const size = 340;
-    const seg = 320;
+    const seg = 96;
     const geo = new THREE.PlaneGeometry(size, size, seg, seg);
     geo.rotateX(-Math.PI / 2);
     const pos = geo.attributes.position;
     const colors = new Float32Array(pos.count * 3);
-    const dark = new THREE.Color("#071724");
-    const mid = new THREE.Color("#102d3c");
-    const light = new THREE.Color("#315461");
+    const low = new THREE.Color(dark ? "#071724" : "#20533c");
+    const mid = new THREE.Color(dark ? "#102d3c" : "#4a9161");
+    const light = new THREE.Color(dark ? "#315461" : "#b8d58b");
+    const c = new THREE.Color();
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
       const z = pos.getZ(i);
       const h = terrainHeight(x, z);
       pos.setY(i, h);
       const t = THREE.MathUtils.clamp((h + 4) / 7, 0, 1);
-      const c = t < 0.5 ? dark.clone().lerp(mid, t * 2) : mid.clone().lerp(light, (t - 0.5) * 2);
+      if (t < 0.5) c.copy(low).lerp(mid, t * 2); else c.copy(mid).lerp(light, (t - 0.5) * 2);
       colors[i * 3] = c.r;
       colors[i * 3 + 1] = c.g;
       colors[i * 3 + 2] = c.b;
@@ -80,7 +99,8 @@ function Terrain() {
     geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
     geo.computeVertexNormals();
     return geo;
-  }, []);
+  }, [dark]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   return (
     <mesh geometry={geometry} position={[0, -3, -60]}>
@@ -89,7 +109,7 @@ function Terrain() {
   );
 }
 
-function Mountains() {
+function Mountains({ dark }: { dark: boolean }) {
   const peaks = useMemo(() => {
     const arr: { position: [number, number, number]; radius: number; height: number; rot: number; idx: number }[] = [];
     let seed = 7;
@@ -97,8 +117,8 @@ function Mountains() {
       seed = (seed * 9301 + 49297) % 233280;
       return seed / 233280;
     };
-    for (let i = 0; i < 64; i++) {
-      const layer = i % 4;
+    for (let i = 0; i < 24; i++) {
+      const layer = i % 3;
       const x = (rand() - 0.5) * (360 + layer * 80);
       const z = -90 - layer * 32 - rand() * 50;
       const radius = 16 + rand() * 24 + layer * 3;
@@ -109,10 +129,11 @@ function Mountains() {
   }, []);
 
   const geometries = useMemo(() => {
-    const noise2D = createNoise2D();
-    const rock = new THREE.Color("#111d35");
-    const mid = new THREE.Color("#253c60");
-    const ridge = new THREE.Color("#879cc0");
+    const noise2D = mountainNoise;
+    const rock = new THREE.Color(dark ? "#111d35" : "#667fa0");
+    const mid = new THREE.Color(dark ? "#253c60" : "#94b4d1");
+    const ridge = new THREE.Color(dark ? "#879cc0" : "#eff6ff");
+    const c = new THREE.Color();
     return peaks.map((m) => {
       const geo = new THREE.ConeGeometry(m.radius, m.height, 9, 5);
       const pos = geo.attributes.position;
@@ -127,10 +148,8 @@ function Mountains() {
         pos.setZ(i, z * jitter);
         const t = THREE.MathUtils.clamp((y + m.height / 2) / m.height, 0, 1);
         const ridged = Math.pow(t, 2.4) + Math.max(0, n) * 0.12;
-        const c =
-          ridged < 0.55
-            ? rock.clone().lerp(mid, ridged / 0.55)
-            : mid.clone().lerp(ridge, (ridged - 0.55) / 0.45);
+        if (ridged < 0.55) c.copy(rock).lerp(mid, ridged / 0.55);
+        else c.copy(mid).lerp(ridge, (ridged - 0.55) / 0.45);
         colors[i * 3] = c.r;
         colors[i * 3 + 1] = c.g;
         colors[i * 3 + 2] = c.b;
@@ -139,7 +158,8 @@ function Mountains() {
       geo.computeVertexNormals();
       return geo;
     });
-  }, [peaks]);
+  }, [peaks, dark]);
+  useEffect(() => () => geometries.forEach(geometry => geometry.dispose()), [geometries]);
 
   return (
     <group>
@@ -152,7 +172,7 @@ function Mountains() {
   );
 }
 
-const CLOUD_CONFIG = Array.from({ length: 34 }, (_, i) => {
+const CLOUD_CONFIG = Array.from({ length: 10 }, (_, i) => {
   const r = (n: number) => {
     const s = Math.sin((i + 1) * 127.1 + n * 311.7) * 43758.5453;
     return s - Math.floor(s);
@@ -166,7 +186,7 @@ const CLOUD_CONFIG = Array.from({ length: 34 }, (_, i) => {
   };
 });
 
-function CloudBank({ reduced }: { reduced: boolean }) {
+function CloudBank({ reduced, dark }: { reduced: boolean; dark: boolean }) {
   const refs = useRef<(THREE.Group | null)[]>([]);
 
   useFrame((state) => {
@@ -180,7 +200,7 @@ function CloudBank({ reduced }: { reduced: boolean }) {
   });
 
   return (
-    <Clouds limit={500} range={100}>
+    <Clouds limit={128} range={96}>
       {CLOUD_CONFIG.map((c, i) => (
         <Cloud
           key={i}
@@ -188,12 +208,12 @@ function CloudBank({ reduced }: { reduced: boolean }) {
             refs.current[i] = el;
           }}
           seed={i + 1}
-          segments={30}
+          segments={12}
           bounds={[14, 2.6, 4]}
           volume={8}
-          color="#6a7ba3"
+          color={dark ? "#6a7ba3" : "#ffffff"}
           fade={160}
-          opacity={0.16}
+          opacity={dark ? 0.16 : 0.65}
           position={[c.start, c.y, c.z]}
           scale={c.scale}
         />
@@ -202,7 +222,7 @@ function CloudBank({ reduced }: { reduced: boolean }) {
   );
 }
 
-const BIRD_COUNT = 48;
+const BIRD_COUNT = 18;
 const BIRDS = Array.from({ length: BIRD_COUNT }, (_, i) => {
   const r = (n: number) => {
     const s = Math.sin((i + 1) * 91.7 + n * 173.3) * 43758.5453;
@@ -219,7 +239,7 @@ const BIRDS = Array.from({ length: BIRD_COUNT }, (_, i) => {
   };
 });
 
-function Birds({ reduced }: { reduced: boolean }) {
+function Birds({ reduced, dark }: { reduced: boolean; dark: boolean }) {
   const left = useRef<THREE.InstancedMesh>(null);
   const right = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -253,17 +273,17 @@ function Birds({ reduced }: { reduced: boolean }) {
     <>
       <instancedMesh ref={left} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
         <boxGeometry args={[0.5, 0.03, 0.08]} />
-        <meshBasicMaterial color="#101a2e" />
+        <meshBasicMaterial color={dark ? "#101a2e" : "#415775"} />
       </instancedMesh>
       <instancedMesh ref={right} args={[undefined, undefined, BIRD_COUNT]} frustumCulled={false}>
         <boxGeometry args={[0.5, 0.03, 0.08]} />
-        <meshBasicMaterial color="#101a2e" />
+        <meshBasicMaterial color={dark ? "#101a2e" : "#415775"} />
       </instancedMesh>
     </>
   );
 }
 
-const PARTICLE_COUNT = 2600;
+const PARTICLE_COUNT = 480;
 
 const STAR_VERTEX = `
   attribute vec3 aStarColor;
@@ -324,7 +344,7 @@ function StarMaterial({ reduced, size, attenuation, opacity, maxSize }: {
 
 function NightStars({ reduced }: { reduced: boolean }) {
   const geometry = useMemo(() => {
-    const count = 1800;
+    const count = 720;
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
     const seeds = new Float32Array(count);
@@ -346,19 +366,20 @@ function NightStars({ reduced }: { reduced: boolean }) {
     geo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
     return geo;
   }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
   return <points geometry={geometry} frustumCulled={false}>
     <StarMaterial reduced={reduced} size={2.7} attenuation={0} opacity={0.85} maxSize={7} />
   </points>;
 }
 
-function Particles({ reduced }: { reduced: boolean }) {
+function Particles({ reduced, dark }: { reduced: boolean; dark: boolean }) {
   const ref = useRef<THREE.Points>(null);
   const geometry = useMemo(() => {
     const pos = new Float32Array(PARTICLE_COUNT * 3);
     const col = new Float32Array(PARTICLE_COUNT * 3);
     const seeds = new Float32Array(PARTICLE_COUNT);
-    const warm = new THREE.Color("#d2c4ff");
-    const cool = new THREE.Color("#c1eaff");
+    const warm = new THREE.Color(dark ? "#d2c4ff" : "#fff3c2");
+    const cool = new THREE.Color(dark ? "#c1eaff" : "#d4eafc");
     const c = new THREE.Color();
     let seed = 42;
     const rand = () => {
@@ -380,7 +401,8 @@ function Particles({ reduced }: { reduced: boolean }) {
     geo.setAttribute("aStarColor", new THREE.BufferAttribute(col, 3));
     geo.setAttribute("aSeed", new THREE.BufferAttribute(seeds, 1));
     return geo;
-  }, []);
+  }, [dark]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
 
   useFrame((state) => {
     const p = ref.current;
@@ -393,15 +415,23 @@ function Particles({ reduced }: { reduced: boolean }) {
 
   return (
     <points ref={ref} geometry={geometry} frustumCulled={false}>
-      <StarMaterial reduced={reduced} size={3.4} attenuation={1} opacity={0.55} maxSize={16} />
+      <StarMaterial reduced={reduced} size={3.4} attenuation={1} opacity={dark ? 0.55 : 0.22} maxSize={14} />
     </points>
   );
 }
 
-function Moon() {
+function CelestialBody({ dark }: { dark: boolean }) {
   const x = useThree(state => -Math.min(105, 75 * state.size.width / Math.max(1, state.size.height)));
+  const halo = useMemo(() => ({ uTint: { value: new THREE.Color(dark ? "#8198f0" : "#ffdb8f") } }), [dark]);
   return (
-    <mesh position={[x, 63, -210]}>
+    <group position={[dark ? x : -x, 63, -210]}>
+    <mesh position={[0, 0, -1]}>
+      <planeGeometry args={[64, 64]} />
+      <shaderMaterial transparent depthWrite={false} uniforms={halo}
+        vertexShader={`varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`}
+        fragmentShader={`uniform vec3 uTint; varying vec2 vUv; void main() { float r = length((vUv - 0.5) * 2.0); if (r > 1.0) discard; gl_FragColor = vec4(uTint, exp(-5.0 * r * r) * 0.16); }`} />
+    </mesh>
+    {dark ? <mesh>
       <planeGeometry args={[23, 23]} />
       <shaderMaterial transparent depthWrite toneMapped={false}
         vertexShader={`varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`}
@@ -422,42 +452,43 @@ function Moon() {
             gl_FragColor = vec4(mix(earthshine, moonlight, phase), edge);
           }
         `} />
-    </mesh>
+    </mesh> : <mesh><sphereGeometry args={[9, 24, 16]} /><meshBasicMaterial color="#ffedb7" toneMapped={false} /></mesh>}
+    </group>
   );
 }
 
-export default function Scene() {
+export default function Scene({ paused = false }: { paused?: boolean }) {
+  const dark = useTheme() === "dark";
   const reduced = useReducedMotion();
+  const visible = useSyncExternalStore(subscribeVisibility, getVisible, () => true);
   return (
     <Canvas
       eventSource={typeof document === "undefined" ? undefined : document.body}
       eventPrefix="client"
-      dpr={[1, 1.75]}
-      gl={{ antialias: true, alpha: true }}
+      frameloop="demand"
+      dpr={[1, 1.25]}
+      gl={{ antialias: false, alpha: true }}
       onCreated={({ gl }) => {
         gl.setClearColor(0x000000, 0);
       }}
       camera={{ position: [0, 2.3, 11], fov: 55, near: 0.5, far: 700 }}
       style={{ position: "fixed", inset: 0, zIndex: 0 }}
     >
+      <RenderCadence active={!paused && visible && !reduced} />
       <CameraRig reduced={reduced} />
-      <fog attach="fog" args={["#10172e", 42, 390]} />
-      <ambientLight intensity={0.35} />
-      <hemisphereLight args={["#7c91c9", "#07101f", 0.6]} />
-      <directionalLight position={[-80, 100, 30]} intensity={1.2} color="#bbd3ff" />
-      <NightStars reduced={reduced} />
-      <Moon />
+      <fog attach="fog" args={[dark ? "#10172e" : "#c6e1ef", 42, 390]} />
+      <ambientLight intensity={dark ? 0.35 : 0.8} />
+      <hemisphereLight args={[dark ? "#7c91c9" : "#c7e6ff", dark ? "#07101f" : "#8ca77c", dark ? 0.6 : 0.85]} />
+      <directionalLight position={[-80, 100, 30]} intensity={dark ? 1.2 : 1.5} color={dark ? "#bbd3ff" : "#fff0d3"} />
+      {dark && <NightStars reduced={reduced} />}
+      <CelestialBody dark={dark} />
       <Suspense fallback={null}>
-        <CloudBank reduced={reduced} />
+        <CloudBank reduced={reduced} dark={dark} />
       </Suspense>
-      <Mountains />
-      <Terrain />
-      <Birds reduced={reduced} />
-      <Particles reduced={reduced} />
-      <EffectComposer>
-        <Bloom intensity={0.75} luminanceThreshold={0.7} luminanceSmoothing={0.4} mipmapBlur />
-        <Vignette eskil={false} offset={0.2} darkness={0.35} />
-      </EffectComposer>
+      <Mountains dark={dark} />
+      <Terrain dark={dark} />
+      <Birds reduced={reduced} dark={dark} />
+      <Particles reduced={reduced} dark={dark} />
     </Canvas>
   );
 }

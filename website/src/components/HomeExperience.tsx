@@ -76,6 +76,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
   const [notVideo, setNotVideo] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [cardHeight, setCardHeight] = useState(560);
+  const [sceneBusy, setSceneBusy] = useState(false);
   const depth = useRef(0);
   const homeTitle = useRef<HTMLHeadingElement>(null);
   const converterTitle = useRef<HTMLHeadingElement>(null);
@@ -219,7 +220,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
 
   return (
     <>
-      <Scene />
+      <Scene paused={sceneBusy} />
       <div className="vignette" aria-hidden="true" />
 
       <div className="stage">
@@ -291,7 +292,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     </div>
                   </header>
                   {notVideo && <p className="modal-error">That doesn&rsquo;t look like a video. Try an MP4 or MOV.</p>}
-                  {converterOpened && <Converter file={file} standalone embedded onCounted={onCounted} />}
+                  {converterOpened && <Converter file={file} standalone embedded onCounted={onCounted} onBusyChange={setSceneBusy} />}
                 </div>
               </section>
             </div>

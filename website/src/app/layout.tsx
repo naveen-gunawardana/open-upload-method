@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import ThemeProvider from "@/components/ThemeProvider";
+import { THEME_BOOTSTRAP } from "@/lib/theme";
 import "./globals.css";
 
 const inter = Inter({
@@ -37,9 +39,12 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
+      data-theme="light"
+      suppressHydrationWarning
       className={`${inter.variable} ${quicksand.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
-      <body>{children}</body>
+      <head><script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} /></head>
+      <body><ThemeProvider>{children}</ThemeProvider></body>
     </html>
   );
 }
