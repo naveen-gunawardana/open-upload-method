@@ -52,8 +52,8 @@ export const DEFAULT_ENCODE: EncodeOptions = {
   hardware: "no-preference",
 };
 
-/** What the desktop app does: clean H.264 re-encode at quality 17, same size and frame rate, full patch set. */
-export const DEFAULT_RECIPE: Recipe = { encode: DEFAULT_ENCODE, patch: DEFAULT_PATCH };
+/** Silent-tail is the website default; encode first so supported MOV inputs become compatible H.264/AAC MP4. */
+export const DEFAULT_RECIPE: Recipe = { method: "silent-tail", encode: DEFAULT_ENCODE, patch: { ...DEFAULT_PATCH, enabled: [] } };
 
 export type Preset = { id: string; title: string; desc: string; recipe: Recipe };
 
@@ -64,10 +64,10 @@ const withPatches = (enabled: PatchOptions["enabled"], encode: Partial<EncodeOpt
 
 /** Independent options. The controlled comparison below uses only three shared-source arms. */
 export const PRESETS: Preset[] = [
-  { id: "current", title: "Current OQM (default)", desc: "Clean H.264 re-encode (quality 17) + full patch set. What the desktop app did.", recipe: DEFAULT_RECIPE },
+  { id: "silent-tail", title: "Silent-tail (default)", desc: "Re-encodes to H.264/AAC stereo, then adds a short silent audio tail and a second audio track. Experimental; TikTok quality and retention can vary.", recipe: DEFAULT_RECIPE },
+  { id: "current", title: "Original OQM", desc: "Clean H.264 re-encode (quality 17) + the original full patch set. The previous website default and desktop method.", recipe: withPatches(REFERENCE) },
   { id: "1080p", title: "1080p — high quality", desc: "H.264 at a target 20 Mbps, up to 1080p and 60 fps, AAC audio. Keeps lower source frame rates and dimensions. Current OQM patches; TikTok retention still needs testing.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 20, size: "short-1080", fps: "source-max-60" }) },
   { id: "4k", title: "4K — experimental", desc: "H.264 at a target 60 Mbps, up to 2160p and 60 fps, AAC audio. Use a 4K SDR source; smaller videos stay smaller. Requires a capable browser/device. TikTok may downscale it.", recipe: withPatches(REFERENCE, { reencode: true, rate: "bitrate", mbps: 60, size: "short-2160", fps: "source-max-60" }) },
-  { id: "silent-tail", title: "Silent-tail (experimental)", desc: "Keeps video packets, adds a short AAC silence tail and a second audio track. Requires a clean AAC-LC stereo MP4. TikTok results unverified.", recipe: { ...withPatches([], { reencode: false }), method: "silent-tail" } },
   { id: "noreencode", title: "No re-encode", desc: "Your video and audio are kept exactly as they are; only the container is patched.", recipe: withPatches(REFERENCE, { reencode: false }) },
   { id: "longgop", title: "Long keyframe gap", desc: "Re-encode with one keyframe at the start, like the public reference tool, + full patch set.", recipe: withPatches(REFERENCE, { keyframeSec: 0 }) },
   { id: "videodecoy", title: "Full patch + video decoy", desc: "Current patches plus a hidden duplicate video track. Experimental; differs from NoBlur's primary-track inflation.", recipe: withPatches(ALL_PATCHES) },
@@ -191,17 +191,17 @@ async function runConversion(conversion: Conversion, onStage: (s: Stage) => void
 /** Chrome's AAC encoder fails intermittently above ~160 kbps per channel (mono at 320 kbps errors out), so cap it. */
 const audioBitrate = (kbps: number, channels: number) => Math.min(kbps, 160 * Math.max(1, Math.min(channels, 2))) * 1000;
 
-async function reencode(file: Blob, src: Probe, e: EncodeOptions, onStage: (s: Stage) => void, signal?: AbortSignal) {
+async function reencode(file: Blob, src: Probe, e: EncodeOptions, onStage: (s: Stage) => void, signal?: AbortSignal, stereo = false) {
   try {
-    return await reencodeOnce(file, src, e, audioBitrate(e.audioKbps, src.channels), onStage, signal);
+    return await reencodeOnce(file, src, e, audioBitrate(e.audioKbps, stereo ? 2 : src.channels), onStage, signal, stereo);
   } catch (error) {
     // One retry at a safe audio bitrate if the browser's audio encoder gave up mid-way.
     if (signal?.aborted || error instanceof OqmError || !/encod/i.test(String(error)) || !src.hasAudio) throw error;
-    return await reencodeOnce(file, src, e, 128_000 * Math.max(1, Math.min(src.channels, 2)), onStage, signal);
+    return await reencodeOnce(file, src, e, 128_000 * (stereo ? 2 : Math.max(1, Math.min(src.channels, 2))), onStage, signal, stereo);
   }
 }
 
-async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: number, onStage: (s: Stage) => void, signal?: AbortSignal) {
+async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: number, onStage: (s: Stage) => void, signal?: AbortSignal, stereo = false) {
   if (src.hdr) throw new OqmError("HDR/wide-gamut re-encoding needs explicit colour conversion. Use an SDR master; test HDR separately.");
   if (typeof VideoEncoder === "undefined") {
     throw new OqmError("This browser can't encode video. Use a recent Chrome, Edge or Safari, or turn off re-encode in the options.");
@@ -235,7 +235,7 @@ async function reencodeOnce(file: Blob, src: Probe, e: EncodeOptions, audioBps: 
         hardwareAcceleration: e.hardware,
         forceTranscode: true,
       },
-      audio: { codec: "aac", bitrate: audioBps, sampleRate: 48000, forceTranscode: true },
+      audio: { codec: "aac", bitrate: audioBps, sampleRate: 48000, ...(stereo ? { numberOfChannels: 2 } : {}), forceTranscode: true },
       // The desktop app strips metadata on export (-map_metadata -1).
       tags: () => ({}),
     });
@@ -274,7 +274,7 @@ export async function convert(
   if (signal?.aborted) throw new OqmError("Stopped.");
 
   let base: Blob = file;
-  if (recipe.encode.reencode) base = await reencode(file, src, recipe.encode, onStage, signal);
+  if (recipe.encode.reencode) base = await reencode(file, src, recipe.encode, onStage, signal, recipe.method === "silent-tail");
   else if (!(await isPatchReady(file))) base = await remux(file, onStage, signal);
   if (signal?.aborted) throw new OqmError("Stopped.");
 
@@ -321,7 +321,7 @@ export async function convert(
 export async function prepareComparison(file: File, encode: EncodeOptions, onStage: (s: Stage) => void, signal?: AbortSignal): Promise<File> {
   const src = await probe(file);
   if (src.hdr) throw new OqmError("Use an SDR master. HDR is a separate test.");
-  const base = encode.reencode ? await reencode(file, src, encode, onStage, signal) : await remux(file, onStage, signal);
+  const base = encode.reencode ? await reencode(file, src, encode, onStage, signal, true) : await remux(file, onStage, signal);
   if (signal?.aborted) throw new OqmError("Stopped.");
   return new File([base], file.name.replace(/\.[^.]+$/, "") + "_shared.mp4", { type: "video/mp4" });
 }

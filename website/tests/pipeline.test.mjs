@@ -37,8 +37,8 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   assert.match(html, /role="region"/);
   const presetSelect = html.match(/<label>Preset(<select>.*?<\/select>)<\/label>/)?.[1];
   assert.ok(presetSelect, "Preset settings are available before choosing a video");
-  assert.match(presetSelect, /<option value="current" selected="">Current OQM \(default\)<\/option>/);
-  assert.match(presetSelect, /<option value="silent-tail">Silent-tail \(experimental\)<\/option>/);
+  assert.match(presetSelect, /<option value="silent-tail" selected="">Silent-tail \(default\)<\/option>/);
+  assert.match(presetSelect, /<option value="current">Original OQM<\/option>/);
   assert.match(presetSelect, /<option value="1080p">1080p — high quality<\/option>/);
   assert.match(presetSelect, /<option value="4k">4K — experimental<\/option>/);
   assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
@@ -95,7 +95,13 @@ test("comparison prepares one shared MP4 and reads back all three methods", asyn
     assert.ok(result.info.mbps > 0);
   }
   assert.equal(PRESETS[0].recipe, DEFAULT_RECIPE);
-  assert.notEqual(DEFAULT_RECIPE.method, "silent-tail");
+  assert.equal(DEFAULT_RECIPE.method, "silent-tail");
+  assert.equal(DEFAULT_RECIPE.encode.reencode, true);
+  assert.equal(DEFAULT_RECIPE.encode.codec, "avc");
+  assert.deepEqual(DEFAULT_RECIPE.patch.enabled, []);
+  const original = PRESETS.find(p => p.id === "current").recipe;
+  assert.notEqual(original.method, "silent-tail");
+  assert.ok(original.patch.enabled.includes("decoy-audio"));
 });
 
 // Decode real ProRes + PCM data with the production registration path, not a mocked browser codec.

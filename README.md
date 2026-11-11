@@ -8,7 +8,7 @@ A free tool for preparing and comparing TikTok uploads. Container patches preser
 2. Click **Patch video →** to open the patcher, choose a video and settings, then click **Start →**. Dropping a file on the home screen opens the patcher with that file selected, ready to start
 3. Click **Download** when it's done, and upload that file to TikTok the same as always
 
-The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make local comparison (3)** prepares one encoded source, then builds clean MP4, current OQM and experimental silent-tail from it without further video encoding. The current OQM recipe remains the default. Silent-tail requires AAC-LC stereo and intentionally adds a short silent tail and a second audio track.
+The panel that opens has presets and an **Advanced** section with every option: re-encode on/off, codec, quality or bitrate, size, frame rate, keyframe spacing, audio bitrate, each container patch on its own, and the decoy and padding settings. **Make local comparison (3)** prepares one encoded source, then builds clean MP4, current OQM and experimental silent-tail from it without further video encoding. Silent-tail with re-encode enabled is the website default. Original OQM remains selectable; saved custom settings are still remembered. Silent-tail requires AAC-LC stereo and intentionally adds a short silent tail and a second audio track.
 
 Free and open source. OQM is MIT licensed; the optional ProRes decoder is MPL-2.0 (see `website/public/licenses/prores-notices.txt`).
 

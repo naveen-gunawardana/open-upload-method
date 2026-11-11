@@ -570,7 +570,7 @@ export default function Converter({
           <div className="settings-footer">
             <p className="fine">Settings saved for your next patch.</p>
             <button type="button" className="again" onClick={() => setRecipe(DEFAULT_RECIPE)}>
-              Reset to current default
+              Reset to default
             </button>
           </div>
         </section>
