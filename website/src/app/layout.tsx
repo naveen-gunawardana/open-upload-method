@@ -30,7 +30,7 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "OQM: Open Quality Method",
   description:
-    "Fight TikTok compression. Free, with no account or installation.",
+    "Bypass TikTok compression for free. No account or installation needed.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

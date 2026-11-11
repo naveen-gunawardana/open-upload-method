@@ -237,8 +237,8 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
               >
                 <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
-                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Better TikTok quality should be free.</h1>
-                  <p className="sub">Fight TikTok compression. Free, with no account or installation.</p>
+                  <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Paid upload methods are dead.</h1>
+                  <p className="sub">Bypass TikTok compression for free. No account or installation needed.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">
