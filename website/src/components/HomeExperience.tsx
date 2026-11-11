@@ -245,7 +245,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                 <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
                   <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Stop TikTok from compressing your video.</h1>
-                  <p className="sub">Prepare sharper TikTok uploads <strong className="hero-free">for free.</strong> Your video stays on your device. No account or installation needed.</p>
+                  <p className="sub">Prepare sharper 1080p and 4K TikTok uploads <strong className="hero-free">for free.</strong> Your video stays on your device. No account or installation needed.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">
@@ -255,7 +255,7 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     <span className="quality-arrow" aria-hidden="true"><ArrowIcon /></span>
                     <div className="quality-after">
                       <span>With OQM</span>
-                      <strong>1080p · 60fps</strong>
+                      <strong title="Supported output; TikTok upload results can vary.">Up to 4K · 60fps</strong>
                     </div>
                   </div>
 
