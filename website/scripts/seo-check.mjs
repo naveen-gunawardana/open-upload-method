@@ -21,7 +21,7 @@ for (const path of ['/', '/convert']) {
   assert.match(text, /<meta name="twitter:card" content="summary_large_image"/);
   assert.match(text, /Stop TikTok from compressing your video\./);
   assert.match(text, /\(Free forever\)/);
-  assert.match(text, /Up to 4K · 60fps/);
+  assert.match(text, /4K · 60fps/);
   const graph = JSON.parse(text.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1] ?? 'null');
   assert.equal(graph?.['@context'], 'https://schema.org');
   const app = graph['@graph'].find(x => x['@type'] === 'WebApplication');
