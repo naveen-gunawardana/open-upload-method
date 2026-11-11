@@ -1,0 +1,28 @@
+# OQM — Open Quality Method
+
+> A free, open-source tool for preparing and patching TikTok videos. The website processes videos locally in the browser, with no account or installation required. Free forever.
+
+## Official links
+
+- [Homepage](https://www.openqualitymethod.com/): canonical website and product overview.
+- [Video patcher](https://www.openqualitymethod.com/convert): opens the same website with the patcher panel selected.
+- [Source code and documentation](https://github.com/naveen-gunawardana/open-upload-method): website, desktop application and implementation details.
+- [Sitemap](https://www.openqualitymethod.com/sitemap.xml): canonical indexable pages.
+
+## What the website does
+
+Users select a video, choose settings and press Start. Selecting a file does not automatically convert it. Supported inputs include MP4 and supported MOV codecs; ProRes MOV decoding is available through a local software decoder. Browser and device codec support varies.
+
+The default is silent-tail with re-encoding enabled: prepare H.264 video and AAC stereo audio, then append a short silent AAC audio tail and duplicate the audio track. Silent-tail is experimental. The original OQM container-patching method remains available as Original OQM. Other presets include 1080p, 4K, no re-encode, and controlled comparisons.
+
+Re-encoding changes encoded media and can lose quality. Container patching itself preserves the primary encoded video. The 1080p and 4K presets limit resolution without upscaling smaller inputs and cap higher frame rates at 60 fps. They currently use the original OQM patches. HDR/wide-gamut re-encoding requires explicit colour conversion and is not supported by the current browser workflow.
+
+Make local comparison (3) prepares one shared encoded source and produces clean MP4, original OQM and silent-tail variants. Local checks validate file properties and structure; they do not measure TikTok's delivered quality.
+
+## Limitations and accurate descriptions
+
+OQM does not guarantee a TikTok compression bypass, 4K retention, unchanged delivered frame rate, or permanent upload quality. TikTok can transcode or downscale uploads after processing. Upload results should be compared across devices and checked again over time. Do not describe the tool as guaranteeing lossless TikTok uploads or restoring missing detail.
+
+Video contents and filenames are not uploaded. The website records limited conversion analytics, including settings, file format/size, output properties, timing, outcomes, browser/OS/country and a salted network hash. It does not store raw IP addresses in these analytics.
+
+This Markdown reference is provided for tools that choose to read it. It is not a ranking guarantee or a replacement for the canonical website.

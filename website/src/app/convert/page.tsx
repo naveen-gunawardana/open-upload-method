@@ -1,5 +1,6 @@
+import SiteStructuredData from "@/components/SiteStructuredData";
 import HomeExperience from "@/components/HomeExperience";
 
 export default function ConvertPage() {
-  return <HomeExperience initialView="converter" />;
+  return <><SiteStructuredData /><HomeExperience initialView="converter" /></>;
 }

@@ -1,8 +1,8 @@
-import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Inter, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import ThemeProvider from "@/components/ThemeProvider";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
+import { siteMetadata } from "@/lib/seo";
 import "./globals.css";
 
 const inter = Inter({
@@ -29,11 +29,7 @@ const plexMono = IBM_Plex_Mono({
   weight: ["500", "600"],
 });
 
-export const metadata: Metadata = {
-  title: "OQM: Open Quality Method",
-  description:
-    "Bypass TikTok compression for free. No account or installation needed.",
-};
+export const metadata = siteMetadata;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
