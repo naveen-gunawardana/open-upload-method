@@ -223,13 +223,11 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
 
       <div className="stage">
         <div className="header">
-          <a className="wordmark" href={TIKTOK_URL} target="_blank" rel="noopener" aria-label="OQM on TikTok (@openqualitymethod)">
+          <a className="wordmark" href={TIKTOK_URL} target="_blank" rel="noopener" aria-label="OQM on TikTok, @openqualitymethod">
             <Logo />
+            <span className="handle"><TikTokIcon /> @openqualitymethod</span>
           </a>
           <span className="chip">100% free · open source</span>
-          <a className="social" href={TIKTOK_URL} target="_blank" rel="noopener">
-            <TikTokIcon /> @openqualitymethod
-          </a>
         </div>
 
         <div className="hero">
