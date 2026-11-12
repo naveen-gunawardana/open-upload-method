@@ -66,13 +66,13 @@ h1{margin:0; font-family:var(--font-display), sans-serif}
 }
 
 .header{
-  display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:center;
-  background:var(--panel); border:1px solid rgba(255,255,255,.7); border-radius:12px; padding:9px 12px 9px 16px;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap; justify-content:center;
+  background:var(--panel); border:1px solid rgba(255,255,255,.7); border-radius:12px; padding:9px 16px;
   backdrop-filter:blur(10px); box-shadow:0 4px 20px rgba(22,48,73,.08); flex:none;
 }
-.wordmark{display:flex; align-items:center; gap:9px; margin-right:2px}
+.wordmark{display:flex; align-items:center; gap:14px; margin:0}
 .wordmark svg,.wordmark img{display:block; border-radius:50%}
-.wordmark{border-radius:999px; padding-right:6px}
+.wordmark{border-radius:999px; padding:0}
 .wordmark img{transition:transform .15s ease}
 .wordmark:hover img{transform:scale(1.06)}
 .wordmark:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
