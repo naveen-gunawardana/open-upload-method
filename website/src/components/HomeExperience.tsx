@@ -13,7 +13,7 @@ const Converter = dynamic(() => import("@/components/Converter"), {
   loading: () => <p className="fine" role="status">Loading patcher…</p>,
 });
 
-const GITHUB_URL = "https://github.com/naveen-gunawardana/open-upload-method";
+const GITHUB_URL = "https://github.com/naveen-gunawardana/open-quality-method";
 const TIKTOK_URL = "https://www.tiktok.com/@openqualitymethod";
 
 function GithubIcon() {

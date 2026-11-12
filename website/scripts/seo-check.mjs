@@ -38,7 +38,18 @@ assert.match(robots, /Disallow: \/api\//);
 assert.match(robots, /Sitemap: https:\/\/www.openqualitymethod.com\/sitemap.xml/);
 const sitemap = (await get('/sitemap.xml')).text;
 assert.ok(sitemap.includes(`<loc>${canonical}</loc>`));
-assert.equal((sitemap.match(/<loc>/g) ?? []).length, 1, 'only the canonical page is in the sitemap');
+const guideSlugs = ['tiktok-video-quality','mov-to-mp4-for-tiktok','silent-tail-method'];
+assert.equal((sitemap.match(/<loc>/g) ?? []).length, 5, 'homepage, guide index and three articles');
+for (const path of ['/guides', ...guideSlugs.map(slug => '/guides/' + slug)]) {
+  const { text } = await get(path);
+  assert.ok(sitemap.includes(`<loc>https://www.openqualitymethod.com${path}</loc>`));
+  assert.equal(new URL(text.match(/rel="canonical" href="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, `https://www.openqualitymethod.com${path}`);
+  assert.ok(text.includes('href="/convert?utm_source=guide'), 'guide links to the patcher');
+  if (path !== '/guides') {
+    assert.ok(text.includes('"@type":"TechArticle"'));
+    assert.ok(text.includes('"@type":"BreadcrumbList"'));
+  }
+}
 const llms = await get('/llms.txt');
 assert.match(llms.text, /^# OQM/);
 assert.match(llms.text, /does not guarantee/);

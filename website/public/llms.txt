@@ -6,7 +6,8 @@
 
 - [Homepage](https://www.openqualitymethod.com/): canonical website and product overview.
 - [Video patcher](https://www.openqualitymethod.com/convert): opens the same website with the patcher panel selected.
-- [Source code and documentation](https://github.com/naveen-gunawardana/open-upload-method): website, desktop application and implementation details.
+- [Source code and documentation](https://github.com/naveen-gunawardana/open-quality-method): website, desktop application and implementation details.
+- [Editor guides](https://www.openqualitymethod.com/guides): practical upload-quality, MOV conversion and silent-tail guides.
 - [Sitemap](https://www.openqualitymethod.com/sitemap.xml): canonical indexable pages.
 
 ## What the website does

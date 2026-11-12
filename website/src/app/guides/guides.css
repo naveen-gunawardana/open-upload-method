@@ -1,0 +1,27 @@
+.guides-shell{position:fixed;inset:0;overflow-y:auto;background:var(--page-bg);padding:30px 24px 56px;color:var(--fg)}
+.guides-wrap{max-width:940px;margin:0 auto}
+.guides-header,.guides-footer{display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:center;font-size:13px;font-weight:600}
+.guides-header{padding:4px 100px 24px 0}
+.guides-header a:hover,.guides-footer a:hover{text-decoration:underline}
+.guides-article{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:clamp(24px,5vw,56px);box-shadow:var(--panel-shadow)}
+.guides-article h1{font-family:var(--font-hero),sans-serif;font-size:clamp(28px,4.5vw,44px);line-height:1.15;letter-spacing:-.025em;max-width:760px}
+.guides-intro{font-size:18px;line-height:1.7;color:var(--muted);margin:22px 0}
+.guides-article section{margin-top:36px;max-width:720px}
+.guides-article h2{font-size:23px;line-height:1.35;margin:0 0 14px}
+.guides-article p,.guides-article li{line-height:1.8}
+.guides-article p{margin:14px 0}
+.guides-article ol,.guides-article ul{padding-left:24px}
+.guides-article li+li{margin-top:10px}
+.guides-article a:not(.guides-cta){color:var(--blue-dark);text-decoration:underline;text-underline-offset:3px}
+:root[data-theme="dark"] .guides-article a:not(.guides-cta){color:var(--info)}
+.guides-cta{display:inline-flex;align-items:center;justify-content:center;padding:13px 20px;border-radius:10px;background:var(--action);color:#fff;font-weight:600;line-height:1.4}
+.guides-cta:hover{background:var(--action-bottom)}
+.guides-breadcrumb{font-size:12px;color:var(--muted);margin-bottom:24px}
+.guides-date{font-size:12px;color:var(--muted)}
+.guides-cards{display:grid;gap:18px;margin-top:30px}
+.guides-card{padding:22px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.guides-card h2{margin-bottom:10px;font-size:22px}
+.guides-card p{color:var(--muted);margin-bottom:0}
+.guides-footer{padding:24px 0;justify-content:flex-start;color:var(--fg)}
+.guides-article :focus-visible,.guides-header :focus-visible,.guides-footer :focus-visible{outline:3px solid var(--focus);outline-offset:4px}
+@media(max-width:600px){.guides-shell{padding:24px 16px 40px}.guides-header{display:block;padding-right:48px}.guides-header a{display:block;margin-bottom:10px}.guides-intro{font-size:16px}}

@@ -4,7 +4,7 @@ import { test } from 'node:test';
 import ts from 'typescript';
 const source = await readFile(new URL('../src/lib/conversion-analytics.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 } }).outputText;
-const { sanitizeAnalytics, failureCategory, trackConversion, clientEnvironment } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+const { sanitizeAttribution, sanitizeAnalytics, failureCategory, trackConversion, clientEnvironment } = await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
 const runId = '4ed76815-3442-4fb7-b660-382afed057d0';
 test('analytics allowlist strips nested personal fields, bounds values and is idempotent', () => {
   const event = sanitizeAnalytics({run_id:runId,event:'succeeded',filename:'private.mov',ip:'1.2.3.4',error:'secret',preset:'silent-tail',mode:'ab',
@@ -68,4 +68,12 @@ test('analytics endpoint validates requests, strips extras and never increments 
     assert.match(calls[0].row.ip_hash,/^[a-f0-9]{64}$/);
     assert.deepEqual(calls[0].options,{onConflict:'run_id,event',ignoreDuplicates:true});
   } finally {delete globalThis.__analyticsTestDb;await rm(dir,{recursive:true,force:true});}
+});
+
+test('campaign attribution only accepts the published marketing tags and survives server validation', () => {
+  assert.equal(sanitizeAttribution({source:'person@example.com',campaign:'private-search',referrer:'https://private.example'}),undefined);
+  const event=sanitizeAnalytics({run_id:runId,event:'started',settings:{},attribution:{source:'reddit',medium:'community',campaign:'editor_launch',content:'launch-post',email:'private@example.com'}});
+  assert.deepEqual(event.settings.attribution,{source:'reddit',medium:'community',campaign:'editor_launch',content:'launch-post'});
+  assert.deepEqual(sanitizeAnalytics(event).settings.attribution,event.settings.attribution);
+  assert.doesNotMatch(JSON.stringify(event),/private@example|email|referrer/);
 });

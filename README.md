@@ -2,6 +2,13 @@
 
 A free tool for preparing and comparing TikTok uploads. Container patches preserve local video packets; they do not guarantee TikTok will retain resolution, frame rate or bitrate. It runs in your browser: your video is processed on your own computer and never uploaded anywhere.
 
+## Editor guides
+
+- [TikTok upload quality: 1080p and 4K workflow](https://www.openqualitymethod.com/guides/tiktok-video-quality)
+- [Convert supported MOV files to MP4 locally](https://www.openqualitymethod.com/guides/mov-to-mp4-for-tiktok)
+- [How the silent-tail method works](https://www.openqualitymethod.com/guides/silent-tail-method)
+
+
 ## How to use it
 
 1. Open the OQM website
@@ -40,4 +47,6 @@ ProRes MOV inputs load the official Mediabunny/TurboRes software decoder on dema
 
 Website conversion analytics are separate from the public counter and never change encode/patch settings. `website/supabase/conversion_analytics.sql` creates the server-only table. Events record start, success/check failure, error/cancel and first download click per run, with allowlisted settings, input container/size, output dimensions/FPS/bitrate/duration, elapsed time, coarse browser/OS/country and a salted network hash. No file contents, filenames, raw errors, raw IP addresses or persistent browser identifiers are sent. Analytics reports are best effort; missing finish events may mean the page closed, and a download click does not prove the file was saved or uploaded to TikTok. Existing desktop telemetry remains unchanged. Run `node --env-file=<server-env> website/scripts/analytics-report.mjs <ISO-start-timestamp>` from the repository root to get aggregate results; historical settings cannot be recovered.
 
-SEO: the homepage is the canonical URL, including for `/convert` (the same app with its patcher panel selected). `/robots.txt` advertises `/sitemap.xml`; the sitemap lists only the canonical homepage. Search/social metadata and factual WebSite/WebApplication JSON-LD are rendered on the server. `/opengraph-image.png` provides the static social preview without runtime image rendering. `/llms.txt` is a public Markdown reference, not a Google ranking mechanism, and is excluded from indexing as a separate search result. No hidden keyword text or fabricated review ratings are used. API routes and the local font lab are excluded from indexing. Run `node website/scripts/seo-check.mjs <base-url>` against a production build or the live deployment. In Google Search Console, submit `https://www.openqualitymethod.com/sitemap.xml`, inspect the canonical homepage, and request indexing if appropriate; registration alone does not establish indexing or ranking.
+SEO: the homepage is the canonical URL, including for `/convert` (the same app with its patcher panel selected). `/robots.txt` advertises `/sitemap.xml`; the sitemap lists the canonical homepage and the editor guides. Search/social metadata and factual WebSite/WebApplication JSON-LD are rendered on the server. `/opengraph-image.png` provides the static social preview without runtime image rendering. `/llms.txt` is a public Markdown reference, not a Google ranking mechanism, and is excluded from indexing as a separate search result. No hidden keyword text or fabricated review ratings are used. API routes and the local font lab are excluded from indexing. Run `node website/scripts/seo-check.mjs <base-url>` against a production build or the live deployment. In Google Search Console, submit `https://www.openqualitymethod.com/sitemap.xml`, inspect the canonical homepage, and request indexing if appropriate; registration alone does not establish indexing or ranking.
+
+Organic launch links use allowlisted UTM tags (`source`, `medium`, `campaign`, `content`), recorded inside conversion settings metadata. Aggregate reports include campaign sources and successful outputs. Unknown tags and raw referrer URLs are discarded; visiting a guide alone is not counted as a conversion.

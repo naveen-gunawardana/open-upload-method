@@ -10,6 +10,27 @@ const choice = (v: unknown, options: readonly unknown[]) => options.includes(v) 
 const number = (v: unknown, max: number) => typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= max ? v : undefined;
 const boolean = (v: unknown) => typeof v === "boolean" ? v : undefined;
 
+const CAMPAIGN_VALUES = {
+  source: ["reddit", "github", "guide", "editor-community"],
+  medium: ["community", "organic", "referral"],
+  campaign: ["editor_launch"],
+  content: ["aftereffects", "videoediting", "tiktokhelp", "mov-guide", "quality-guide", "silent-tail-guide", "github-readme", "launch-post", "resource-reply"],
+};
+
+export function sanitizeAttribution(value: unknown) {
+  const v = object(value);
+  const clean = Object.fromEntries(Object.entries(CAMPAIGN_VALUES)
+    .flatMap(([key, options]) => options.includes(v[key] as string) ? [[key, v[key]]] : []));
+  return Object.keys(clean).length ? clean : undefined;
+}
+
+function currentAttribution() {
+  try {
+    const query = new URLSearchParams(window.location.search);
+    return sanitizeAttribution(Object.fromEntries(Object.keys(CAMPAIGN_VALUES).map(key => [key, query.get(`utm_${key}`)])));
+  } catch { return undefined; }
+}
+
 function encodeSettings(value: unknown) {
   const e = object(value);
   return {
@@ -31,6 +52,7 @@ export function sanitizeAnalytics(value: unknown) {
     run_id: v.run_id, event: v.event as AnalyticsEvent,
     mode: choice(v.mode, ["single", "ab"]) ?? "single", preset: choice(v.preset, PRESETS) ?? "custom",
     settings: { method: r.method === "silent-tail" ? "silent-tail" : "legacy", encode: encodeSettings(r.encode),
+      ...(sanitizeAttribution(v.attribution ?? r.attribution) ? { attribution: sanitizeAttribution(v.attribution ?? r.attribution) } : {}),
       patch: { enabled: Array.isArray(p.enabled) ? [...new Set(p.enabled.filter(x => PATCHES.includes(x)))].slice(0, 9) : [],
         inflate: number(p.inflate, 1000), dummySize: p.dummySize === null ? null : number(p.dummySize, 100000), trailingBytes: number(p.trailingBytes, 100000000) },
       ...((v.shared_encode ?? r.shared_encode) ? { shared_encode: encodeSettings(v.shared_encode ?? r.shared_encode) } : {}) },
@@ -68,7 +90,7 @@ export function trackConversion(run: TrackedRun, event: AnalyticsEvent, preset: 
   try {
     const info = run.result?.info;
     const payload = sanitizeAnalytics({ run_id: run.analyticsId, event, mode: run.comparisonEncode ? "ab" : "single", preset,
-      settings: run.recipe, shared_encode: run.comparisonEncode,
+      settings: run.recipe, shared_encode: run.comparisonEncode, attribution: currentAttribution(),
       source: { container: run.file.name.split(".").pop()?.toLowerCase(), size_mb: Math.round(run.file.size / 1048576 * 10) / 10 },
       result: info ? { ...info, codec: /^(avc|h264)/i.test(info.codec) ? "avc" : /^(hev|hvc|h265)/i.test(info.codec) ? "hevc" : /^(vp09|vp9)/i.test(info.codec) ? "vp9" : /^(av01|av1)/i.test(info.codec) ? "av1" : "other",
         size_mb: Math.round(run.result!.blob.size / 1048576 * 10) / 10,
