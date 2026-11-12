@@ -55,6 +55,22 @@ export const DEFAULT_ENCODE: EncodeOptions = {
 /** Silent-tail is the website default; encode first so supported MOV inputs become compatible H.264/AAC MP4. */
 export const DEFAULT_RECIPE: Recipe = { method: "silent-tail", encode: DEFAULT_ENCODE, patch: { ...DEFAULT_PATCH, enabled: [] } };
 
+/** Compare effective settings, not JSON property order or options the selected method does not use. */
+export function sameRecipe(a: Recipe, b: Recipe): boolean {
+  const method = a.method ?? "legacy";
+  if (method !== (b.method ?? "legacy") || a.encode.reencode !== b.encode.reencode) return false;
+  if (a.encode.reencode) {
+    const keys: (keyof EncodeOptions)[] = ["codec", "rate", "size", "fps", "keyframeSec", "audioKbps", "hardware"];
+    if (a.encode.rate === "quantizer") keys.push("quantizer");
+    if (a.encode.rate === "bitrate") keys.push("mbps");
+    if (keys.some(key => a.encode[key] !== b.encode[key])) return false;
+  }
+  if (method === "silent-tail") return true;
+  const keys: (keyof Omit<PatchOptions, "enabled">)[] = ["inflate", "dummySize", "encoderTag", "trailingBytes"];
+  return keys.every(key => a.patch[key] === b.patch[key])
+    && JSON.stringify([...new Set(a.patch.enabled)].sort()) === JSON.stringify([...new Set(b.patch.enabled)].sort());
+}
+
 export type Preset = { id: string; title: string; desc: string; recipe: Recipe };
 
 const withPatches = (enabled: PatchOptions["enabled"], encode: Partial<EncodeOptions> = {}): Recipe => ({

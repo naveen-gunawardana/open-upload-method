@@ -7,6 +7,7 @@ import SettingHelp from "@/components/SettingHelp";
 import { CATALOG, DEFAULT_PATCH, type Check, type PatchId } from "@/lib/oqm/patch";
 import {
   DEFAULT_RECIPE,
+  sameRecipe,
   COMPARISON_PRESETS,
   prepareComparison,
   OqmError,
@@ -51,10 +52,6 @@ function saveRecipe(recipe: Recipe) {
     localStorage.setItem(STORE, JSON.stringify(recipe));
   } catch {}
 }
-
-const same = (a: Recipe, b: Recipe) =>
-  JSON.stringify({ ...a, patch: { ...a.patch, enabled: [...a.patch.enabled].sort() } }) ===
-  JSON.stringify({ ...b, patch: { ...b.patch, enabled: [...b.patch.enabled].sort() } });
 
 function formatSize(bytes: number) {
   if (bytes >= 1024 ** 3) return `${(bytes / 1024 ** 3).toFixed(2)} GB`;
@@ -130,7 +127,7 @@ export default function Converter({
         abort.current = controller;
         update(run.id, { status: "running", stage: { label: "Starting", progress: null } });
         const startedAt = performance.now();
-        const analyticsPreset = (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => same(p.recipe, run.recipe))?.id ?? "custom";
+        const analyticsPreset = (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => sameRecipe(p.recipe, run.recipe))?.id ?? "custom";
         trackConversion(run, "started", analyticsPreset);
         try {
           let source = run.file;
@@ -178,9 +175,9 @@ export default function Converter({
     [pump],
   );
 
-  const titleFor = (r: Recipe) => PRESETS.find((p) => same(p.recipe, r))?.title ?? "Custom settings";
+  const titleFor = (r: Recipe) => PRESETS.find((p) => sameRecipe(p.recipe, r))?.title ?? "Custom settings";
   const slugFor = (r: Recipe) => {
-    const preset = PRESETS.find((p) => same(p.recipe, r));
+    const preset = PRESETS.find((p) => sameRecipe(p.recipe, r));
     return preset ? (preset.id === "current" ? "oqm" : `oqm-${preset.id}`) : "oqm-custom";
   };
 
@@ -233,7 +230,7 @@ export default function Converter({
   const files = Array.from(new Set(runs.map((r) => r.file)));
   const activeFile = selectedFile;
   const selectionWasPatched = runs.some(r => r.file === activeFile && r.status === "done");
-  const selectedPreset = PRESETS.find((p) => same(p.recipe, recipe));
+  const selectedPreset = PRESETS.find((p) => sameRecipe(p.recipe, recipe));
   const presetId = selectedPreset?.id ?? "custom";
   const e = recipe.encode;
   const enabled = new Set(recipe.patch.enabled);
@@ -616,7 +613,7 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
             {run.comparisonEncode ? (run.comparisonEncode.reencode ? " · shared source encoded once" : " · shared source, no re-encode") : run.result.info.reencoded ? "" : " · not re-encoded"}
           </div>
           <div className="run-row">
-            <a className="btn btn-patch btn-sm" href={run.url} download={outName} onClick={() => trackConversion(run, "downloaded", (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => same(p.recipe, run.recipe))?.id ?? "custom")}>
+            <a className="btn btn-patch btn-sm" href={run.url} download={outName} onClick={() => trackConversion(run, "downloaded", (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => sameRecipe(p.recipe, run.recipe))?.id ?? "custom")}>
               Download
             </a>
             <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : "Local checks passed"}</span>

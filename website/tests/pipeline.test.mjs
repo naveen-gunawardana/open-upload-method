@@ -22,7 +22,7 @@ for (const name of ["patch", "silentTail", "pipeline"]) {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 },
   }).outputText);
 }
-const { prepareInputDecoders, convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
+const { sameRecipe, prepareInputDecoders, convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
 test("latest standalone UI exposes the experimental option before selecting a video", async () => {
   const help = await readFile(new URL("../src/components/SettingHelp.tsx", import.meta.url), "utf8");
   await writeFile(path.join(dir, "SettingHelp.mjs"), ts.transpileModule(help, {
@@ -141,4 +141,23 @@ test("ProRes MOV loads its decoder on demand and preserves decodable PCM audio",
     sample.close();
     await assert.rejects(prepareInputDecoders(input, () => {}, AbortSignal.abort()), /Stopped/);
   } finally { input.dispose(); }
+});
+
+test("saved silent-tail defaults match the preset regardless of property order and unused settings", () => {
+  // This is the exact object order produced by loadRecipe after localStorage is read.
+  const saved = JSON.parse(JSON.stringify(DEFAULT_RECIPE));
+  const restored = { encode: { ...DEFAULT_RECIPE.encode, ...saved.encode }, patch: saved.patch, method: saved.method };
+  assert.notEqual(JSON.stringify(restored), JSON.stringify(DEFAULT_RECIPE));
+  assert.equal(sameRecipe(DEFAULT_RECIPE, restored), true);
+  assert.equal(PRESETS.find(p => sameRecipe(p.recipe, restored))?.id, "silent-tail");
+  // Earlier silent-tail settings retained legacy patch toggles; those are never applied by silent-tail.
+  const stale = { ...restored, patch: PRESETS.find(p => p.id === "current").recipe.patch,
+    encode: { ...restored.encode, mbps: 60 } }; // Bitrate is inactive in quantizer mode.
+  assert.equal(PRESETS.find(p => sameRecipe(p.recipe, stale))?.id, "silent-tail");
+  assert.equal(sameRecipe(DEFAULT_RECIPE, { ...restored, encode: { ...restored.encode, fps: 30 } }), false);
+  assert.equal(sameRecipe(DEFAULT_RECIPE, { ...restored, encode: { ...restored.encode, quantizer: 23 } }), false);
+  assert.equal(sameRecipe(DEFAULT_RECIPE, { ...restored, encode: { ...restored.encode, reencode: false } }), false);
+  assert.equal(sameRecipe(DEFAULT_RECIPE, { ...restored, method: "legacy" }), false);
+  const original = PRESETS.find(p => p.id === "current").recipe;
+  assert.equal(sameRecipe(original, { patch: { ...original.patch, enabled: [...original.patch.enabled].reverse() }, encode: { ...original.encode }, method: "legacy" }), true);
 });
