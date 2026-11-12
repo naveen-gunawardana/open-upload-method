@@ -72,7 +72,13 @@ h1{margin:0; font-family:var(--font-display), sans-serif}
 }
 .wordmark{display:flex; align-items:center; gap:9px; margin-right:2px}
 .wordmark svg,.wordmark img{display:block; border-radius:50%}
-.wordmark b{font-family:var(--font-display); font-weight:700; font-size:18px; letter-spacing:.01em; color:var(--fg)}
+.wordmark{border-radius:50%; transition:transform .15s ease}
+.wordmark:hover{transform:scale(1.06)}
+.wordmark:focus-visible,.header .social:focus-visible{outline:2px solid var(--blue); outline-offset:3px}
+.header .social{display:inline-flex; align-items:center; gap:6px; font-size:12.5px; font-weight:600; color:var(--fg); padding:4px 4px; border-bottom:1px solid transparent; transition:border-color .15s ease}
+.header .social:hover{border-color:var(--fg)}
+.header .social svg{width:13px; height:13px; flex:none}
+
 .chip{font-size:11.5px; font-weight:600; color:#35633b; background:#eaf7e5; border:1px solid #c5dfbb; padding:4px 10px; border-radius:6px}
 
 .hero{flex:1 0 auto; width:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px 0}
