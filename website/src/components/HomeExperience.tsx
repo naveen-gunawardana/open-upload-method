@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 
@@ -22,20 +23,8 @@ function GithubIcon() {
   );
 }
 
-function Logo({ size = 28 }: { size?: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="9" fill="url(#oqm-logo-grad)" />
-      <path d="M9 9L9 23L20 16L9 9Z" fill="white" />
-      <path d="M22 13L25 8L28 13" stroke="white" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-      <defs>
-        <linearGradient id="oqm-logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-          <stop stopColor="#1f7fe0" />
-          <stop offset="1" stopColor="#ffce5c" />
-        </linearGradient>
-      </defs>
-    </svg>
-  );
+function Logo({ size = 36 }: { size?: number }) {
+  return <Image src="/logo.png" width={size} height={size} alt="" aria-hidden="true" priority />;
 }
 
 function DownloadIcon() {
