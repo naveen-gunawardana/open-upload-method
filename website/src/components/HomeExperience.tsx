@@ -314,10 +314,21 @@ export default function HomeExperience({ initialView = "home", children }: { ini
               </section>
             </div>
           </div>
+          {view === "home" && <a className="hero-next" href="#compare">
+            See how it compares with Kuronai and other methods
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6" /></svg>
+          </a>}
         </div>
         </div>
         <div className="landing-below" hidden={view !== "home"}>{children}</div>
       </main>
+
+      {view === "home" && !heroVisible && !reviewing && (
+        <div className="free-bar">
+          <span>Free forever. No account.</span>
+          <button type="button" className="cta" onClick={openConverter}>Patch video free</button>
+        </div>
+      )}
 
       {dragging && view === "home" && (
         <div className="drop-overlay" aria-hidden="true">

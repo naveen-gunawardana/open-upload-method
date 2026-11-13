@@ -1,14 +1,14 @@
 import type { ReactNode } from "react";
-import { Inter, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { Schibsted_Grotesk, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import ThemeProvider from "@/components/ThemeProvider";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { siteMetadata } from "@/lib/seo";
 import "./globals.css";
 
-const inter = Inter({
+const inter = Schibsted_Grotesk({
   variable: "--font-hero",
   subsets: ["latin"],
-  weight: ["700", "800"],
+  weight: ["700", "800", "900"],
 });
 
 const quicksand = Quicksand({
