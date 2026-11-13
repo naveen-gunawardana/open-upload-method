@@ -1,8 +1,10 @@
 import { SITE_URL } from "./seo";
+import { EXTRA_GUIDES } from "./guides-extra";
 
-export type Guide = { slug: string; title: string; description: string; intro: string; campaign: string;
-  sections: { title: string; paragraphs: string[]; steps?: string[] }[]; sources: { label: string; url: string }[] };
-export const GUIDES: Guide[] = [
+export type Guide = { seoTitle?: string; category?: string; published?: string; updated?: string; summary?: string[]; related?: string[];
+  faq?: { question: string; answer: string }[]; slug: string; title: string; description: string; intro: string; campaign: string;
+  sections: { title: string; paragraphs: string[]; steps?: string[]; code?: string; table?: { columns: string[]; rows: string[][] }; download?: { label: string; href: string } }[]; sources: { label: string; url: string }[] };
+const BASE_GUIDES: Guide[] = [
   {
     slug: "tiktok-video-quality", title: "TikTok video quality: a practical 1080p and 4K upload workflow",
     description: "Prepare 1080p and 4K TikTok videos, avoid unnecessary re-encoding, and compare upload methods using the same source. A practical workflow for editors.",
@@ -46,6 +48,17 @@ export const GUIDES: Guide[] = [
     sources: [{ label: "Original silent-tail project", url: "https://github.com/buwryme/tiktok-lossless-upload" }, { label: "OQM attribution and pinned implementation", url: "https://github.com/naveen-gunawardana/open-quality-method/blob/main/THIRD_PARTY_NOTICES.md" }],
   },
 ];
+
+const ENRICHMENT: Record<string, Partial<Guide>> = {
+  "tiktok-video-quality": { category: "Upload quality", seoTitle: "TikTok Video Quality: 1080p & 4K Upload Workflow | OQM", updated: "2026-11-13", related: ["tiktok-export-settings", "why-tiktok-videos-look-blurry", "check-video-resolution-and-fps"], summary: ["Start from one good SDR master.", "Compare clean and patched files made from the same encoded source.", "Check delivered quality again over time."], faq: [{ question: "Does a 4K export guarantee 4K playback on TikTok?", answer: "No. The export and the served playback are separate. Check an accessible rendition and later retention rather than relying on the export label." }, { question: "Should I start at 1080p or 4K?", answer: "Start with a source and device that can produce a clean, compatible file. 1080p is a useful baseline; test genuine 4K separately." }] },
+  "mov-to-mp4-for-tiktok": { category: "Formats", seoTitle: "MOV to MP4 for TikTok: Local ProRes Conversion | OQM", updated: "2026-11-13", related: ["browser-video-conversion-errors", "tiktok-export-settings", "silent-tail-method"], summary: ["MOV is a container; the codec inside determines decoding support.", "Supported ProRes files can be decoded locally.", "Use Control: no patch when you need a plain converted MP4."], faq: [{ question: "Is my MOV uploaded to a server for conversion?", answer: "No. OQM processes video contents locally in the browser. Limited conversion metadata is reported separately." }, { question: "Does silent-tail need re-encoding for a MOV?", answer: "Supported MOV sources generally need preparation into a compatible MP4 with AAC-LC stereo audio. Leave re-encode enabled for that workflow." }] },
+  "silent-tail-method": { category: "Methods", seoTitle: "Silent-Tail TikTok Method: How It Works & How to Test | OQM", updated: "2026-11-13", related: ["tiktok-video-quality", "check-video-resolution-and-fps", "tiktok-60fps"], summary: ["The patch preserves encoded video and changes the audio/container.", "Re-encoding is a separate preparation step.", "Local integrity checks do not prove TikTok retention."], faq: [{ question: "Is silent-tail the same as Original OQM?", answer: "No. Silent-tail uses its own recipe. Original OQM remains a separate option; the default does not stack the original patches on silent-tail." }, { question: "Does silent-tail improve the source image?", answer: "No. It cannot recover detail missing from the source. Its effect on TikTok delivery needs controlled upload testing." }] },
+};
+
+export const GUIDES: Guide[] = [...BASE_GUIDES.map(guide => ({ ...guide, ...ENRICHMENT[guide.slug] })), ...EXTRA_GUIDES];
+export const guidePublished = (guide: Guide) => guide.published ?? "2026-11-12";
+export const guideUpdated = (guide: Guide) => guide.updated ?? guidePublished(guide);
+export const sectionId = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 
 export const guideUrl = (slug: string) => `${SITE_URL}/guides/${slug}`;
 export const guidePatcherUrl = (campaign: string) => `/convert?utm_source=guide&utm_medium=organic&utm_campaign=editor_launch&utm_content=${campaign}`;

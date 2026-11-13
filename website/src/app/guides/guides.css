@@ -25,3 +25,29 @@
 .guides-footer{padding:24px 0;justify-content:flex-start;color:var(--fg)}
 .guides-article :focus-visible,.guides-header :focus-visible,.guides-footer :focus-visible{outline:3px solid var(--focus);outline-offset:4px}
 @media(max-width:600px){.guides-shell{padding:24px 16px 40px}.guides-header{display:block;padding-right:48px}.guides-header a{display:block;margin-bottom:10px}.guides-intro{font-size:16px}}
+.guide-takeaways{margin:30px 0;padding:22px 26px;border:1px solid var(--success-line);border-radius:12px;background:var(--success-bg)}
+.guide-takeaways h2{font-size:15px;color:var(--success)}
+.guide-takeaways ul{margin-bottom:0;font-size:14px}
+.guide-toc{padding:24px 0;border-bottom:1px solid var(--line)}
+.guide-toc h2{font-size:15px}
+.guide-toc ol{font-size:13px;columns:2;column-gap:28px}
+.guide-toc li{break-inside:avoid}
+.guides-article section{scroll-margin-top:28px}
+.guide-table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;margin:24px 0}
+.guide-table-scroll table{border-collapse:collapse;min-width:620px;width:100%;font-size:12px;line-height:1.6;text-align:left}
+.guide-table-scroll caption{text-align:left;padding:14px;font-weight:600;background:var(--surface)}
+.guide-table-scroll th,.guide-table-scroll td{padding:14px;border-top:1px solid var(--line);vertical-align:top}
+.guide-table-scroll thead{background:var(--surface)}
+.guide-table-scroll th[scope=row]{font-weight:600}
+.guide-code{white-space:pre;overflow-x:auto;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px;font:12px/1.8 var(--font-mono);margin:24px 0}
+.guide-download{display:inline-block;font-size:14px;font-weight:600;margin:8px 0 12px}
+.guide-faq details{padding:18px 0;border-top:1px solid var(--line)}
+.guide-faq summary{cursor:pointer;font-weight:600;font-size:15px;line-height:1.5}
+.guide-faq details p{font-size:14px;color:var(--muted)}
+.guides-article .guide-source-note{font-size:13px;color:var(--muted)}
+.guide-categories{display:flex;flex-wrap:wrap;gap:8px;margin:26px 0}
+.guides-article .guide-categories a{padding:6px 12px;border:1px solid var(--line);border-radius:99px;background:var(--surface);font-size:12px;text-decoration:none}
+.guide-topic{padding-top:12px}
+.guide-topic .guides-cards{margin-top:16px}
+.guides-card h3{font-size:21px;line-height:1.35;margin:0 0 10px}
+@media(max-width:600px){.guide-toc ol{columns:1}.guide-takeaways{padding:20px}.guide-table-scroll{margin-inline:-6px}}

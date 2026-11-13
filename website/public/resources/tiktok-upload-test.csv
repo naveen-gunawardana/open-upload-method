@@ -1,0 +1,13 @@
+variant,checkpoint,post_url,device,account_label,resolution,fps,primary_video_mbps,notes
+Clean MP4,After processing,,,,,,,
+Clean MP4,24 hours,,,,,,,
+Clean MP4,72 hours,,,,,,,
+Clean MP4,7 days,,,,,,,
+Original OQM,After processing,,,,,,,
+Original OQM,24 hours,,,,,,,
+Original OQM,72 hours,,,,,,,
+Original OQM,7 days,,,,,,,
+Silent-tail,After processing,,,,,,,
+Silent-tail,24 hours,,,,,,,
+Silent-tail,72 hours,,,,,,,
+Silent-tail,7 days,,,,,,,

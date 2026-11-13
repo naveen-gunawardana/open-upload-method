@@ -8,6 +8,8 @@
 - [Video patcher](https://www.openqualitymethod.com/convert): opens the same website with the patcher panel selected.
 - [Source code and documentation](https://github.com/naveen-gunawardana/open-quality-method): website, desktop application and implementation details.
 - [Editor guides](https://www.openqualitymethod.com/guides): practical upload-quality, MOV conversion and silent-tail guides.
+- [Guide RSS feed](https://www.openqualitymethod.com/guides/feed.xml): new editor resources.
+- [Upload test worksheet](https://www.openqualitymethod.com/resources/tiktok-upload-test.csv): downloadable comparison checkpoints.
 - [Sitemap](https://www.openqualitymethod.com/sitemap.xml): canonical indexable pages.
 
 ## What the website does

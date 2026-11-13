@@ -38,8 +38,8 @@ assert.match(robots, /Disallow: \/api\//);
 assert.match(robots, /Sitemap: https:\/\/www.openqualitymethod.com\/sitemap.xml/);
 const sitemap = (await get('/sitemap.xml')).text;
 assert.ok(sitemap.includes(`<loc>${canonical}</loc>`));
-const guideSlugs = ['tiktok-video-quality','mov-to-mp4-for-tiktok','silent-tail-method'];
-assert.equal((sitemap.match(/<loc>/g) ?? []).length, 5, 'homepage, guide index and three articles');
+const guideSlugs = ['tiktok-video-quality','mov-to-mp4-for-tiktok','silent-tail-method','tiktok-export-settings','why-tiktok-videos-look-blurry','tiktok-60fps','browser-video-conversion-errors','check-video-resolution-and-fps'];
+assert.equal((sitemap.match(/<loc>/g) ?? []).length, 10, 'homepage, guide index and eight articles');
 for (const path of ['/guides', ...guideSlugs.map(slug => '/guides/' + slug)]) {
   const { text } = await get(path);
   assert.ok(sitemap.includes(`<loc>https://www.openqualitymethod.com${path}</loc>`));
@@ -48,8 +48,24 @@ for (const path of ['/guides', ...guideSlugs.map(slug => '/guides/' + slug)]) {
   if (path !== '/guides') {
     assert.ok(text.includes('"@type":"TechArticle"'));
     assert.ok(text.includes('"@type":"BreadcrumbList"'));
+    assert.ok(text.includes('aria-label="On this page"'));
+    assert.ok(text.includes('id="common-questions"'));
+    const slug=path.split('/').pop();
+    assert.ok(text.includes(`/og/guides/${slug}.png`));
+    const preview=await fetch(base+`/og/guides/${slug}.png`);assert.equal(preview.status,200);
+    assert.ok(preview.headers.get('content-type')?.includes('image/png'));
   }
 }
+const feed=await get('/guides/feed.xml');
+assert.ok(feed.response.headers.get('content-type')?.includes('application/rss+xml'));
+assert.equal((feed.text.match(/<item>/g)??[]).length,8);
+const worksheet=await get('/resources/tiktok-upload-test.csv');
+assert.match(worksheet.response.headers.get('content-disposition')??'',/attachment/);
+assert.equal(worksheet.text.trim().split(/\r?\n/).length,13);
+const home=(await get('/')).text;
+for(const id of ['how-it-works','presets','editor-guides','faq-title'])assert.ok(home.includes(`id="${id}"`),'home section: '+id);
+assert.ok(home.includes('href="/guides"'),'crawlable home-to-guides link');
+const missing=await fetch(base+'/guides/not-a-guide',{headers:{'User-Agent':'Googlebot'}});assert.equal(missing.status,404);
 const llms = await get('/llms.txt');
 assert.match(llms.text, /^# OQM/);
 assert.match(llms.text, /does not guarantee/);

@@ -10,7 +10,7 @@ export const siteMetadata: Metadata = {
   description: SITE_DESCRIPTION,
   applicationName: "Open Quality Method",
   // /convert opens the same interface in its patcher state; consolidate the duplicate onto the homepage.
-  alternates: { canonical: `${SITE_URL}/` },
+  alternates: { canonical: `${SITE_URL}/`, types: { "application/rss+xml": `${SITE_URL}/guides/feed.xml` } },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   openGraph: { type: "website", locale: "en_US", siteName: "OQM — Open Quality Method", url: `${SITE_URL}/`, title: SITE_TITLE, description: SITE_DESCRIPTION },
   twitter: { card: "summary_large_image", title: SITE_TITLE, description: SITE_DESCRIPTION },
@@ -20,7 +20,8 @@ export const siteMetadata: Metadata = {
 export const siteStructuredData = {
   "@context": "https://schema.org",
   "@graph": [
-    { "@type": "WebSite", "@id": `${SITE_URL}/#website`, url: `${SITE_URL}/`, name: "Open Quality Method", alternateName: "OQM", inLanguage: "en" },
+    { "@type": "Organization", "@id": `${SITE_URL}/#project`, name: "Open Quality Method", url: `${SITE_URL}/`, logo: `${SITE_URL}/logo.png`, sameAs: ["https://github.com/naveen-gunawardana/open-quality-method", "https://www.tiktok.com/@openqualitymethod"] },
+    { "@type": "WebSite", "@id": `${SITE_URL}/#website`, url: `${SITE_URL}/`, name: "Open Quality Method", alternateName: "OQM", inLanguage: "en", publisher: { "@id": `${SITE_URL}/#project` } },
     { "@type": "WebApplication", "@id": `${SITE_URL}/#app`, name: "Open Quality Method", alternateName: "OQM", url: `${SITE_URL}/`,
       description: SITE_DESCRIPTION, applicationCategory: "MultimediaApplication", operatingSystem: "Web browser",
       isAccessibleForFree: true, offers: { "@type": "Offer", price: "0", priceCurrency: "USD", url: `${SITE_URL}/convert` },

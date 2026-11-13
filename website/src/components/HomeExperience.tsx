@@ -1,8 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
+import { PatcherContext } from "@/components/PatcherLink";
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 
 const Scene = dynamic(() => import("@/components/Scene"), { ssr: false });
 
@@ -65,7 +67,7 @@ function ConvertedCount({ count }: { count: number | null }) {
 
 const isVideo = (f: File | undefined): f is File => !!f && (f.type.startsWith("video/") || /\.(mp4|mov|m4v|webm|mkv)$/i.test(f.name));
 
-export default function HomeExperience({ initialView = "home" }: { initialView?: "home" | "converter" }) {
+export default function HomeExperience({ initialView = "home", children }: { initialView?: "home" | "converter"; children?: ReactNode }) {
   const [view, setView] = useState(initialView);
   const [converterOpened, setConverterOpened] = useState(initialView === "converter");
   const [reviewing, setReviewing] = useState(false);
@@ -75,6 +77,9 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
   const [count, setCount] = useState<number | null>(null);
   const [cardHeight, setCardHeight] = useState(560);
   const [sceneBusy, setSceneBusy] = useState(false);
+  const [heroVisible, setHeroVisible] = useState(true);
+  const primaryRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLElement>(null);
   const depth = useRef(0);
   const homeTitle = useRef<HTMLHeadingElement>(null);
   const converterTitle = useRef<HTMLHeadingElement>(null);
@@ -118,6 +123,16 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
     panel?.addEventListener("toggle", revealSettings, true);
     return () => panel?.removeEventListener("toggle", revealSettings, true);
   }, [revealSettings]);
+
+  useEffect(() => {
+    const target = primaryRef.current;
+    if (!target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => setHeroVisible(entry.isIntersecting), { threshold: 0 });
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => { stageRef.current?.scrollTo({ top: 0 }); }, [view]);
 
   const openConverter = useCallback(() => {
     depth.current = 0;
@@ -217,11 +232,12 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
   const onCounted = useCallback((n: number | null) => n !== null && setCount(previous => previous === null ? n : Math.max(previous, n)), []);
 
   return (
-    <>
-      <Scene paused={sceneBusy} />
+    <PatcherContext value={openConverter}>
+      <Scene paused={sceneBusy || !heroVisible} />
       <div className="vignette" aria-hidden="true" />
 
-      <div className="stage">
+      <main className="stage" ref={stageRef}>
+        <div className="primary-section" ref={primaryRef}>
         <div className="header">
           <a className="wordmark" href={TIKTOK_URL} target="_blank" rel="noopener" aria-label="OQM on TikTok, @openqualitymethod">
             <Logo />
@@ -269,6 +285,8 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
                     <a href={GITHUB_URL} target="_blank" rel="noopener"><GithubIcon /> View code</a>
                     <span aria-hidden="true">·</span>
                     <button type="button" className="linklike" onClick={() => setReviewing(true)}>Leave a review</button>
+                    <span aria-hidden="true">·</span>
+                    <Link href="/guides">Editor guides</Link>
                   </div>
                 </div>
               </section>
@@ -297,7 +315,9 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
             </div>
           </div>
         </div>
-      </div>
+        </div>
+        <div className="landing-below" hidden={view !== "home"}>{children}</div>
+      </main>
 
       {dragging && view === "home" && (
         <div className="drop-overlay" aria-hidden="true">
@@ -305,6 +325,6 @@ export default function HomeExperience({ initialView = "home" }: { initialView?:
         </div>
       )}
       {reviewing && <ReviewForm onClose={() => setReviewing(false)} />}
-    </>
+    </PatcherContext>
   );
 }

@@ -14,7 +14,7 @@ const CAMPAIGN_VALUES = {
   source: ["reddit", "github", "guide", "editor-community"],
   medium: ["community", "organic", "referral"],
   campaign: ["editor_launch"],
-  content: ["aftereffects", "videoediting", "tiktokhelp", "mov-guide", "quality-guide", "silent-tail-guide", "github-readme", "launch-post", "resource-reply"],
+  content: ["settings-guide", "blurry-guide", "fps-guide", "browser-guide", "measurement-guide", "aftereffects", "videoediting", "tiktokhelp", "mov-guide", "quality-guide", "silent-tail-guide", "github-readme", "launch-post", "resource-reply"],
 };
 
 export function sanitizeAttribution(value: unknown) {
