@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Schibsted_Grotesk, Quicksand, IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import ThemeProvider from "@/components/ThemeProvider";
-import VideoSelectionProvider from "@/components/VideoSelectionProvider";
 import { THEME_BOOTSTRAP } from "@/lib/theme";
 import { siteMetadata } from "@/lib/seo";
 import "./globals.css";
@@ -41,7 +40,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       className={`${inter.variable} ${quicksand.variable} ${plexSans.variable} ${plexMono.variable}`}
     >
       <head><script dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }} /></head>
-      <body><ThemeProvider><VideoSelectionProvider>{children}</VideoSelectionProvider></ThemeProvider></body>
+      <body><ThemeProvider>{children}</ThemeProvider></body>
     </html>
   );
 }
