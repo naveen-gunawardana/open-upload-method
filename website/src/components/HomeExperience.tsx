@@ -314,10 +314,6 @@ export default function HomeExperience({ initialView = "home", children }: { ini
               </section>
             </div>
           </div>
-          {view === "home" && <a className="hero-next" href="#compare">
-            See how it compares with Haze, Kuronai and other methods
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 5v14m-6-6 6 6 6-6" /></svg>
-          </a>}
         </div>
         </div>
         <div className="landing-below" hidden={view !== "home"}>{children}</div>

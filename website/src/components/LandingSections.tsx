@@ -61,14 +61,14 @@ export default function LandingSections() {
       <div className="alp-sky" aria-hidden="true"><i className="sun-glow" /><Cloud className="cloud-a" /><Cloud className="cloud-b" /><Cloud className="cloud-c" /><Contours /></div>
       <div className="wrap">
         <header className="alp-head">
-          <p className="tag tag-free">Free forever</p>
+          <p className="tag tag-free">Up to 4K 60fps</p>
           <h2 id="compare-title">Other methods charge you or ration you. <span>OQM does neither.</span></h2>
-          <p className="lead">Patch 1080p and 4K videos at 60 fps, for free. No weekly cap, no watermark, no key, no account. The code is public, so you can see how it works.</p>
+          <p className="lead">Patch <strong>1080p</strong> and <strong>4K</strong> videos at 60 fps, for free. No weekly cap, no watermark, no key, no account. The code is public, so you can see how it works.</p>
           <PatcherLink className="cta">Patch a video free</PatcherLink>
         </header>
 
         <InView className="range">
-          <h3>Free patches you get in 30 days</h3>
+          <h3>Patches per month</h3>
           <div className="range-plot">
             <Cloud className="range-cloud range-cloud-a" /><Cloud className="range-cloud range-cloud-b" />
             {PEAKS.map((peak, i) => <div className="peak" key={peak.name} style={{ "--h": Math.max(9, Math.round(peak.count / 180 * 170)), "--i": i } as CSSProperties}>
