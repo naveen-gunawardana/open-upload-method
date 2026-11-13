@@ -4,21 +4,6 @@ import { GUIDES } from "@/lib/guides";
 import PatcherLink from "@/components/PatcherLink";
 import InView from "@/components/InView";
 
-const LANDSCAPE_URL = "https://github.com/naveen-gunawardana/open-quality-method/blob/main/program/docs/LANDSCAPE.md";
-
-// Taken from each tool's own public description, as recorded in program/docs/LANDSCAPE.md.
-const TOOLS: { name: string; price: string; limit: string; code: "Open" | "Partly" | "Not public"; ours?: boolean }[] = [
-  { name: "OQM", price: "Free", limit: "No limit, no sign-in", code: "Open", ours: true },
-  { name: "Haze", price: "Free tier, plans $4.99 to $9.99 a month", limit: "Weekly credits, sign-in", code: "Not public" },
-  { name: "Kuronai", price: "Free tier, paid Premium", limit: "Limited, Premium raises it", code: "Partly" },
-  { name: "RTX Fury", price: "Free tier, Premium by donation", limit: "3 a day, 100 MB", code: "Not public" },
-  { name: "Void Studio", price: "Free tier, paid plans", limit: "3 a day, 90 MB, sign-in", code: "Not public" },
-  { name: "Editing Enhancer", price: "Free tier", limit: "3 a week, 50 MB each", code: "Not public" },
-  { name: "Kay x Kaz", price: "Free tier, paid for unlimited", limit: "3 every 30 days", code: "Not public" },
-  { name: "Kryp", price: "Free tier", limit: "Watermark and key limits", code: "Not public" },
-  { name: "CompressBase", price: "Free", limit: "6 a day/device; Telegram unlocks unlimited", code: "Not public" },
-];
-
 // Illustrative 30-day allowances; weekly limits are approximate and uncapped use is symbolic.
 const PEAKS = [
   { name: "Kay x Kaz", count: 3, label: "3" },
@@ -66,8 +51,6 @@ function Cloud({ className }: { className: string }) {
   return <svg className={`cloud ${className}`} viewBox="0 0 240 90" aria-hidden="true"><path d="M30 78a26 26 0 0 1 4-52 40 40 0 0 1 74-12 34 34 0 0 1 60 14 26 26 0 0 1 40 22 22 22 0 0 1-8 28Z" /></svg>;
 }
 
-function Check() { return <svg viewBox="0 0 20 20" aria-hidden="true"><path d="m4 10.5 4 4 8-9" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>; }
-
 const FREE_POINTS = ["Free forever", "No account", "No watermark", "No weekly cap", "No install", "Open source", "Runs in your browser"];
 
 export default function LandingSections() {
@@ -80,7 +63,7 @@ export default function LandingSections() {
         <header className="alp-head">
           <p className="tag tag-free">Free forever</p>
           <h2 id="compare-title">Other methods charge you or ration you. <span>OQM does neither.</span></h2>
-          <p className="lead">Every patch here is free. No weekly cap, no watermark, no key, no account. The code is public, so you can read exactly what changes in your file.</p>
+          <p className="lead">Patch 1080p and 4K videos at 60 fps, for free. No weekly cap, no watermark, no key, no account. The code is public, so you can see how it works.</p>
           <PatcherLink className="cta">Patch a video free</PatcherLink>
         </header>
 
@@ -95,19 +78,8 @@ export default function LandingSections() {
               <b>No limit</b><i /><span>OQM</span>
             </div>
           </div>
-          <p className="fine-note">Illustrative allowances over 30 days, not a quality score. Weekly limits are approximate; OQM’s peak represents uncapped use. *CompressBase also offers unlimited use after Telegram verification. See the plans and requirements below.</p>
+          <p className="fine-note">Illustrative allowances over 30 days, not a quality score. Weekly limits are approximate; OQM’s peak represents uncapped use. *CompressBase also offers unlimited use after Telegram verification. Plan limits can change.</p>
         </InView>
-
-        <div className="tools" role="table" aria-label="OQM compared with other upload methods">
-          <div className="tool tool-head" role="row"><span role="columnheader">Method</span><span role="columnheader">Price</span><span role="columnheader">Free use</span><span role="columnheader">Code</span></div>
-          {TOOLS.map(tool => <div className={`tool${tool.ours ? " tool-ours" : ""}`} role="row" key={tool.name}>
-            <strong role="cell">{tool.name}</strong>
-            <span role="cell" data-label="Price">{tool.price}</span>
-            <span role="cell" data-label="Free use">{tool.limit}</span>
-            <span role="cell" className={`code code-${tool.code.toLowerCase().replaceAll(" ", "-")}`}>{tool.code === "Open" && <Check />}{tool.code}</span>
-          </div>)}
-        </div>
-        <p className="fine-note">Limits and prices are the ones each tool advertised in November 2026. They change, so check their sites. “Not public” means we haven’t found public patcher source code. We haven’t found a published controlled comparison showing a paid patch consistently beats the free ones. No method, this one included, can promise what TikTok serves back. <a href={LANDSCAPE_URL} target="_blank" rel="noopener">Read our notes on each method</a>.</p>
       </div>
     </section>
 
@@ -117,15 +89,15 @@ export default function LandingSections() {
       <Ridge seed={21} className="ridge-in ridge-hill-far" height={140} points={8} jag={0.5} />
       <div className="wrap">
         <header className="alp-head alp-head-center">
-          <h2 id="how-title">From your master to a ready-to-test MP4.</h2>
+          <h2 id="how-title">Your video, ready for TikTok.</h2>
           <p className="lead">Three steps, all in your browser. Nothing to install, nothing to sign up for, nothing to pay.</p>
         </header>
         <InView className="trail">
           <svg className="trail-line" viewBox="0 0 1000 120" preserveAspectRatio="none" aria-hidden="true"><path d="M20 90 C160 10 250 110 400 60 S640 10 760 70 920 90 985 30" pathLength="1" /></svg>
           <ol className="steps">
-            <li><em>1</em><h3>Choose your video</h3><p>Start with your best MP4 or supported MOV. Selecting a file opens the patcher so you can review the settings before anything starts.</p></li>
-            <li><em>2</em><h3>Pick a preset</h3><p>Use the silent-tail default, or choose the 1080p or 4K output preset. Press Start when you’re ready. Supported ProRes MOV files are decoded locally.</p></li>
-            <li><em>3</em><h3>Check and download</h3><p>Review the local checks, download your MP4, and compare the actual TikTok result after processing. Keep your original master for the next test.</p></li>
+            <li><em>1</em><h3>Choose your video</h3><p>Choose an MP4 or supported MOV. We’ll open the patcher so you can check the settings before you start.</p></li>
+            <li><em>2</em><h3>Pick your settings</h3><p>Use the default settings, or choose 1080p or 4K with support for 60 fps. Click Start to patch your video right in your browser.</p></li>
+            <li><em>3</em><h3>Download and post</h3><p>Download your patched video, then upload it to TikTok. Keep your original video so you always have a copy.</p></li>
           </ol>
         </InView>
         <div className="center"><PatcherLink className="cta cta-sun">Open the free patcher</PatcherLink></div>
@@ -136,22 +108,22 @@ export default function LandingSections() {
       <Ridge seed={33} className="ridge-over ridge-lake" height={110} points={10} jag={0.45} />
       <div className="wrap">
         <header className="alp-head">
-          <h2 id="presets-title">Choose settings that fit your source.</h2>
-          <p className="lead">The three main presets use silent-tail with re-encoding enabled. Smaller videos stay smaller; a 4K selection doesn’t invent missing detail.</p>
+          <h2 id="presets-title">1080p or 4K. Keep your video sharp.</h2>
+          <p className="lead">Support for 4K at 60 fps, right in your browser. Start with the default settings, or choose a preset that fits your video.</p>
         </header>
         <div className="presets">
-          <article className="preset preset-default"><div className="frame" style={{ "--s": 1 } as CSSProperties}><i /></div><p className="tag">Default</p><h3>Silent-tail</h3><p className="spec">Original size, source FPS</p><p>Prepare H.264 video and AAC stereo, then apply the silent-tail method. A starting point for supported MP4 and MOV files.</p></article>
-          <article className="preset"><div className="frame" style={{ "--s": 0.5 } as CSSProperties}><i /></div><p className="tag">A practical baseline</p><h3>1080p</h3><p className="spec">Target 20 Mbps, max 60 FPS</p><p>Limit the shorter edge to 1080 pixels. Keep lower source frame rates and dimensions, with the same silent-tail method.</p></article>
-          <article className="preset"><div className="frame" style={{ "--s": 1 } as CSSProperties}><i /></div><p className="tag">For a genuine 4K master</p><h3>4K</h3><p className="spec">Target 60 Mbps, max 60 FPS</p><p>Limit the shorter edge to 2160 pixels. Use a capable browser and device, then check what TikTok actually serves.</p></article>
+          <article className="preset preset-default"><div className="frame" style={{ "--s": 1 } as CSSProperties}><i /></div><p className="tag">Default</p><h3>Silent-tail</h3><p className="spec">Original size and frame rate</p><p>Converts supported MP4 and MOV videos to a TikTok-ready MP4, then applies the silent-tail method.</p></article>
+          <article className="preset"><div className="frame" style={{ "--s": 0.5 } as CSSProperties}><i /></div><p className="tag">For everyday uploads</p><h3>1080p</h3><p className="spec">1080p · 60 fps support</p><p>Prepare a 1080p video with silent-tail. Smaller videos stay smaller, and lower frame rates stay the same.</p></article>
+          <article className="preset"><div className="frame" style={{ "--s": 1 } as CSSProperties}><i /></div><p className="tag">For your 4K video</p><h3>4K</h3><p className="spec">4K · 60 fps support</p><p>Prepare your 4K video with silent-tail while keeping 60 fps motion. Use a supported browser and device.</p></article>
         </div>
-        <p className="fine-note">Frames are drawn to scale against 4K. Bitrates are preparation targets; TikTok can serve different resolution, frame rate or bitrate after upload. <Link href="/guides/tiktok-export-settings">See the full settings guide</Link>.</p>
+        <p className="fine-note">The 1080p and 4K presets keep lower frame rates and don’t upscale smaller videos. TikTok playback quality can vary after upload. <Link href="/guides/tiktok-export-settings">See the full settings guide</Link>.</p>
 
         <div className="bento">
           <article className="bento-card bento-abc" aria-labelledby="abc-title">
-            <h3 id="abc-title">One source. Three honest comparisons.</h3>
-            <p>Make local comparison (3) prepares your source once, then produces a clean MP4, Original OQM and silent-tail variant. That gives you a useful baseline when you test upload quality.</p>
-            <ul><li><b>A</b><span><strong>Clean MP4</strong>Normal container. Your baseline.</span></li><li><b>B</b><span><strong>Original OQM</strong>The original container patch set.</span></li><li><b>C</b><span><strong>Silent-tail</strong>A short silent AAC tail and a second audio track.</span></li></ul>
-            <Link className="text-link" href="/guides/tiktok-video-quality">Follow the comparison workflow</Link>
+            <h3 id="abc-title">Your video. Your choice of method.</h3>
+            <p>OQM uses silent-tail by default. Want to compare options? Make local comparison (3) creates three versions from the same video.</p>
+            <ul><li><b>A</b><span><strong>Clean MP4</strong>Standard MP4, without a patch.</span></li><li><b>B</b><span><strong>Original OQM</strong>The original OQM patching method.</span></li><li><b>C</b><span><strong>Silent-tail</strong>The default method, with a short silent audio tail.</span></li></ul>
+            <Link className="text-link" href="/guides/tiktok-video-quality">Learn about the methods</Link>
           </article>
           <article className="bento-card bento-private" aria-labelledby="privacy-title">
             <svg className="device" viewBox="0 0 120 120" aria-hidden="true"><rect x="34" y="8" width="52" height="104" rx="10" /><path d="M48 62l9 9 16-18" /><circle cx="60" cy="60" r="46" /></svg>
@@ -194,8 +166,8 @@ export default function LandingSections() {
         <Ridge seed={88} className="final-r3" height={130} points={6} jag={0.5} />
       </div>
       <div className="wrap final-copy">
-        <h2 id="ready-title">Give your next upload a better starting point.</h2>
-        <p>Free forever. No account or installation.</p>
+        <h2 id="ready-title">Get your video ready for TikTok.</h2>
+        <p>4K at 60 fps. Free forever. No account or installation.</p>
         <PatcherLink className="cta cta-sun">Patch your video</PatcherLink>
       </div>
       <footer className="landing-footer wrap"><span>OQM, the Open Quality Method</span><nav aria-label="Footer"><Link href="/guides">Editor guides</Link><Link href="/guides/feed.xml">Guide feed</Link><a href="https://github.com/naveen-gunawardana/open-quality-method">Source code</a><a href="https://www.tiktok.com/@openqualitymethod">TikTok</a></nav></footer>

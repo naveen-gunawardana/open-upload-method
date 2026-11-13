@@ -259,7 +259,7 @@ export default function HomeExperience({ initialView = "home", children }: { ini
                 <div className="landing-content" ref={landingContent}>
                   <ConvertedCount count={count} />
                   <h1 id="home-title" ref={homeTitle} tabIndex={-1}>Stop TikTok from compressing your video.</h1>
-                  <p className="sub">Bypass TikTok compression <strong className="hero-free">for free.</strong> No account or installation needed.</p>
+                  <p className="sub">Prepare 4K videos at 60 fps <strong className="hero-free">for free.</strong> No account or installation needed.</p>
 
                   <div className="quality-compare" aria-label="Example upload quality comparison">
                     <div className="quality-before">
