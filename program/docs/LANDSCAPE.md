@@ -16,7 +16,10 @@ The label covers three different things, often sold together:
 
 | Tool | Disclosed approach | Free vs paid |
 |---|---|---|
-| Kuronai | File patch, optional "Encode Video", browser extension that rewrites upload request fields, "Enhanced" mobile workflow | Paid; Enhanced is undisclosed |
+| Kuronai | File patch, optional "Encode Video", browser extension that rewrites upload request fields, "Enhanced" mobile workflow | Free tier with limits, paid Premium raises them (its Telegram channel, Nov 2026; no price shown); Enhanced is undisclosed |
+| Haze (tikhaze.com) | Container and metadata patch described as no re-encode; Lite, HandBrake and Engine modes; own posting app | "Free Mode" for signed-in users with weekly credits (Nov 2026); Plus $4.99/month, Premium $9.99/month; code not published |
+| RTX Fury | Container and metadata optimisation | Free: 3 a day, 100 MB, 1080p 60 FPS; Booster via Discord boost; Premium by donation; code not published |
+| Void Studio | MP4 patcher that inflates sample tables; HEVC converted server-side | First patch free with a Discord or Telegram login; no prices listed; code not published |
 | Editing News / Editing Enhancer | Standard / HQ / Enhanced, "proprietary" processing | Free: 3 uploads/week, 50 MB. Public repo has no extension code. |
 | Kryp | Edit-list and metadata patching, upload injection, separate interpolation | Free with watermark/key limits |
 | Kay x Kaz | Local browser patching, algorithm undisclosed | 3 full-quality patches per 30 days free; paid = unlimited (same patch) |

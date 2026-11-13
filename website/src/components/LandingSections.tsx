@@ -6,8 +6,11 @@ const LANDSCAPE_URL = "https://github.com/naveen-gunawardana/open-quality-method
 
 // Taken from each tool's own public description, as recorded in program/docs/LANDSCAPE.md.
 const TOOLS = [
-  { name: "OQM", price: "Free", allowance: "No limit", code: "Public, every patch readable", ours: true },
-  { name: "Kuronai", price: "Paid", allowance: "Not advertised", code: "Extension config is public; “Enhanced” method is undisclosed" },
+  { name: "OQM", price: "Free", allowance: "No limit, no sign-in", code: "Public, every patch readable", ours: true },
+  { name: "Haze", price: "Free mode for now; Plus $4.99 a month, Premium $9.99 a month", allowance: "Weekly credits for signed-in users", code: "Not published" },
+  { name: "Kuronai", price: "Free tier, paid Premium", allowance: "Limited; Premium raises the limits", code: "Extension config is public; “Enhanced” method is undisclosed" },
+  { name: "RTX Fury", price: "Free tier, Premium by donation", allowance: "3 a day, 100 MB, 1080p 60 FPS", code: "Not published" },
+  { name: "Void Studio", price: "Not listed", allowance: "First patch free with a Discord or Telegram login", code: "Not published" },
   { name: "Editing Enhancer", price: "Free tier", allowance: "3 uploads a week, 50 MB each", code: "Described as proprietary" },
   { name: "Kay x Kaz", price: "Free tier, paid for unlimited", allowance: "3 full-quality patches every 30 days", code: "Undisclosed" },
   { name: "Kryp", price: "Free tier", allowance: "Watermark and key limits", code: "Approach described, not published" },
@@ -18,6 +21,7 @@ const TOOLS = [
 const ALLOWANCES = [
   { name: "Kay x Kaz", count: 3, label: "3" },
   { name: "Editing Enhancer", count: 13, label: "about 13" },
+  { name: "RTX Fury", count: 90, label: "90" },
   { name: "CompressBase", count: 150, label: "150" },
 ];
 
@@ -70,7 +74,7 @@ export default function LandingSections() {
               <b>No limit</b>
             </div>
           </div>
-          <p className="ground-note">Kuronai is paid and Kryp limits its free tier by watermark and key, so neither has a number to chart. Limits and prices are the ones each tool advertises and they change, so check their sites. <a href={LANDSCAPE_URL} target="_blank" rel="noopener">Read our notes on each method</a>.</p>
+          <p className="ground-note">Haze, Kuronai, Kryp and Void Studio don’t advertise a count, so they aren’t charted. Limits and prices are the ones each tool advertised in November 2026. They change, so check their sites. <a href={LANDSCAPE_URL} target="_blank" rel="noopener">Read our notes on each method</a>.</p>
         </div>
 
         <div className="ground-close">
