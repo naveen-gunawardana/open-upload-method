@@ -31,6 +31,13 @@ function currentAttribution() {
   } catch { return undefined; }
 }
 
+// Carry only the existing public campaign tags across the new page boundary.
+export function patcherDestination() {
+  const attribution = currentAttribution();
+  const query = new URLSearchParams(Object.entries(attribution ?? {}).map(([key, value]) => [`utm_${key}`, String(value)]));
+  return `/convert${query.size ? `?${query}` : ""}`;
+}
+
 function encodeSettings(value: unknown) {
   const e = object(value);
   return {

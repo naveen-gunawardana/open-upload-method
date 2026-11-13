@@ -10,17 +10,26 @@ async function get(path) {
 let ogImage;
 for (const path of ['/', '/convert']) {
   const { response, text } = await get(path);
+  const pageCanonical = path === '/' ? canonical : canonical + 'convert';
   assert.ok(!response.headers.get('x-robots-tag')?.includes('noindex'), `${path}: indexable response`);
   assert.equal((text.match(/rel="canonical"/g) ?? []).length, 1, `${path}: one canonical`);
-  assert.equal(new URL(text.match(/rel="canonical" href="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, canonical, `${path}: canonical hostname and path`);
-  assert.match(text, /<title>Free TikTok Video Quality Tool \| OQM<\/title>/);
+  assert.equal(new URL(text.match(/rel="canonical" href="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, pageCanonical, `${path}: canonical hostname and path`);
+  assert.match(text, path === "/" ? /<title>Free TikTok Video Quality Tool \| OQM<\/title>/ : /<title>Patch Your TikTok Video for Free \| OQM<\/title>/);
   assert.match(text, /<meta name="description" content="Prepare and patch 1080p and 4K TikTok videos/);
   assert.match(text, /<meta name="robots" content="index, follow/);
   assert.ok(!/<meta name="robots" content="[^"]*noindex/.test(text), `${path}: not noindexed`);
-  assert.equal(new URL(text.match(/property="og:url" content="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, canonical);
+  assert.equal(new URL(text.match(/property="og:url" content="([^"]+)"/)?.[1] ?? 'https://invalid.example').href, pageCanonical);
   assert.match(text, /<meta name="twitter:card" content="summary_large_image"/);
-  assert.match(text, /Stop TikTok from compressing your video\./);
-  assert.match(text, /\(Free forever\)/);
+  if (path === "/") {
+    assert.match(text, /Stop TikTok from compressing your video\./);
+    assert.match(text, /\(Free forever\)/);
+    assert.ok(text.includes('class="landing-content hero-spread"'));
+    assert.ok(!text.includes('class="card-slider"'));
+  } else {
+    assert.match(text, /Patch your video\./);
+    assert.ok(!text.includes('id="home-title"'));
+    assert.ok(!text.includes('id="compare"'));
+  }
   assert.match(text, /4K · 60fps/);
   const graph = JSON.parse(text.match(/<script type="application\/ld\+json">([^<]+)<\/script>/)?.[1] ?? 'null');
   assert.equal(graph?.['@context'], 'https://schema.org');
@@ -39,7 +48,7 @@ assert.match(robots, /Sitemap: https:\/\/www.openqualitymethod.com\/sitemap.xml/
 const sitemap = (await get('/sitemap.xml')).text;
 assert.ok(sitemap.includes(`<loc>${canonical}</loc>`));
 const guideSlugs = ['tiktok-video-quality','mov-to-mp4-for-tiktok','silent-tail-method','tiktok-export-settings','why-tiktok-videos-look-blurry','tiktok-60fps','browser-video-conversion-errors','check-video-resolution-and-fps'];
-assert.equal((sitemap.match(/<loc>/g) ?? []).length, 10, 'homepage, guide index and eight articles');
+assert.equal((sitemap.match(/<loc>/g) ?? []).length, 11, 'homepage, patcher, guide index and eight articles');
 for (const path of ['/guides', ...guideSlugs.map(slug => '/guides/' + slug)]) {
   const { text } = await get(path);
   assert.ok(sitemap.includes(`<loc>https://www.openqualitymethod.com${path}</loc>`));

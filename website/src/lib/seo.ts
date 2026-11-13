@@ -9,7 +9,6 @@ export const siteMetadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: "Open Quality Method",
-  // /convert opens the same interface in its patcher state; consolidate the duplicate onto the homepage.
   alternates: { canonical: `${SITE_URL}/`, types: { "application/rss+xml": `${SITE_URL}/guides/feed.xml` } },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
   openGraph: { type: "website", locale: "en_US", siteName: "OQM — Open Quality Method", url: `${SITE_URL}/`, title: SITE_TITLE, description: SITE_DESCRIPTION },

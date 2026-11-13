@@ -40,7 +40,7 @@
 
 *{box-sizing:border-box}
 
-html,body{height:100%; margin:0; overflow:hidden}
+html,body{min-height:100%; margin:0; overflow-x:clip}
 
 body{
   color:var(--fg);
@@ -447,6 +447,68 @@ input[type=checkbox],input[type=range]{accent-color:var(--blue)}
 
 /* The original patcher remains the first viewport; supporting content follows below it. */
 .primary-section{width:100%;min-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;align-items:center;flex:none}
+
+/* Open landing hero and a dedicated, naturally scrolling patcher page. */
+.home-page,.patcher-page{height:auto;min-height:100dvh;overflow:visible}
+.page-header{display:flex;justify-content:space-between;align-items:center;gap:20px;width:min(1200px,100%);padding-right:132px;flex:none}
+.page-header .header{box-shadow:none}
+.site-nav{display:flex;align-items:center;gap:4px;padding:6px;border:1px solid var(--line);border-radius:999px;background:var(--panel);font-size:13px;font-weight:600;white-space:nowrap}
+.site-nav a,.site-nav>span{padding:8px 12px;border-radius:999px}
+.site-nav a:hover{background:var(--hover)}
+.site-nav [aria-current="page"]{color:var(--success);background:var(--success-bg)}
+.site-nav a:focus-visible,.patcher-back:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+.home-hero{display:flex;align-items:center;justify-content:center;flex:1;width:100%;text-align:center;padding:clamp(32px,6vh,64px) 20px clamp(80px,13vh,120px)}
+.hero-spread{max-width:1080px;gap:clamp(20px,3vh,28px)}
+.hero-spread h1{font-family:var(--font-hero),sans-serif;font-size:clamp(44px,6.5vw,80px);font-weight:900;line-height:1.02;letter-spacing:-.045em;max-width:20ch;text-wrap:balance}
+.hero-spread .sub{font-size:clamp(16px,1.6vw,20px);max-width:42ch;line-height:1.5;color:var(--fg)}
+.hero-spread .quality-compare{max-width:520px;gap:18px;grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr)}
+.hero-spread .quality-before,.hero-spread .quality-after{padding:12px 20px;gap:5px;border-radius:12px}
+.hero-spread .quality-compare div>span{font-size:12px}
+.hero-spread .quality-compare strong{font-size:18px}
+.hero-spread .hero-actions{max-width:300px;gap:12px}
+.hero-spread .btn-convert{min-height:56px;font-size:17px;border-radius:12px}
+.hero-spread .hero-free-note,.hero-spread .credit{color:var(--fg)}
+.hero-spread .hero-free-note{align-self:center;padding:4px 10px;border-radius:999px;background:var(--panel)}
+.hero-spread .credit{font-size:13px;gap:12px;padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.patcher-page{background:var(--page-bg);gap:0}
+.patcher-layout{width:min(1000px,100%);padding:clamp(36px,6vh,64px) 0 48px;flex:none}
+.patcher-intro{margin-bottom:28px;text-align:center}
+.patcher-back{display:inline-block;font-size:13px;font-weight:600;margin-bottom:24px}
+.patcher-intro h1{font-family:var(--font-hero),sans-serif;font-size:clamp(36px,5vw,56px);font-weight:900;letter-spacing:-.04em}
+.patcher-intro p{font-size:17px;line-height:1.5;margin:14px 0 10px}
+.patcher-intro>span{font-family:var(--font-mono),monospace;font-size:12px}
+.patcher-page .studio-page{width:100%;padding:clamp(20px,3.2vw,36px);border-radius:24px;box-shadow:none;gap:24px}
+.patcher-page .patch-start-row{gap:20px}
+.patcher-page .file-select{min-height:90px;padding:20px}
+.patcher-page .file-copy b{font-size:16px}
+.patcher-page .file-copy>span{font-size:13px}
+.patcher-page .btn-start{min-height:52px;min-width:128px;font-size:16px}
+.patcher-page .studio-side{padding-top:24px;gap:20px}
+.patcher-page .preset-control{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.patcher-page .preset-description{margin:0;font-size:13px;line-height:1.6}
+.patcher-page .basic-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.patcher-page .basic-audio{grid-column:auto}
+.patcher-note{text-align:center;font-size:13px;line-height:1.6;margin:20px 12px 0}
+@media(max-width:1050px){.page-header .chip{display:none}}
+@media(max-width:700px){
+  .page-header{padding-right:0;flex-wrap:wrap;justify-content:center;gap:16px}
+  .page-header .header{margin-right:52px;max-width:calc(100% - 52px)}
+  .site-nav{font-size:12px}
+  .site-nav a,.site-nav>span{padding:7px 12px}
+  .home-hero{padding:40px 4px 100px}
+  .hero-spread h1{font-size:clamp(42px,9vw,60px);max-width:15ch}
+  .hero-spread .quality-compare{gap:10px;grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)}
+  .hero-spread .quality-before,.hero-spread .quality-after{padding:11px 8px}
+  .hero-spread .quality-compare strong{font-size:15px}
+  .patcher-page .preset-control{grid-template-columns:1fr;gap:12px}
+  .patcher-page .basic-grid{grid-template-columns:1fr 1fr;gap:14px}
+  .patcher-page .basic-audio{grid-column:1/-1}
+  .patcher-page .patch-start-row{gap:10px}
+  .patcher-page .file-select{min-height:72px;padding:12px}
+  .patcher-page .file-copy b{font-size:13px}
+  .patcher-page .file-copy>span{font-size:11px}
+  .patcher-page .btn-start{min-width:88px;min-height:44px;font-size:14px}
+}
 
 /* Below the hero: an illustrated alpine descent. Snowfield, meadow, lake, then the valley at the end. */
 :root{--gx-l:max(16px,env(safe-area-inset-left,0px)); --gx-r:max(16px,env(safe-area-inset-right,0px));
