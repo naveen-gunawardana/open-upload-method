@@ -19,16 +19,18 @@ The label covers three different things, often sold together:
 | Kuronai | File patch, optional "Encode Video", browser extension that rewrites upload request fields, "Enhanced" mobile workflow | Free tier with limits, paid Premium raises them (its Telegram channel, Nov 2026; no price shown); Enhanced is undisclosed |
 | Haze (tikhaze.com) | Container and metadata patch described as no re-encode; Lite, HandBrake and Engine modes; own posting app | "Free Mode" for signed-in users with weekly credits (Nov 2026); Plus $4.99/month, Premium $9.99/month; code not published |
 | RTX Fury | Container and metadata optimisation | Free: 3 a day, 100 MB, 1080p 60 FPS; Booster via Discord boost; Premium by donation; code not published |
-| Void Studio | MP4 patcher that inflates sample tables; HEVC converted server-side | First patch free with a Discord or Telegram login; no prices listed; code not published |
+| Void Studio | MP4 patcher that inflates sample tables; unsupported inputs converted server-side | Member tier: 3 patches/day, 1080p, 90 MB; Discord or Telegram login; Booster and Pro tiers; code not published |
 | Editing News / Editing Enhancer | Standard / HQ / Enhanced, "proprietary" processing | Free: 3 uploads/week, 50 MB. Public repo has no extension code. |
 | Kryp | Edit-list and metadata patching, upload injection, separate interpolation | Free with watermark/key limits |
 | Kay x Kaz | Local browser patching, algorithm undisclosed | 3 full-quality patches per 30 days free; paid = unlimited (same patch) |
-| CompressBase | Local processing, selectable methods; a third-party re-implementation uses Constrained Baseline H.264 plus a dual-AAC inflated decoy | Advertises 5 free uses per device per day |
+| CompressBase | Local processing, selectable methods; a third-party re-implementation uses Constrained Baseline H.264 plus a dual-AAC inflated decoy | Advertises 6 free uses per device per day, with unlimited use after Telegram verification |
 | buwryme/tiktok-lossless-upload | Open source: re-encode (default) + decoy audio + timing/metadata patches | Free, MIT |
 | NoBlur family | Open source: inflate the **video** sample table with dummy entries | Free |
 | WizardFTB | Open source extension: hooks `fetch` / `XMLHttpRequest` / `JSON.stringify`, plus a local MP4 patch | Free; **adds its creator's promo to your captions** |
 
-What payment buys: more uses, support, updates, convenience. No paid tool has published a controlled comparison showing a better patch than the free ones.
+What payment buys: more uses, support, updates, convenience. We haven’t found a published controlled comparison showing a paid patch consistently performs better than the free ones.
+
+Homepage comparison review, 13 November 2026: [Void Studio’s patcher page](https://voidaep.dev/patcher) lists its daily member allowance; [CompressBase’s upload method](https://compressbase.com/upload-method) advertises 6 daily uses. [Kay x Kaz’s terms](https://kayxkaz.com/terms) describe the rolling 30-day allowance, and [Editing Enhancer’s README](https://github.com/Editing-News/Editing-Enhancer#premium-benefits) lists its weekly allowance. The mountain chart is illustrative: weekly allowances are approximate, the shortest peak has a minimum visible height, and OQM’s uncapped use is symbolic. A Telegram verification option can remove CompressBase’s daily cap.
 
 ## The browser layer (not in OQM v1)
 
