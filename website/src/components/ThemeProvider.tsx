@@ -6,7 +6,8 @@ import { getServerTheme, getThemeSnapshot, setTheme, subscribeTheme, type Theme 
 const ThemeContext = createContext<Theme>("light");
 export const useTheme = () => useContext(ThemeContext);
 
-export function ThemeToggle({ theme }: { theme: Theme }) {
+export function ThemeToggle() {
+  const theme = useTheme();
   const next = theme === "light" ? "dark" : "light";
   return (
     <button className="theme-toggle" type="button" onClick={() => setTheme(next)}
@@ -23,5 +24,5 @@ export function ThemeToggle({ theme }: { theme: Theme }) {
 
 export default function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerTheme);
-  return <ThemeContext.Provider value={theme}>{children}<ThemeToggle theme={theme} /></ThemeContext.Provider>;
+  return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 }

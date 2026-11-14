@@ -24,13 +24,16 @@ for (const name of ["patch", "silentTail", "pipeline"]) {
 }
 const { sameRecipe, prepareInputDecoders, convert, prepareComparison, targetSize, targetFrameRate, COMPARISON_PRESETS, DEFAULT_RECIPE, PRESETS } = await import(pathToFileURL(path.join(dir, "pipeline.mjs")));
 test("latest standalone UI exposes the experimental option before selecting a video", async () => {
-  const help = await readFile(new URL("../src/components/SettingHelp.tsx", import.meta.url), "utf8");
-  await writeFile(path.join(dir, "SettingHelp.mjs"), ts.transpileModule(help, {
-    compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
-    fileName: "SettingHelp.tsx",
-  }).outputText);
+  for (const name of ["SettingHelp", "EditFigures"]) {
+    const component = await readFile(new URL(`../src/components/${name}.tsx`, import.meta.url), "utf8");
+    await writeFile(path.join(dir, `${name}.mjs`), ts.transpileModule(component, {
+      compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
+      fileName: name + ".tsx",
+    }).outputText);
+  }
   const source = (await readFile(new URL("../src/components/Converter.tsx", import.meta.url), "utf8"))
     .replaceAll('"@/lib/oqm/patch"', '"./patch.mjs"').replaceAll('"@/lib/oqm/pipeline"', '"./pipeline.mjs"')
+    .replaceAll('"@/components/EditFigures"', '"./EditFigures.mjs"')
     .replaceAll('"@/components/SettingHelp"', '"./SettingHelp.mjs"').replaceAll('"@/lib/conversion-analytics"', '"./conversion-analytics.mjs"');
   await writeFile(path.join(dir, "Converter.mjs"), ts.transpileModule(source, {
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX },
@@ -47,14 +50,14 @@ test("latest standalone UI exposes the experimental option before selecting a vi
   assert.match(presetSelect, /<option value="4k">4K — high quality<\/option>/);
   assert.equal((presetSelect.match(/selected=""/g) ?? []).length, 1);
   assert.match(html, /<button[^>]*disabled=""[^>]*>Make local comparison \(3\)<\/button>/);
-  assert.match(html, /<button[^>]*class="btn btn-convert btn-start"[^>]*disabled=""[^>]*>Start<svg/);
+  assert.match(html, /<button[^>]*disabled=""[^>]*>Start patching<svg/);
   const selected = renderToStaticMarkup(createElement(Converter, {
     standalone: true, file: new File(["test"], "selected-test.mp4", { type: "video/mp4" }),
   }));
   assert.match(selected, /selected-test\.mp4/);
   assert.match(selected, /Change video/);
-  assert.match(selected, /<button[^>]*class="btn btn-convert btn-start"[^>]*>Start<svg/);
-  assert.doesNotMatch(selected.match(/<button[^>]*class="btn btn-convert btn-start"[^>]*>/)?.[0] ?? "", /disabled/);
+  assert.match(selected, /<button[^>]*>Start patching<svg/);
+  assert.doesNotMatch(selected.match(/<button[^>]*>Start patching<svg/)?.[0] ?? "", /disabled/);
   assert.doesNotMatch(selected, /Start again|run-running|Working…|studio-upload/);
 });
 test("resolution presets downscale in both orientations without upscaling or changing the default", () => {

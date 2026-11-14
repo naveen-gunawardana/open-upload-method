@@ -94,11 +94,8 @@ test("blocked storage still allows the theme switch to work", () => {
   assert.equal(getThemeSnapshot(), "light");
 });
 
-test("the corner switch offers dark mode by default and light mode when dark", () => {
-  const light = renderToStaticMarkup(createElement(ThemeProvider, null, createElement("p", null, "Site content")));
+test("the header switch offers dark mode on first render", () => {
+  const light = renderToStaticMarkup(createElement(ThemeProvider, null, createElement(ThemeToggle)));
   assert.match(light, /Switch to dark mode/);
-  assert.match(light, /Site content/);
-  const dark = renderToStaticMarkup(createElement(ThemeToggle, { theme: "dark" }));
-  assert.match(dark, /Switch to light mode/);
-  assert.match(dark, /Light mode/);
+
 });

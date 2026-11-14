@@ -1,0 +1,63 @@
+.stage.home-page {height:auto;min-height:100svh;padding-block:0;overflow:visible}
+.home-page .primary-section {
+  position:relative;isolation:isolate;align-items:stretch;
+  margin-inline:calc(-1 * var(--gx-l)) calc(-1 * var(--gx-r));
+  width:calc(100% + var(--gx-r) + var(--gx-l));min-height:0;
+  color:#143c4b;
+  background:linear-gradient(180deg,#287bac 0%,#3287ba 29%,#67b5da 47%,#bbe5ec 69%,#ffedbe 94%);
+  --rock-lit:#75a9bd;--rock-shade:#416c88;--rock-detail:#59859a;--distant:#a4c4cf;--snow-lit:#f8fcf5;--ice-lit:#c8e1e1;
+  --pines-far:#448a79;--meadow-lit:#a2d166;--meadow:#469d56;--fir:#245f50;--lake:#c3e8dc;--path:#d5df91;--grass-line:#71b668;
+}
+.primary-section .site-mast {color:#fff;border-color:#ffffff40}
+.alpine-hero {position:relative;isolation:isolate;text-align:center;min-height:clamp(650px,calc(100svh - 80px),920px);display:grid;align-content:start;padding:clamp(48px,6.8svh,85px) 16px clamp(210px,20vw,320px)}
+.alpine-hero-copy {position:relative;margin:0 auto;width:min(960px,100%)}
+.alpine-hero h1 {position:relative;z-index:0;margin:auto;color:#fff;font:700 clamp(46px,5.1vw,76px)/1.015 var(--font-hero),sans-serif;letter-spacing:-.055em;text-wrap:balance}
+.alpine-hero h1 span {display:block}
+.alpine-hero-copy>:not(h1) {position:relative;z-index:2}
+.alpine-description {margin:24px auto 0;max-width:54ch;font-size:clamp(16px,1.3vw,19px);line-height:1.5;letter-spacing:-.015em;color:#031d29}
+.alpine-description strong {font-weight:650}
+.alpine-actions {margin-top:25px;display:grid;justify-items:center;gap:12px}
+.alpine-start {min-width:238px;min-height:56px}
+.alpine-start svg {width:20px;height:20px;transition:transform .2s}
+.alpine-start:hover svg {transform:translateX(3px)}
+.alpine-actions p {margin:0;color:inherit;font-size:13px}
+.alpine-links {display:flex;gap:22px;justify-content:center;margin-top:7px}
+.alpine-links :is(a,button) {display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0;font:550 13px var(--font-body),sans-serif;border:0;background:transparent;color:inherit;cursor:pointer}
+.alpine-links :is(a,button):hover {text-decoration:underline;text-underline-offset:4px}
+.alpine-links svg {width:15px;height:15px}
+.alpine-count {position:absolute;z-index:2;bottom:14px;left:max(24px,calc((100% - 1240px)/2))}
+.alpine-count .eyebrow {padding:5px 9px;border:0;color:#fff;background:#1e4b47;font:500 13px var(--font-body),sans-serif}
+.alpine-count .dl-num {color:inherit}
+.alpine-landscape {position:absolute;inset:0;z-index:1;pointer-events:none;overflow:clip}
+.panorama {position:absolute;left:-1.5%;bottom:-1px;width:103%;height:auto;display:block;overflow:visible}
+.portrait {display:none}
+.sun-disc {fill:#fff0b6}.sun-halo {fill:#fff3bd;opacity:.24}
+.sky-marks {color:#427687}
+.depth-far {transform:translate(calc(var(--scene-x,0px)*.25),calc(var(--scene-scroll,0px)*.045))}
+.depth-rock {transform:translate(calc(var(--scene-x,0px)*.55),calc(var(--scene-scroll,0px)*.03))}
+.depth-field {transform:translate(var(--scene-x,0px),calc(var(--scene-y,0px)*.4 + var(--scene-scroll,0px)*.012))}
+.home-page .landing-below {margin-top:0;overflow-x:clip}
+:root[data-theme="dark"] .home-page .primary-section {
+  color:#eaf4f7;background:radial-gradient(1px 1px at 13% 22%,#e9f5ff 80%,transparent),radial-gradient(1px 1px at 78% 19%,#c2d6ff 80%,transparent),radial-gradient(1.5px 1.5px at 85% 40%,#eefaff 80%,transparent),radial-gradient(1px 1px at 23% 45%,#d0e4ff 80%,transparent),linear-gradient(#101d38,#1a3655 48%,#52718b 81%,#8d979d);
+  --rock-lit:#39546b;--rock-shade:#263a53;--rock-detail:#2b475c;--snow-lit:#b8cfda;--ice-lit:#718ca1;--distant:#647f94;
+  --pines-far:#2a5151;--meadow-lit:#386852;--meadow:#244c41;--fir:#102f2d;--lake:#84aaa9;--path:#66836a;--grass-line:#365d4d
+}
+:root[data-theme="dark"] .alpine-description {color:#e1f0f3}
+:root[data-theme="dark"] .sun-disc {fill:#e1e8e5}
+:root[data-theme="dark"] .sun-halo {fill:#c6dde7;opacity:.14}
+@media(min-width:1700px){.panorama.wide{max-height:520px;width:100%;left:0;object-fit:cover}.alpine-landscape{background:linear-gradient(transparent 97%,var(--meadow) 97%)}}
+@media(min-width:721px) and (max-width:1050px){
+  .alpine-hero {min-height:clamp(650px,86svh,780px)}
+  .panorama.wide {width:115%;left:-7.5%}
+}
+@media(max-width:720px){
+  .alpine-hero {min-height:clamp(560px,calc(100svh - 66px),850px);padding:clamp(45px,7svh,74px) 16px clamp(200px,45vw,300px)}
+  .alpine-hero h1 {font-size:clamp(32px,8.9vw,54px);line-height:1.055;letter-spacing:-.048em}
+  .alpine-description {margin-top:20px}
+  .alpine-actions {margin-top:23px}
+  .panorama.wide {display:none}.panorama.portrait {display:block;width:122%;left:-11%;max-height:48%}
+  .alpine-count {bottom:10px;left:16px}
+}
+@media(prefers-reduced-motion:reduce){
+  .alpine-hero .panorama g,.alpine-start:hover svg {transform:none}
+}

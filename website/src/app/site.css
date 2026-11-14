@@ -1,0 +1,41 @@
+:root {
+  --font-display:var(--font-hero),system-ui,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Consolas,monospace;
+  --page-paper:#f8fbfa;
+  --page-tint:#e1f1f6;
+  --page-ink:#173a43;
+  --page-secondary:#45616a;
+  --page-border:#c9dcd9;
+  --button-gold:#ffd45e;
+}
+:root[data-theme="dark"] {
+  --page-paper:#101e2b;
+  --page-tint:#162f40;
+  --page-ink:#f0f7f6;
+  --page-secondary:#b6cdd2;
+  --page-border:#344c58;
+}
+html,body {min-height:100%;height:auto;overflow-x:clip;overflow-y:visible}
+html {overscroll-behavior-x:none}
+body {background:var(--page-paper)}
+.site-mast {position:relative;z-index:3;display:flex;align-items:center;gap:24px;width:min(calc(100% - 48px),1240px);margin-inline:auto;min-height:80px;border-bottom:1px solid var(--page-border);color:var(--page-ink);font:600 14px var(--font-body),sans-serif}
+.site-brand {display:flex;align-items:center;gap:10px;margin-right:auto;font:750 18px var(--font-hero),sans-serif;letter-spacing:-.045em}
+.site-brand img {border-radius:50%;width:34px;height:34px}
+.brand-short {display:none}
+.site-mast nav {display:flex;align-items:center;gap:24px}
+.site-mast nav :is(a,span) {min-height:44px;display:inline-flex;align-items:center}
+.site-mast nav [aria-current],.site-mast nav a:hover {text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:2px}
+.site-mast .theme-toggle {position:static;display:grid;place-items:center;flex:none;width:44px;height:44px;min-height:44px;padding:0;border:1px solid color-mix(in srgb,currentColor 26%,transparent);background:color-mix(in srgb,var(--page-paper) 32%,transparent);color:inherit;border-radius:50%;box-shadow:none;backdrop-filter:blur(6px)}
+.site-mast .theme-toggle span {display:none}
+.site-mast .theme-toggle svg {color:inherit}
+.sun-action {display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:52px;padding:12px 24px;background:var(--button-gold);color:#292408;font:650 16px var(--font-body),sans-serif;border:1px solid #c4962e;border-radius:12px;cursor:pointer}
+.sun-action:hover {background:#ffdf84}
+:is(.site-mast,.alpine-hero,.patcher-page,.guides-shell) :focus-visible {outline:3px solid var(--focus);outline-offset:3px}
+@media(max-width:650px){
+  .site-mast {width:calc(100% - 32px);gap:14px;min-height:66px;font-size:13px}
+  .site-mast nav {gap:16px}
+  .brand-short {display:inline}
+  .brand-full {display:none}
+  .site-brand {gap:6px}
+  .site-brand img {width:30px;height:30px}
+}

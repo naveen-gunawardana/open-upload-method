@@ -1,3 +1,4 @@
+import GuideFigure from "@/components/GuideFigure";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -27,20 +28,29 @@ export default function GuideArticle({ slug }: { slug: string }) {
       { "@type": "ListItem", position: 3, name: guide.title, item: guideUrl(slug) },
     ] },
   ] };
+  const contents = <ol>{guide.sections.map(section => <li key={section.title}><a href={`#${sectionId(section.title)}`}>{section.title}</a></li>)}{guide.faq && <li><a href="#common-questions">Common questions</a></li>}</ol>;
   return <main className="guides-article">
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g,"\\u003c") }} />
+    <header className="reading-head">
     <nav className="guides-breadcrumb" aria-label="Breadcrumb"><Link href="/">Home</Link> / <Link href="/guides">Editor guides</Link> / {guide.category}</nav>
-    <h1>{guide.title}</h1><p className="guides-date">Updated <time dateTime={guideUpdated(guide)}>{date}</time> · {Math.max(1, Math.ceil(wordCount / 220))} min read · <a href="https://github.com/naveen-gunawardana/open-quality-method">By Open Quality Method</a></p>
-    <p className="guides-intro">{guide.intro}</p><Link prefetch={false} className="guides-cta" href={guidePatcherUrl(guide.campaign)}>Open the free patcher →</Link>
+    <h1 className="guides-title">{guide.title}</h1><p className="guides-date">Updated <time dateTime={guideUpdated(guide)}>{date}</time> · {Math.max(1, Math.ceil(wordCount / 220))} min read · <a href="https://github.com/naveen-gunawardana/open-quality-method">By Open Quality Method</a></p>
+    <p className="guides-intro">{guide.intro}</p><Link prefetch={false} className="guide-inline-link" href={guidePatcherUrl(guide.campaign)}>Open the free patcher →</Link>
+    </header>
+    <div className="reading-layout">
+    <nav className="reading-toc" aria-label="On this page"><div className="toc-desktop"><strong>On this page</strong>{contents}</div><details className="toc-mobile"><summary>On this page</summary>{contents}</details></nav>
+    <article className="reading-body">
     {guide.summary && <aside className="guide-takeaways" aria-label="Key takeaways"><h2>Start here</h2><ul>{guide.summary.map(p => <li key={p}>{p}</li>)}</ul></aside>}
-    <nav className="guide-toc" aria-label="On this page"><h2>On this page</h2><ol>{guide.sections.map(section => <li key={section.title}><a href={`#${sectionId(section.title)}`}>{section.title}</a></li>)}{guide.faq && <li><a href="#common-questions">Common questions</a></li>}</ol></nav>
-    {guide.sections.map(section => <section key={section.title} id={sectionId(section.title)}><h2>{section.title}</h2>{section.paragraphs.map(p => <p key={p}>{p}</p>)}{section.steps && <ol>{section.steps.map(step => <li key={step}>{step}</li>)}</ol>}
+
+    {guide.sections.map(section => <section key={section.title} id={sectionId(section.title)}><h2>{section.title}</h2>{section.paragraphs.map(p => <p key={p}>{p}</p>)}{section.illustration && <GuideFigure kind={section.illustration}/>}
+      {section.steps && <ol>{section.steps.map(step => <li key={step}>{step}</li>)}</ol>}
       {section.table && <div className="guide-table-scroll"><table><caption>{section.title}</caption><thead><tr>{section.table.columns.map(c => <th scope="col" key={c}>{c}</th>)}</tr></thead><tbody>{section.table.rows.map((row, i) => <tr key={i}>{row.map((value, j) => j === 0 ? <th scope="row" key={j}>{value}</th> : <td key={j}>{value}</td>)}</tr>)}</tbody></table></div>}
       {section.code && <pre className="guide-code"><code>{section.code}</code></pre>}
       {section.download && <a className="guide-download" href={section.download.href} download>{section.download.label} ↓</a>}
     </section>)}
     {guide.faq && <section id="common-questions" className="guide-faq"><h2>Common questions</h2>{guide.faq.map(f => <details key={f.question}><summary>{f.question}</summary><p>{f.answer}</p></details>)}</section>}
     <section><h2>Sources and implementation</h2><p className="guide-source-note">This guide describes OQM’s current workflow. External upload specifications are labeled for the upload route they cover; local file checks and reported upload observations are separate evidence.</p><ul>{guide.sources.map(source => <li key={source.url}><a href={source.url}>{source.label}</a></li>)}</ul></section>
+    <Link className="sun-action" href={guidePatcherUrl(guide.campaign)}>Patch video for free →</Link>
     <section><h2>Keep reading</h2><ul>{related.map(g => <li key={g.slug}><Link href={`/guides/${g.slug}`}>{g.title}</Link></li>)}</ul></section>
+    </article></div>
   </main>;
 }

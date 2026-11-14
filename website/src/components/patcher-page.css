@@ -1,0 +1,45 @@
+.patcher-page {min-height:100svh;margin-inline:calc(-1 * var(--gx-l)) calc(-1 * var(--gx-r));background:linear-gradient(var(--page-tint),var(--page-paper) 500px);color:var(--page-ink);padding-bottom:64px}
+.patcher-layout {width:min(900px,calc(100% - 40px));margin:0 auto}
+.patcher-intro {position:relative;padding:clamp(28px,3.4vw,44px) 0 24px}
+.patcher-intro h1,.guides-title {font:700 clamp(34px,4vw,52px)/1.08 var(--font-hero),sans-serif;letter-spacing:-.05em;color:var(--page-ink)}
+.patcher-intro p {margin:10px 0 0;color:var(--page-secondary);font-size:17px}
+.patch-spec {display:block;position:absolute;right:0;bottom:28px;font:550 13px var(--font-body),sans-serif;color:var(--page-secondary)}
+.patcher-page .studio {width:100%;padding:0;border:1px solid var(--page-border);border-radius:18px;gap:0;background:var(--raised);box-shadow:none}
+.patcher-page .studio-main,.patcher-page .studio-side {padding:20px clamp(16px,3.4vw,36px);gap:14px}
+.patcher-page .studio h2 {font:700 21px/1.2 var(--font-hero),sans-serif;letter-spacing:-.035em;text-align:left}
+.patcher-page .file-select {padding:17px 20px;min-height:80px;border-style:dashed;border-color:var(--page-border);border-radius:10px;background:var(--page-paper)}
+.patcher-page .file-select:hover {background:var(--page-tint)}
+.patcher-page .file-icon {box-sizing:content-box;padding:12px;margin-right:6px;background:var(--page-tint);border-radius:10px;color:var(--page-ink)}
+.patcher-page .file-copy b,.patcher-page .preset-control select,.patcher-page .adv select {font-size:16px}
+.patcher-page :is(.file-copy>span,.preset-description,.fine,.setting-title,.settings-footer .again,.adv .row,.preset-control label) {font-size:14px;line-height:1.5}
+.patcher-page .preset-control {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:center}
+.patcher-page .preset-description {margin:0;color:var(--page-secondary)}
+.patcher-page .adv .grid.basic-grid {gap:16px;margin-top:12px}
+.patcher-page .basic-settings .setting-title {font-size:14px}
+.patcher-page .settings-more {border-color:var(--page-border);border-radius:9px;background:var(--raised)}
+.patcher-page .settings-more>summary {background:var(--page-paper);color:var(--page-ink);border-radius:9px}
+.patcher-page .settings-footer {padding:0}
+.patcher-page .settings-footer p {margin:0}
+.patch-controls {display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--page-paper);border-top:1px solid var(--page-border);padding:18px clamp(16px,3.4vw,36px);border-radius:0 0 18px 18px}
+.patch-controls p {margin:0;font-size:14px;color:var(--page-secondary)}
+.patch-controls button {flex:none;min-height:46px;max-width:100%}
+.patch-controls .sun-action:disabled {background:var(--line);color:var(--page-secondary);border-color:transparent;cursor:not-allowed}
+.patcher-page .runs {padding:20px clamp(14px,3vw,32px);border-top:1px solid var(--page-border)}
+.patcher-page .run {padding:20px;align-items:flex-start;gap:12px}
+.patcher-page .run-done .run-head {justify-content:flex-start}
+.patcher-page :is(.run-head,.run-progress,.run details) {width:100%}
+.patcher-page .output-name {margin:0;overflow-wrap:anywhere;font-size:16px;font-weight:600}
+.patcher-page .run-meta {text-align:left;font-size:14px}
+.patcher-page .run-row {flex-direction:row;flex-wrap:wrap}
+.patcher-page .run-done>details>summary {margin-inline:0}
+@media(max-width:660px){
+  .patch-spec {position:static;margin-top:12px}
+  .patcher-layout {width:calc(100% - 28px)}
+  .patcher-page .preset-control {grid-template-columns:1fr;gap:8px}
+  .patcher-page .adv .grid.basic-grid {grid-template-columns:minmax(0,1fr)}
+  .patcher-page .basic-audio {grid-column:auto}
+  .patch-controls {flex-direction:column;align-items:stretch}
+  .patch-controls p {text-align:center}
+}
+
+.patcher-page .file-select.has-file .file-copy b {white-space:normal;overflow-wrap:anywhere}

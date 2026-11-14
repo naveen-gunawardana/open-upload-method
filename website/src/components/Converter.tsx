@@ -3,6 +3,7 @@
 import { analyticsRunId, trackConversion } from "@/lib/conversion-analytics";
 import { canEncodeVideo } from "mediabunny";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { MethodBranches } from "@/components/EditFigures";
 import SettingHelp from "@/components/SettingHelp";
 import { CATALOG, DEFAULT_PATCH, type Check, type PatchId } from "@/lib/oqm/patch";
 import {
@@ -186,6 +187,7 @@ export default function Converter({
     let active = true;
     queueMicrotask(() => {
       if (!active) return;
+      setRuns(runsRef.current);
       const saved = loadRecipe();
       setRecipeState(saved);
       setSelectedFile(file);
@@ -213,14 +215,19 @@ export default function Converter({
     return () => window.removeEventListener("keydown", onKey);
   }, [close, onClose]);
 
-  // Free converted files and cancel work on every unmount, including navigation.
+  // Next can keep a hidden route mounted. Release its files and run history together.
   useEffect(
     () => {
       closed.current = false;
+      const sources = sharedSources.current;
+      const countedRuns = counted.current;
       return () => {
         closed.current = true;
         abort.current?.abort();
         for (const r of runsRef.current) if (r.url) URL.revokeObjectURL(r.url);
+        runsRef.current = [];
+        sources.clear();
+        countedRuns.clear();
       };
     },
     [],
@@ -229,7 +236,8 @@ export default function Converter({
   const current = runs.find((r) => r.status === "running");
   const files = Array.from(new Set(runs.map((r) => r.file)));
   const activeFile = selectedFile;
-  const selectionWasPatched = runs.some(r => r.file === activeFile && r.status === "done");
+  const latestSelectionRun = runs.find(r => r.file === activeFile);
+  const selectionWasPatched = latestSelectionRun?.status === "done" && sameRecipe(latestSelectionRun.recipe, recipe);
   const selectedPreset = PRESETS.find((p) => sameRecipe(p.recipe, recipe));
   const presetId = selectedPreset?.id ?? "custom";
   const e = recipe.encode;
@@ -274,25 +282,18 @@ export default function Converter({
         )}
 
         <section className="studio-main">
+          <h2>Your video</h2>
           <div className="patch-start-row">
-          <button type="button" className="file-select" title={activeFile?.name} onClick={() => pickRef.current?.click()}>
+          <button type="button" className={activeFile ? "file-select has-file" : "file-select"} title={activeFile?.name} onClick={() => pickRef.current?.click()}>
             <svg className="file-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M12 16V3m0 0L7 8m5-5 5 5M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4" />
+              <path d={activeFile ? "M5 2h9l5 5v15H5z M14 2v6h5 M9 12l5 3-5 3z" : "M2 4h20v16H2z M5 4v16m14-16v16M2 9h3m-3 6h3m14-6h3m-3 6h3 M9 12h6m-3-3v6"} />
             </svg>
             <span className="file-copy">
-              <b>{activeFile ? activeFile.name : "Choose video"}</b>
-              <span>{activeFile ? `${formatSize(activeFile.size)} · Change video` : "MP4, MOV & more"}</span>
+              <b>{activeFile ? activeFile.name : "Choose a video"}</b>
+              <span>{activeFile ? `${formatSize(activeFile.size)} · Change video` : "or drop a file here · MP4, MOV & more"}</span>
             </span>
           </button>
-          <button
-            type="button"
-            className="btn btn-convert btn-start"
-            disabled={!activeFile || !!current}
-            onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
-          >
-            {current ? "Working…" : selectionWasPatched ? "Start again" : "Start"}
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-          </button>
+
           </div>
           <input
             ref={pickRef}
@@ -305,24 +306,10 @@ export default function Converter({
             }}
           />
 
-          {runs.length > 0 && (
-            <ul className="runs">
-              {runs.map((run) => (
-                <RunCard key={run.id} run={run} showFile={files.length > 1} />
-              ))}
-            </ul>
-          )}
-
-          {current && (
-            <div className="studio-actions">
-              <button type="button" className="btn btn-secondary" onClick={() => abort.current?.abort()}>
-                Stop patching
-              </button>
-            </div>
-          )}
         </section>
 
         <section className="studio-side">
+          <h2>Output settings</h2>
           <div className="preset-control">
             <label>
               Preset
@@ -350,6 +337,7 @@ export default function Converter({
                 </label>
                 <SettingHelp label="Re-encode before patching">Rebuild video and audio using the settings below. Turn this off to keep the original streams and patch only the container.</SettingHelp>
               </div>
+              {!e.reencode && <p className="fine">The patch uses your existing video and audio streams. Output encoding settings are inactive.</p>}
               <div className={`grid basic-grid${e.reencode ? "" : " off"}`}>
                 <div className="setting-field">
                   <span className="setting-title"><label htmlFor="setting-size">Resolution</label><SettingHelp label="Resolution">Keep the original dimensions or limit the shorter edge to the selected resolution.</SettingHelp></span>
@@ -544,6 +532,7 @@ export default function Converter({
           <details className="settings-section settings-tools">
             <summary><span>Tools &amp; help</span><span className="section-meta">Comparisons &amp; tips</span></summary>
             <div className="settings-body studio-tools">
+              <MethodBranches/>
               <button
                 type="button"
                 className="btn btn-ghost"
@@ -578,6 +567,28 @@ export default function Converter({
             </button>
           </div>
         </section>
+        <div className="patch-controls">
+          <p>{current ? `Patching ${current.title}. Keep this page open.` : selectionWasPatched ? "Download your MP4 below." : activeFile ? "Ready to patch." : "Choose a video to start patching."}</p>
+          {current ? <button type="button" className="btn btn-secondary" onClick={() => abort.current?.abort()}>Stop patching</button> : (
+            <button
+              type="button"
+              className={selectionWasPatched ? "btn btn-secondary" : "sun-action"}
+              disabled={!activeFile}
+              onClick={() => activeFile && queue(activeFile, [{ title: titleFor(recipe), slug: slugFor(recipe), recipe }])}
+            >
+              {selectionWasPatched ? "Start again" : "Start patching"}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
+            </button>
+          )}
+        </div>
+          {runs.length > 0 && (
+            <ul className="runs">
+              {runs.map((run) => (
+                <RunCard key={run.id} run={run} showFile={files.length > 1} />
+              ))}
+            </ul>
+          )}
+
       </div>
     </div>
   );
@@ -587,7 +598,7 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
   const outName = `${stem(run.file.name)}_${run.slug}.mp4`;
   const hard = run.result?.checks.filter((c) => !c.ok && !c.warn) ?? [];
   return (
-    <li className={`run run-${run.status}`}>
+    <li className={`run run-${run.error === "Stopped." ? "stopped" : run.status}`}>
       <div className="run-head">
         <b>{run.title}</b>
         {showFile && <span className="run-file">{run.file.name}</span>}
@@ -597,26 +608,27 @@ function RunCard({ run, showFile }: { run: Run; showFile: boolean }) {
       {run.status === "running" && (
         <div className="run-progress">
           <span>{run.stage?.label ?? "Working"}</span>
-          <div className="bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={run.stage?.progress != null ? Math.round(run.stage.progress * 100) : undefined}>
+          <div className="bar" role="progressbar" aria-label={run.stage?.label ?? "Patching"} aria-valuemin={0} aria-valuemax={100} aria-valuenow={run.stage?.progress != null ? Math.round(run.stage.progress * 100) : undefined}>
             <div className={run.stage?.progress == null ? "bar-fill bar-busy" : "bar-fill"} style={run.stage?.progress != null ? { width: `${run.stage.progress * 100}%` } : undefined} />
           </div>
         </div>
       )}
 
-      {run.status === "error" && run.error && <p className="modal-error">{run.error}</p>}
+      {run.status === "error" && run.error && <p role="status" className={run.error === "Stopped." ? "run-meta" : "modal-error"}>{run.error === "Stopped." ? "Patching stopped. You can start again." : [run.stage?.label, run.error].filter(Boolean).join(" — ")}</p>}
 
       {run.status === "done" && run.result && run.url && (
         <>
+          <p className="output-name">{outName}</p>
           <div className="run-meta">
             {run.result.info.width} × {run.result.info.height} · {Math.round(run.result.info.fps * 100) / 100} fps · {run.result.info.mbps.toFixed(1)} Mbps ·{" "}
             {formatSize(run.result.blob.size)}
             {run.comparisonEncode ? (run.comparisonEncode.reencode ? " · shared source encoded once" : " · shared source, no re-encode") : run.result.info.reencoded ? "" : " · not re-encoded"}
           </div>
           <div className="run-row">
-            <a className="btn btn-patch btn-sm" href={run.url} download={outName} onClick={() => trackConversion(run, "downloaded", (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => sameRecipe(p.recipe, run.recipe))?.id ?? "custom")}>
-              Download
+            <a className="sun-action" href={run.url} download={outName} onClick={() => trackConversion(run, "downloaded", (run.comparisonEncode ? COMPARISON_PRESETS : PRESETS).find(p => sameRecipe(p.recipe, run.recipe))?.id ?? "custom")}>
+              Download MP4
             </a>
-            <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : "Local checks passed"}</span>
+            <span className={hard.length ? "run-bad" : "run-ok"}>{hard.length ? `${hard.length} check(s) failed` : <><span aria-hidden="true">✓ </span>Local checks passed</>}</span>
           </div>
           <details>
             <summary>Details</summary>
